@@ -3,10 +3,11 @@ import time
 
 import argparse
 import Adafruit_PCA9685
+# noinspection PyUnresolvedReferences
 from keras.models import load_model
 
 from pivideostream import PiVideoStream
-from const import *
+from utils.const import *
 
 
 def get_args():
@@ -24,8 +25,8 @@ class RaceOn:
         # Init engines
         # TODO: A quoi sert direction speed? ajouterhead pour initialiser
         self.speed = SPEED_FAST
-        self.direction = DIR_C
-        self.head = H_DOWN
+        self.direction = DIRECTION_C
+        self.head = HEAD_DOWN
         self.pwm = Adafruit_PCA9685.PCA9685()
         self.pwm.set_pwm_freq(50)
 
@@ -39,11 +40,11 @@ class RaceOn:
     def choose_direction(predictions):
         # TODO: Make it more modular so  it can handle 3 or 5 direction--> dictionnary or list in utils.const?
         if predictions[1] == 0:
-            return DIR_L
+            return DIRECTION_L
         elif predictions[1] == 1:
-            return DIR_C
+            return DIRECTION_C
         elif predictions[1] == 2:
-            return DIR_R
+            return DIRECTION_R
 
     @staticmethod
     def choose_speed(predictions):
@@ -54,8 +55,8 @@ class RaceOn:
     @staticmethod
     def choose_head(predictions, speed):
         if speed == SPEED_FAST and predictions[1] == 1 and predictions[0] == 1:
-            return H_UP
-        return H_DOWN
+            return HEAD_UP
+        return HEAD_DOWN
 
     def race(self):
         while True:
