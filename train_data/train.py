@@ -11,7 +11,6 @@ import keras.callbacks
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 from keras.models import Model
-from keras.layers import *
 
 import model_params_setter
 
