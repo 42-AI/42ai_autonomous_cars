@@ -75,15 +75,14 @@ class Controller:
     def controls(self):
         # Get speed label
         trigger = self.joy.rightTrigger()  # Right trigger position (values 0 to 1.0)
-        if trigger > 0:
-            if trigger < 0.8:
-                self.speed = SPEED_NORMAL
-            else:
-                self.speed = SPEED_FAST
-            self.label[0] = round(trigger, 2)
+        self.label[0] = round(trigger, 2)
+        if 1 >= trigger >= 0.8:
+            self.speed = SPEED_FAST
+        elif trigger > 0:
+            self.speed = SPEED_NORMAL
         else:
-            self.label[0] = -1
             self.speed = 0
+            self.label[0] = -1
 
         # Get direction labels
         x_cursor = self.joy.leftX()  # X-axis of the left stick (values -1.0 to 1.0)
