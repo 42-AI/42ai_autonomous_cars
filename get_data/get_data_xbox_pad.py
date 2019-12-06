@@ -1,66 +1,71 @@
-import sys
 import time
+import argparse
 
 import Adafruit_PCA9685
 import xbox
+# noinspection PyUnresolvedReferences
 from picamera import PiCamera
+# noinspection PyUnresolvedReferences
 from picamera.array import PiRGBArray
+# noinspection PyUnresolvedReferences
 from PIL import Image
 
 from utils.const import *
 
 
-class Controler(object):
-    def __init__(self):
-        self.snap = False
-        if len(sys.argv) == 2:
-            self.delay = float(sys.argv[1])
-            self.snap = True
-        else:
-            print("No Snaps, specify a delay value (float) to activate")
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("delay", type=float,
+                        help="Provide the delay between 2 capture of images.\n")
+    return parser.parse_args()
 
+
+class Controller:
+    def __init__(self, delay, pwm_freq=50, camera_framerate=60):
+        self.delay = float(delay)
         self.label = [-1, 2]
 
-        #set controls
+        # set controls
         self.pwm = Adafruit_PCA9685.PCA9685()
-        self.pwm.set_pwm_freq(50)
+        self.pwm.set_pwm_freq(pwm_freq)
 
-        # Init speed
+        # Init speed direction
         self.speed = SPEED_NORMAL
-        # Init direction
-        self.direction = DIR_C
-        
+        self.direction = DIRECTION_C
+        # why not head ?
+
         # Setup Camera
         self.camera = PiCamera()
-        self.camera.resolution = IM_SIZE
-        self.camera.framerate = 60
-        self.rawCapture = PiRGBArray(self.camera, size = IM_SIZE)
+        self.camera.resolution = IMAGE_SIZE
+        self.camera.framerate = camera_framerate
+        self.rawCapture = PiRGBArray(self.camera, size=IMAGE_SIZE)
         time.sleep(0.5)
-        
-        self.joy = xbox.Joystick()
-        
 
-    # Loop over camera frames
-    def videoLoop(self):
+        # Setup xbox pad
+        self.joy = xbox.Joystick()
+
+    def video_loop(self):
+        # Loop over camera frames
         start = time.time()
         i = 0
         for frame in self.camera.capture_continuous(self.rawCapture, format="rgb", use_video_port=True):
             # convert img as Array
             image = frame.array
             # take a pic
-            if self.label[0] != -1 and self.snap == True:
+            if self.label[0] != -1:
                 if time.time() - start > self.delay:
                     im = Image.fromarray(image, 'RGB')
                     t_stamp = time.time()
-                    picname = "/home/pi/Documents/Patate/Pics/Auto/" + str(self.label[0]) + "_" + str(self.label[1]) + "_" + str(t_stamp) + ".jpg"
-                    im.save(picname)
-                    print(str(i) + " - snap : " + picname)
+                    picture_path = "/home/pi/Documents/Patate/Pics/Auto/{}_{}_{}.jpg".format(
+                        str(self.label[0]), str(self.label[1]), str(t_stamp))
+                    im.save(picture_path)
+                    print("{} - snap : {}".format(i, picture_path))
                     i += 1
                     start = time.time()
             # Clean image before the next comes
             self.rawCapture.truncate(0)
-            
-            if self.joy.A():                   #Test state of the A button (1=pressed, 0=not pressed)
+
+            if self.joy.A():  # Test state of the A button (1=pressed, 0=not pressed)
                 self.pwm.set_pwm(0, 0, 0)
                 self.pwm.set_pwm(1, 0, 0)
                 print("Stop")
@@ -68,7 +73,8 @@ class Controler(object):
             self.controls()
 
     def controls(self):
-        trigger  = self.joy.rightTrigger() #Right trigger position (values 0 to 1.0)
+        # Get speed label
+        trigger = self.joy.rightTrigger()  # Right trigger position (values 0 to 1.0)
         if trigger > 0:
             if trigger < 0.8:
                 self.speed = SPEED_NORMAL
@@ -78,37 +84,35 @@ class Controler(object):
         else:
             self.label[0] = -1
             self.speed = 0
-        
-        cur_x = self.joy.leftX()      #X-axis of the left stick (values -1.0 to 1.0)
-        if cur_x < -0.1:
-            if cur_x < -0.8:
-                self.direction = DIR_L_M
-            else:
-                self.direction = DIR_L
-        elif cur_x > 0.1:
-            if cur_x > 0.8:
-                self.direction = DIR_R_M
-            else:
-                self.direction = DIR_R
-        else:
-            self.direction = DIR_C
-        self.label[1] = round(cur_x, 2)           
+
+        # Get direction labels
+        x_cursor = self.joy.leftX()  # X-axis of the left stick (values -1.0 to 1.0)
+        if -1 <= x_cursor < -0.8:
+            self.direction = DIRECTION_L_M
+        elif x_cursor < -0.1:
+            self.direction = DIRECTION_L
+        elif x_cursor < 0.1:
+            self.direction = DIRECTION_C
+        elif x_cursor < 0.8:
+            self.direction = DIRECTION_R
+        elif x_cursor <= 1:
+            self.direction = DIRECTION_R_M
+        self.label[1] = round(x_cursor, 2)
+
+        # Set motor direction and speed
         self.pwm.set_pwm(0, 0, self.direction)
         self.pwm.set_pwm(1, 0, self.speed)
 
+
 if __name__ == "__main__":
+    options = get_args()
     print("Press Ctrl+C to start/stop...")
     try:
-      while True:
-        pass
+        while True:
+            pass
     except KeyboardInterrupt:
-      pass
-    controler = Controler()
-    controler.videoLoop()
-    controler.joy.close()
-    controler.camera.close()
-    
-    
-
-
-
+        pass
+    controller = Controller(options.delay)
+    controller.video_loop()
+    controller.joy.close()
+    controller.camera.close()
