@@ -1,15 +1,18 @@
 import time
 
+# noinspection PyUnresolvedReferences
 from picamera.array import PiRGBArray
+# noinspection PyUnresolvedReferences
 from picamera import PiCamera
 from threading import Thread
+# noinspection PyUnresolvedReferences
 from PIL import Image
 
 from const import *
 
 
 class PiVideoStream:
-    def __init__(self, resolution=IM_SIZE, framerate=32):
+    def __init__(self, resolution=IMAGE_SIZE, framerate=32):
         # initialize the camera and stream
         self.camera = PiCamera()
         self.camera.resolution = resolution
@@ -56,7 +59,9 @@ class PiVideoStream:
         self.start()
         frame = self.read()
         img = Image.fromarray(frame)
-        img.save("test_{}.png".format(time.time()))
+        timestamp = time.time()
+        img.save("test_{}.png".format(timestamp))
+        print("An image should have been saved: test_{}.png".format(timestamp))
 
 
 if __name__ == '__main__':
