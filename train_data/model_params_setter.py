@@ -4,7 +4,7 @@ import keras.backend as K
 from keras.layers import *
 
 
-def get_params():
+def get_model_params():
     # TODO: play with models this is Model from PatateV2
 
     K.clear_session()
@@ -42,13 +42,17 @@ def get_params():
         'model_inputs': [img_in],
         'model_outputs': [out_speed, out_dir],
     }
+    return model_params
 
+
+def get_images_directory():
     dataset = "../../../../speed"
     images_directory = dataset + '/Train'
-
-    return images_directory, model_params
+    return images_directory
 
 
 if __name__ == '__main__':
-    params = get_params()
-    print(params)
+    images_directory = get_images_directory()
+    model_params = get_model_params()
+    print(images_directory)
+    print(model_params)
