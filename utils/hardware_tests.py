@@ -1,7 +1,8 @@
 """
-Aim of this file is to concentrate all tests that check if hardware working fine: motors, direction, head, camera,
-other captors...
-These tests can potentially be linked to some calibration on hardware set. In this case it should be clear.
+Aim of this file: concentrate all tests that check if hardware working fine:
+motors, direction, head, camera, other captors...
+These tests can potentially be linked to some calibration on hardware set.
+In this case it should be clear.
 """
 
 import time
