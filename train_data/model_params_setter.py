@@ -1,7 +1,7 @@
 #  Patate/Data_processing/Training/3_directions_models_Opti_speed.ipynb
 
 import keras.backend as K
-from keras.layers import *
+from keras.layers import Convolution2D, BatchNormalization, Activation, Dropout, Flatten, Input, Dense
 
 
 def get_model_params():
@@ -37,18 +37,18 @@ def get_model_params():
     out_dir = Dense(3, activation='softmax')(x)
     out_speed = Dense(2, activation='softmax')(x)
 
-    model_params = {
+    model_parameters = {
         'model_name': "model_race_speed.h5",
         'model_inputs': [img_in],
         'model_outputs': [out_speed, out_dir],
     }
-    return model_params
+    return model_parameters
 
 
 def get_images_directory():
     dataset = "../../../../speed"
-    images_directory = dataset + '/Train'
-    return images_directory
+    full_image_directory = dataset + '/Train'
+    return full_image_directory
 
 
 if __name__ == '__main__':

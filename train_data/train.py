@@ -1,17 +1,17 @@
 #  Patate/Data_processing/Training/3_directions_models_Opti_speed.ipynb
 # show_balance replaces check balance.ipynb
 
+import numpy as np
 import os
 import random
-import numpy as np
 
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 
 import keras.callbacks
+from keras.models import Model
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
-from keras.models import Model
 
 import model_params_setter
 
@@ -73,6 +73,7 @@ class TrainModel:
         self.model.fit(self.images, [self.labels_speed, self.labels_directions],
                        batch_size=64, epochs=100, validation_split=0.2,
                        verbose=1, callbacks=[best_checkpoint])
+        # TODO: use tensorboard
 
     def training_graph(self):
         history_df = pd.DataFrame(self.model.history, index=self.model.epoch)

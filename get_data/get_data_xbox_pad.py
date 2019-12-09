@@ -1,8 +1,7 @@
-import time
 import argparse
+import time
 
 import Adafruit_PCA9685
-import xbox
 # noinspection PyUnresolvedReferences
 from picamera import PiCamera
 # noinspection PyUnresolvedReferences
@@ -10,7 +9,9 @@ from picamera.array import PiRGBArray
 # noinspection PyUnresolvedReferences
 from PIL import Image
 
-from utils.const import *
+from get_data import xbox
+from utils.const import SPEED_FAST, SPEED_NORMAL, IMAGE_SIZE, \
+    DIRECTION_C, DIRECTION_L, DIRECTION_L_M, DIRECTION_R, DIRECTION_R_M
 
 
 def get_args():

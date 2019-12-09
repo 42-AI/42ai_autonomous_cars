@@ -10,8 +10,8 @@ import time
 # noinspection PyUnresolvedReferences
 import Adafruit_PCA9685
 
+from utils.const import HEAD_DOWN, HEAD_UP
 from utils.pivideostream import PiVideoStream
-import utils.const as const
 
 
 class TestHardware:
@@ -42,5 +42,5 @@ class TestHardware:
 
 if __name__ == '__main__':
     test_hardware = TestHardware()
-    test_hardware.test_head(up=const.HEAD_UP, down=const.HEAD_DOWN)
+    test_hardware.test_head(up=HEAD_UP, down=HEAD_DOWN)
     test_hardware.test_video_stream()

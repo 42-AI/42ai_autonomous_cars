@@ -1,5 +1,5 @@
-import os
 import argparse
+import os
 
 # noinspection PyUnresolvedReferences,PyUnresolvedReferences
 from PIL import Image

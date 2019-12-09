@@ -4,11 +4,11 @@ import time
 from picamera.array import PiRGBArray
 # noinspection PyUnresolvedReferences
 from picamera import PiCamera
-from threading import Thread
 # noinspection PyUnresolvedReferences
 from PIL import Image
+from threading import Thread
 
-from const import *
+from const import IMAGE_SIZE
 
 
 class PiVideoStream:
