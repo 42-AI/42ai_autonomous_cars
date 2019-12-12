@@ -8,7 +8,7 @@ from picamera import PiCamera
 from PIL import Image
 from threading import Thread
 
-from const import IMAGE_SIZE
+from const import IMAGE_SIZE, RASPBERRY_ROOT_FOLDER
 
 
 class PiVideoStream:
@@ -60,7 +60,7 @@ class PiVideoStream:
         frame = self.read()
         img = Image.fromarray(frame)
         timestamp = time.time()
-        img.save("test_{}.png".format(timestamp))
+        img.save("{}/images/tests/test_{}.png".format(timestamp))
         print("An image should have been saved: test_{}.png".format(timestamp))
 
 

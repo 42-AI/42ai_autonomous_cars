@@ -16,3 +16,7 @@ HEAD_DOWN = 120
 
 # Image size
 IMAGE_SIZE = (160, 96)  # why ?
+
+
+#PATHS
+RASPBERRY_ROOT_FOLDER="/home/pi/42ai_autonomous_cars"
