@@ -58,7 +58,7 @@ class Controller:
                     im = Image.fromarray(image, 'RGB')
                     t_stamp = time.time()
                     picture_path = "{}/images/{}_{}_{}.jpg".format(RASPBERRY_ROOT_FOLDER,
-                        str(self.label[0]), str(self.label[1]), str(t_stamp))
+                                                                   str(self.label[0]), str(self.label[1]), str(t_stamp))
                     im.save(picture_path)
                     print("{} - snap : {}".format(i, picture_path))
                     i += 1
