@@ -45,7 +45,7 @@ class Controller:
         # Setup xbox pad
         self.joy = xbox.Joystick()
 
-    def video_loop(self):
+    def video_loop(self, show_mode=False):
         # Loop over camera frames
         start = time.time()
         i = 0
@@ -60,7 +60,8 @@ class Controller:
                     picture_path = "{}/{}_{}_{}.jpg".format(GET_DATA_IMAGES_DIRECTORY,
                                                             str(self.label[0]), str(self.label[1]), str(t_stamp))
                     im.save(picture_path)
-                    print("{} - snap : {}".format(i, picture_path))
+                    if show_mode:
+                        print("{} - snap : {}".format(i, picture_path))
                     i += 1
                     start = time.time()
             # Clean image before the next comes
@@ -71,9 +72,9 @@ class Controller:
                 self.pwm.set_pwm(1, 0, 0)
                 print("Stop")
                 return
-            self.controls()
+            self.controls(show_mode)
 
-    def controls(self):
+    def controls(self, show_mode):
         # Get speed label
         trigger = self.joy.rightTrigger()  # Right trigger position (values 0 to 1.0)
         self.label[0] = round(trigger, 2)
@@ -99,6 +100,11 @@ class Controller:
             self.direction = DIRECTION_R_M
         self.label[1] = round(x_cursor, 2)
 
+        if show_mode:
+            print("""Trigger = {} and speed set to {}
+            X_cursor = {} and direction set to {}""".format(
+                trigger, self.speed, x_cursor, self.direction))
+
         # Set motor direction and speed
         self.pwm.set_pwm(0, 0, self.direction)
         self.pwm.set_pwm(1, 0, self.speed)
@@ -106,13 +112,35 @@ class Controller:
 
 if __name__ == "__main__":
     options = get_args()
-    print("Press Ctrl+C to start/stop...")
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        pass
-    controller = Controller(options.delay)
-    controller.video_loop()
-    controller.joy.close()
-    controller.camera.close()
+    controller = None
+
+    print("Are you ready to drive?")
+    starting_prompt = """Press 'go' + enter to start.
+    Press 'show' + enter to start with the printing mode.
+    Press 'q' + enter to totally stop the race.
+    """
+    racing_prompt = """Press 'q' + enter to totally stop the race\n"""
+    keep_going = True
+    started = False
+    while keep_going:
+        try:  # This is for python2
+            # noinspection PyUnresolvedReferences
+            user_input = raw_input(racing_prompt) if started else raw_input(starting_prompt)
+        except NameError:
+            user_input = input(racing_prompt) if started else input(starting_prompt)
+        if user_input == "go" and not started:
+            print("Race is on.")
+            controller = Controller(options.delay)
+            controller.video_loop(show_mode=False)
+            started = True
+        elif user_input == "show" and not started:
+            print("Race is on. test mode")
+            controller = Controller(options.delay)
+            controller.video_loop(show_mode=True)
+            started = True
+        elif user_input == "q":
+            keep_going = False
+    if controller:
+        controller.joy.close()
+        controller.camera.close()
+    print("Race is over.")

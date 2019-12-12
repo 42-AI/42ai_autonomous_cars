@@ -101,16 +101,32 @@ class RaceOn:
 if __name__ == '__main__':
     options = get_args()
     race_on = RaceOn(options.model_path)
-    print("Ready ! press CTRL+C to START/STOP :")
+    print("Are you ready ?")
 
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        pass
+    # TODO: others input could stop the motor or direct the wheels without having to reload the full model.
 
-    try:
-        race_on.race(show_pred=False)
-    except KeyboardInterrupt:
-        pass
+    starting_prompt = """Press 'go' + enter to start.
+    Press 'show' + enter to start with the printing mode.
+    Press 'q' + enter to totally stop the race.
+    """
+    racing_prompt = """Press 'q' + enter to totally stop the race\n"""
+    keep_going = True
+    started = False
+    while keep_going:
+        try:  # This is for python2
+            # noinspection PyUnresolvedReferences
+            user_input = raw_input(racing_prompt) if started else raw_input(starting_prompt)
+        except NameError:
+            user_input = input(racing_prompt) if started else input(starting_prompt)
+        if user_input == "go" and not started:
+            print("Race is on.")
+            race_on.race(show_pred=False)
+            started = True
+        elif user_input == "show" and not started:
+            print("Race is on. test mode")
+            race_on.race(show_pred=True)
+            started = True
+        elif user_input == "q":
+            keep_going = False
     race_on.stop()
+    print("Race is over.")
