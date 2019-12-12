@@ -8,7 +8,7 @@ from keras.models import load_model
 
 from pivideostream import PiVideoStream
 from utils.const import SPEED_NORMAL, SPEED_FAST, HEAD_UP, HEAD_DOWN, \
-    DIRECTION_R, DIRECTION_L, DIRECTION_C
+    DIRECTION_R, DIRECTION_L, DIRECTION_C, DIRECTION_L_M, DIRECTION_R_M
 
 
 def get_args():
@@ -36,16 +36,21 @@ class RaceOn:
         time.sleep(2)
         self.video_stream.test()
         self.frame = self.video_stream.read()
+        print("RaceOn initialized")
 
     @staticmethod
     def choose_direction(predictions):
         # TODO: Make it more modular so  it can handle 3 or 5 direction--> dictionnary or list in utils.const?
         if predictions[1] == 0:
-            return DIRECTION_L
+            return DIRECTION_L_M
         elif predictions[1] == 1:
-            return DIRECTION_C
+            return DIRECTION_L
         elif predictions[1] == 2:
+            return DIRECTION_C
+        elif predictions[1] == 3:
             return DIRECTION_R
+        elif predictions[1] == 4:
+            return DIRECTION_R_M
 
     @staticmethod
     def choose_speed(predictions):
@@ -59,7 +64,8 @@ class RaceOn:
             return HEAD_UP
         return HEAD_DOWN
 
-    def race(self):
+    def race(self, show_pred=False):
+        speed = SPEED_NORMAL
         while True:
             # Grab the self.frame from the threaded video stream
             self.frame = self.video_stream.read()
@@ -71,8 +77,12 @@ class RaceOn:
 
             # Decide action
             direction = self.choose_direction(predictions)
-            speed = self.choose_speed(predictions)
             head = self.choose_head(predictions, speed)
+            speed = self.choose_speed(predictions)
+
+            if show_pred:
+                print("""Predictions = {}
+                Direction = {}, Head = {}, Speed = {}""".format(predictions, direction, head, speed))
 
             # Apply values to engines
             self.pwm.set_pwm(0, 0, direction)
@@ -100,7 +110,7 @@ if __name__ == '__main__':
         pass
 
     try:
-        race_on.race()
+        race_on.race(show_pred=False)
     except KeyboardInterrupt:
         pass
     race_on.stop()
