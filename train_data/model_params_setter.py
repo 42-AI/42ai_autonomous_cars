@@ -45,14 +45,6 @@ def get_model_params():
     return model_parameters
 
 
-def get_images_directory():
-    dataset = "../../../../speed"
-    full_image_directory = dataset + '/Train'
-    return full_image_directory
-
-
 if __name__ == '__main__':
-    images_directory = get_images_directory()
     model_params = get_model_params()
-    print(images_directory)
     print(model_params)

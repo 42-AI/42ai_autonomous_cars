@@ -18,5 +18,12 @@ HEAD_DOWN = 120
 IMAGE_SIZE = (160, 96)  # why ?
 
 
-# PATHS
-RASPBERRY_ROOT_FOLDER = "/home/pi/42ai_autonomous_cars"
+# RASPBERRY PATHS
+RASPBERRY_ROOT_DIRECTORY = "/home/pi/42ai_autonomous_cars"
+HARDWARE_TEST_IMAGES_DIRECTORY = RASPBERRY_ROOT_DIRECTORY + "images/tests"
+GET_DATA_IMAGES_DIRECTORY = RASPBERRY_ROOT_DIRECTORY + "images/get_data_images"
+
+
+# COMPUTER PATHS
+TRAINING_IMAGES_DIRECTORY = "images/training_set_images"
+VALIDATION_IMAGES_DIRECTORY = "images/validation_set_images"

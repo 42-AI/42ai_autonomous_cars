@@ -11,7 +11,7 @@ from PIL import Image
 
 from get_data import xbox
 from utils.const import SPEED_FAST, SPEED_NORMAL, IMAGE_SIZE, \
-    DIRECTION_C, DIRECTION_L, DIRECTION_L_M, DIRECTION_R, DIRECTION_R_M, RASPBERRY_ROOT_FOLDER
+    DIRECTION_C, DIRECTION_L, DIRECTION_L_M, DIRECTION_R, DIRECTION_R_M, GET_DATA_IMAGES_DIRECTORY
 
 
 def get_args():
@@ -57,8 +57,8 @@ class Controller:
                 if time.time() - start > self.delay:
                     im = Image.fromarray(image, 'RGB')
                     t_stamp = time.time()
-                    picture_path = "{}/images/{}_{}_{}.jpg".format(RASPBERRY_ROOT_FOLDER,
-                                                                   str(self.label[0]), str(self.label[1]), str(t_stamp))
+                    picture_path = "{}/{}_{}_{}.jpg".format(GET_DATA_IMAGES_DIRECTORY,
+                                                            str(self.label[0]), str(self.label[1]), str(t_stamp))
                     im.save(picture_path)
                     print("{} - snap : {}".format(i, picture_path))
                     i += 1

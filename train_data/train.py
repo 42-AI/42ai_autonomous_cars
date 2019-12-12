@@ -14,6 +14,7 @@ from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 
 import model_params_setter
+from utils.const import TRAINING_IMAGES_DIRECTORY, VALIDATION_IMAGES_DIRECTORY
 
 
 class TrainModel:
@@ -93,12 +94,10 @@ class TrainModel:
 
 
 if __name__ == '__main__':
-    images_directory = model_params_setter.get_images_directory()
     model_parameters = model_params_setter.get_model_params()
     train_model = TrainModel(model_parameters)
-    train_model.load_images(images_directory, show_test=True, show_balance=True)
+    train_model.load_images(TRAINING_IMAGES_DIRECTORY, show_test=True, show_balance=True)
     train_model.train()
     train_model.training_graph()
-    images_directory = model_params_setter.get_images_directory()  # TODO: separate training and validation
-    train_model.load_images(images_directory, show_test=True, show_balance=False)
+    train_model.load_images(VALIDATION_IMAGES_DIRECTORY, show_test=True, show_balance=False)
     train_model.predict()
