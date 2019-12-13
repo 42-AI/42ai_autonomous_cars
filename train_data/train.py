@@ -14,7 +14,7 @@ from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 
 import model_params_setter
-from utils.const import TRAINING_IMAGES_DIRECTORY, VALIDATION_IMAGES_DIRECTORY
+from utils.path import TRAINING_IMAGES_DIRECTORY, VALIDATION_IMAGES_DIRECTORY
 
 
 class TrainModel:

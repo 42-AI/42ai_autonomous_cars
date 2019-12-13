@@ -8,7 +8,8 @@ from picamera import PiCamera
 from PIL import Image
 from threading import Thread
 
-from const import IMAGE_SIZE, HARDWARE_TEST_IMAGES_DIRECTORY
+from const import IMAGE_SIZE
+from path import HARDWARE_TEST_IMAGES_DIRECTORY
 
 
 class PiVideoStream:

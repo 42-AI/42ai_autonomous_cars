@@ -1,5 +1,6 @@
 #  Patate/Data_processing/Training/3_directions_models_Opti_speed.ipynb
 
+# noinspection PyPep8Naming
 import keras.backend as K
 from keras.layers import Convolution2D, BatchNormalization, Activation, Dropout, Flatten, Input, Dense
 

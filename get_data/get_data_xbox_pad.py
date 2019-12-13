@@ -11,7 +11,8 @@ from PIL import Image
 
 from get_data import xbox
 from utils.const import SPEED_FAST, SPEED_NORMAL, IMAGE_SIZE, \
-    DIRECTION_C, DIRECTION_L, DIRECTION_L_M, DIRECTION_R, DIRECTION_R_M, GET_DATA_IMAGES_DIRECTORY
+    DIRECTION_C, DIRECTION_L, DIRECTION_L_M, DIRECTION_R, DIRECTION_R_M
+from utils.path import DATA_IMAGES_DIRECTORY
 
 
 def get_args():
@@ -57,7 +58,7 @@ class Controller:
                 if time.time() - start > self.delay:
                     im = Image.fromarray(image, 'RGB')
                     t_stamp = time.time()
-                    picture_path = "{}/{}_{}_{}.jpg".format(GET_DATA_IMAGES_DIRECTORY,
+                    picture_path = "{}/{}_{}_{}.jpg".format(DATA_IMAGES_DIRECTORY,
                                                             str(self.label[0]), str(self.label[1]), str(t_stamp))
                     im.save(picture_path)
                     if show_mode:
