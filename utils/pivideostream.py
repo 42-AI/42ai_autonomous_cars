@@ -9,6 +9,7 @@ from PIL import Image
 from threading import Thread
 
 from const import IMAGE_SIZE
+from path import HARDWARE_TEST_IMAGES_DIRECTORY
 
 
 class PiVideoStream:
@@ -60,7 +61,7 @@ class PiVideoStream:
         frame = self.read()
         img = Image.fromarray(frame)
         timestamp = time.time()
-        img.save("test_{}.png".format(timestamp))
+        img.save("{}/tests/test_{}.png".format(HARDWARE_TEST_IMAGES_DIRECTORY, timestamp))
         print("An image should have been saved: test_{}.png".format(timestamp))
 
 

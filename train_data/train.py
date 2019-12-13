@@ -14,6 +14,7 @@ from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 
 import model_params_setter
+from utils.path import TRAINING_IMAGES_DIRECTORY, VALIDATION_IMAGES_DIRECTORY
 
 
 class TrainModel:
@@ -36,7 +37,7 @@ class TrainModel:
         print(labels_speed_df.value_counts(), labels_speed_df.describe())
         labels_directions_df = pd.Series(self.labels_directions)
         print(labels_directions_df.value_counts(), labels_directions_df.describe())
-        # TODO: make graphs?
+        # TODO (pclement): make graphs?
 
     def load_images(self, images_dir, show_test=True, show_balance=False):
         images, labels_speed, labels_directions = [], [], []
@@ -73,14 +74,14 @@ class TrainModel:
         self.model.fit(self.images, [self.labels_speed, self.labels_directions],
                        batch_size=64, epochs=100, validation_split=0.2,
                        verbose=1, callbacks=[best_checkpoint])
-        # TODO: use tensorboard
+        # TODO (pclement): use tensorboard
 
     def training_graph(self):
         history_df = pd.DataFrame(self.model.history, index=self.model.epoch)
         history_df.plot(ylim=(0, 1))
 
     def predict(self):
-        # Todo: split training and prediciton image? so you can get list of images used to train --> see how db works.
+        # TODO (pclement): split training/prediciton images? to get list of images used to train (see how db works.)
         predictions = self.model.predict(self.images)
         speed_preds = []
         for elem in predictions[0]:
@@ -88,17 +89,15 @@ class TrainModel:
         dir_preds = []
         for elem in predictions[1]:
             dir_preds.append(np.argmax(elem))
-        # TODO: use vecorized numpy method to define those
+        # TODO (pclement): use vecorized numpy method to define those
         return predictions, np.array(speed_preds), np.array(dir_preds)
 
 
 if __name__ == '__main__':
-    images_directory = model_params_setter.get_images_directory()
     model_parameters = model_params_setter.get_model_params()
     train_model = TrainModel(model_parameters)
-    train_model.load_images(images_directory, show_test=True, show_balance=True)
+    train_model.load_images(TRAINING_IMAGES_DIRECTORY, show_test=True, show_balance=True)
     train_model.train()
     train_model.training_graph()
-    images_directory = model_params_setter.get_images_directory()  # TODO: separate training and validation
-    train_model.load_images(images_directory, show_test=True, show_balance=False)
+    train_model.load_images(VALIDATION_IMAGES_DIRECTORY, show_test=True, show_balance=False)
     train_model.predict()

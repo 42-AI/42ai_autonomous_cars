@@ -1,11 +1,12 @@
 #  Patate/Data_processing/Training/3_directions_models_Opti_speed.ipynb
 
+# noinspection PyPep8Naming
 import keras.backend as K
 from keras.layers import Convolution2D, BatchNormalization, Activation, Dropout, Flatten, Input, Dense
 
 
 def get_model_params():
-    # TODO: play with models this is Model from PatateV2
+    # TODO (pclement): play with models this is Model from PatateV2
 
     K.clear_session()
     img_in = Input(shape=(96, 160, 3), name='img_in')
@@ -45,14 +46,6 @@ def get_model_params():
     return model_parameters
 
 
-def get_images_directory():
-    dataset = "../../../../speed"
-    full_image_directory = dataset + '/Train'
-    return full_image_directory
-
-
 if __name__ == '__main__':
-    images_directory = get_images_directory()
     model_params = get_model_params()
-    print(images_directory)
     print(model_params)
