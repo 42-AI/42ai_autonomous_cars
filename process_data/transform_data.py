@@ -16,8 +16,8 @@ class TransformData:
     def __init__(self, dir_path):
         self.dir_path = dir_path
 
-    # TODO: For all, make it modular, define a target_directory where you copy renamed data (avoid loosing raw data)
-    # TODO: Use a dictionnary with speed, direction head rather than list that makes code inconsistent
+    # TODO (pclement): For all, make it modular, define a target_directory where you copy renamed data (avoid loosing raw data)
+    # TODO (pclement): Use a dictionnary with speed, direction head rather than list that makes code inconsistent
     #  + ideally just amend the database once images stored in S3
 
     def five_to_three(self):
@@ -34,7 +34,7 @@ class TransformData:
                           os.path.join(self.dir_path, "{}_2_{}".format(filename_array[0], filename_array[2])))
 
     def reverse_n(self, n=3):
-        # TODO : why reverse 3 has elemtab ==2 and elm_tab ==3 ???
+        # TODO (pclement) : why reverse 3 has elemtab ==2 and elm_tab ==3 ???
         for filename in os.listdir(self.dir_path):
             filename_array = filename.split("_")
             img = Image.open(os.path.join(self.dir_path, filename))
@@ -62,9 +62,9 @@ class TransformData:
             os.rename(os.path.join(self.dir_path, filename), os.path.join(self.dir_path, filename[2:]))
 
     def rename_float_tags(self):
-        # TODO no checks on name_array but we want to create a file separately. And use dictionnary to have clear names
-        # TODO make the thresholds modulars
-        # TODO WHY is the direction center so close to 0. could it be -0.1, 0.1?
+        # TODO (pclement) no checks on name_array but we want to create a file separately. And use dictionnary to have clear names
+        # TODO (pclement) make the thresholds modulars
+        # TODO (pclement) WHY is the direction center so close to 0. could it be -0.1, 0.1?
         for filename in os.listdir(self.dir_path):
             filename_array = filename.split("_")
             speed = 0

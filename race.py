@@ -24,7 +24,7 @@ class RaceOn:
         self.model = load_model(model_path)
 
         # Init engines
-        # TODO: A quoi sert direction speed? ajouterhead pour initialiser
+        # TODO (pclement): A quoi sert direction speed? ajouterhead pour initialiser
         self.speed = SPEED_FAST
         self.direction = DIRECTION_C
         self.head = HEAD_DOWN
@@ -40,7 +40,7 @@ class RaceOn:
 
     @staticmethod
     def choose_direction(predictions):
-        # TODO: Make it more modular so  it can handle 3 or 5 direction--> dictionnary or list in utils.const?
+        # TODO (pclement): Make it more modular so  it can handle 3 or 5 direction--> dictionnary or list in utils.const?
         if predictions[1] == 0:
             return DIRECTION_L_M
         elif predictions[1] == 1:
@@ -89,7 +89,7 @@ class RaceOn:
             self.pwm.set_pwm(1, 0, speed)
             self.pwm.set_pwm(2, 0, head)
 
-    # TODO reinitialize to init values
+    # TODO (pclement) reinitialize to init values
     def stop(self):
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     race_on = RaceOn(options.model_path)
     print("Are you ready ?")
 
-    # TODO: others input could stop the motor or direct the wheels without having to reload the full model.
+    # TODO (pclement): others input could stop the motor or direct the wheels without having to reload the full model.
 
     starting_prompt = """Press 'go' + enter to start.
     Press 'show' + enter to start with the printing mode.

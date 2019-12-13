@@ -6,7 +6,7 @@ from keras.layers import Convolution2D, BatchNormalization, Activation, Dropout,
 
 
 def get_model_params():
-    # TODO: play with models this is Model from PatateV2
+    # TODO (pclement): play with models this is Model from PatateV2
 
     K.clear_session()
     img_in = Input(shape=(96, 160, 3), name='img_in')
