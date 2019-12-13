@@ -20,6 +20,9 @@ def get_args():
 
 class RaceOn:
     def __init__(self, model_path):
+        # Racing_status
+        self.racing = False
+
         # Load model
         self.model = load_model(model_path)
 
@@ -40,7 +43,7 @@ class RaceOn:
 
     @staticmethod
     def choose_direction(predictions):
-        # TODO (pclement): Make it more modular so  it can handle 3 or 5 direction--> dictionnary or list in utils.const?
+        # TODO (pclement): Make it more modular so it can handle 3 or 5 direction--> dictionnary or list in utils.const?
         if predictions[1] == 0:
             return DIRECTION_L_M
         elif predictions[1] == 1:
@@ -66,7 +69,8 @@ class RaceOn:
 
     def race(self, show_pred=False):
         speed = SPEED_NORMAL
-        while True:
+        self.racing = True
+        while self.racing:
             # Grab the self.frame from the threaded video stream
             self.frame = self.video_stream.read()
             image = np.array([self.frame]) / 255.0
@@ -91,6 +95,7 @@ class RaceOn:
 
     # TODO (pclement) reinitialize to init values
     def stop(self):
+        self.racing = False
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
         self.pwm.set_pwm(2, 0, 0)
@@ -100,33 +105,39 @@ class RaceOn:
 
 if __name__ == '__main__':
     options = get_args()
-    race_on = RaceOn(options.model_path)
-    print("Are you ready ?")
+    race_on = None
+    try:
+        race_on = RaceOn(options.model_path)
+        print("Are you ready ?")
 
-    # TODO (pclement): others input could stop the motor or direct the wheels without having to reload the full model.
+        # TODO (pclement): other inputs to stop the motor & direct the wheels without having to reload the full model.
 
-    starting_prompt = """Press 'go' + enter to start.
-    Press 'show' + enter to start with the printing mode.
-    Press 'q' + enter to totally stop the race.
-    """
-    racing_prompt = """Press 'q' + enter to totally stop the race\n"""
-    keep_going = True
-    started = False
-    while keep_going:
-        try:  # This is for python2
-            # noinspection PyUnresolvedReferences
-            user_input = raw_input(racing_prompt) if started else raw_input(starting_prompt)
-        except NameError:
-            user_input = input(racing_prompt) if started else input(starting_prompt)
-        if user_input == "go" and not started:
-            print("Race is on.")
-            race_on.race(show_pred=False)
-            started = True
-        elif user_input == "show" and not started:
-            print("Race is on. test mode")
-            race_on.race(show_pred=True)
-            started = True
-        elif user_input == "q":
-            keep_going = False
-    race_on.stop()
-    print("Race is over.")
+        starting_prompt = """Press 'go' + enter to start.
+        Press 'show' + enter to start with the printing mode.
+        Press 'q' + enter to totally stop the race.
+        """
+        racing_prompt = """Press 'q' + enter to totally stop the race\n"""
+        keep_going = True
+        started = False
+        while keep_going:
+            try:  # This is for python2
+                # noinspection PyUnresolvedReferences
+                user_input = raw_input(racing_prompt) if started else raw_input(starting_prompt)
+            except NameError:
+                user_input = input(racing_prompt) if started else input(starting_prompt)
+            if user_input == "go" and not started:
+                print("Race is on.")
+                race_on.race(show_pred=False)
+                started = True
+            elif user_input == "show" and not started:
+                print("Race is on. test mode")
+                race_on.race(show_pred=True)
+                started = True
+            elif user_input == "q":
+                keep_going = False
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if race_on:
+            race_on.stop()
+        print("Race is over.")

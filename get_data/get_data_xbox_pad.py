@@ -123,25 +123,30 @@ if __name__ == "__main__":
     racing_prompt = """Press 'q' + enter to totally stop the race\n"""
     keep_going = True
     started = False
-    while keep_going:
-        try:  # This is for python2
-            # noinspection PyUnresolvedReferences
-            user_input = raw_input(racing_prompt) if started else raw_input(starting_prompt)
-        except NameError:
-            user_input = input(racing_prompt) if started else input(starting_prompt)
-        if user_input == "go" and not started:
-            print("Race is on.")
-            controller = Controller(options.delay)
-            controller.video_loop(show_mode=False)
-            started = True
-        elif user_input == "show" and not started:
-            print("Race is on. test mode")
-            controller = Controller(options.delay)
-            controller.video_loop(show_mode=True)
-            started = True
-        elif user_input == "q":
-            keep_going = False
-    if controller:
-        controller.joy.close()
-        controller.camera.close()
-    print("Race is over.")
+
+    try:
+        while keep_going:
+            try:  # This is for python2
+                # noinspection PyUnresolvedReferences
+                user_input = raw_input(racing_prompt) if started else raw_input(starting_prompt)
+            except NameError:
+                user_input = input(racing_prompt) if started else input(starting_prompt)
+            if user_input == "go" and not started:
+                print("Race is on.")
+                controller = Controller(options.delay)
+                controller.video_loop(show_mode=False)
+                started = True
+            elif user_input == "show" and not started:
+                print("Race is on. test mode")
+                controller = Controller(options.delay)
+                controller.video_loop(show_mode=True)
+                started = True
+            elif user_input == "q":
+                keep_going = False
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if controller:
+            controller.joy.close()
+            controller.camera.close()
+        print("Race is over.")

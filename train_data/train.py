@@ -81,7 +81,7 @@ class TrainModel:
         history_df.plot(ylim=(0, 1))
 
     def predict(self):
-        # TODO (pclement): split training and prediciton image? so you can get list of images used to train --> see how db works.
+        # TODO (pclement): split training/prediciton images? to get list of images used to train (see how db works.)
         predictions = self.model.predict(self.images)
         speed_preds = []
         for elem in predictions[0]:
