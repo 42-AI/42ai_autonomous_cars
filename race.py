@@ -78,7 +78,9 @@ class RaceOn:
     def race_trial(self, buff_size=100):
         self.buffer = deque(maxlen=buff_size)
         self.start_time = time.time()
-        while True:
+        self.racing = True
+        self.nb_pred = 0
+        while self.racing:
             # Grab the self.frame from the threaded video stream
             self.frame = self.video_stream.read()
             sample = {"array": self.frame}
@@ -99,11 +101,14 @@ class RaceOn:
             # Apply values to engines
             self.pwm.set_pwm(0, 0, direction)
             self.pwm.set_pwm(1, 0, speed)
+            self.pwm.set_pwm(2, 0, head)
             self.nb_pred += 1
 
     def race(self, show_pred=False):
         speed = SPEED_NORMAL
+        self.start_time = time.time()
         self.racing = True
+        self.nb_pred = 0
         while self.racing:
         # Grab the self.frame from the threaded video stream
             self.frame = self.video_stream.read()
@@ -189,6 +194,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     finally:
-        if race_on:
+        if race_on is not None:
             race_on.stop()
         print("Race is over.")
