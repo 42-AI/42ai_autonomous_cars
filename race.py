@@ -3,7 +3,6 @@ import numpy as np
 import time
 from PIL import Image
 from collections import deque
-from pathlib import Path
 
 import Adafruit_PCA9685
 # noinspection PyUnresolvedReferences
@@ -94,7 +93,7 @@ class RaceOn:
             direction = self.choose_direction(predictions)
             speed = self.choose_speed(predictions)
             head = self.choose_head(predictions, speed)
-            sample["direction"] = predictions[1]
+            sample["direction"] = predictions[1][0]
             sample["speed"] = 1 if speed == SPEED_FAST else 0
             self.buffer.append(sample)
 
@@ -148,12 +147,12 @@ class RaceOn:
 
         # Write buffer
         if self.buffer is not None and len(self.buffer) > 0:
-            output_folder = Path("output")
+            output_folder = "output/"
             print('Saving buffer pictures to : "{}"'.format(output_folder))
             for i, img in enumerate(self.buffer):
-                pic_file = Path('{}_{}_image{}.jpg'.format(img["speed"], img["direction"], i))
+                pic_file = '{}_{}_image{}.jpg'.format(img["speed"], img["direction"], i)
                 pic = Image.fromarray(img["array"], 'RGB')
-                pic.save(output_folder / pic_file)
+                pic.save("{}{}".format(output_folder, pic_file))
             print('{} pictures saved.'.format(i + 1))
         print("Stop")
 
