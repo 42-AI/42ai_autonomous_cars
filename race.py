@@ -75,12 +75,12 @@ class RaceOn:
             return HEAD_UP
         return HEAD_DOWN
 
-    # def race_trial(self, buff_size=100):
     def race(self, debug=0, buff_size=100):
         self.buffer = deque(maxlen=buff_size)
         self.start_time = time.time()
         self.racing = True
         self.nb_pred = 0
+        sampling = 0
         while self.racing:
             # Grab the self.frame from the threaded video stream
             self.frame = self.video_stream.read()
@@ -95,7 +95,9 @@ class RaceOn:
             speed = self.choose_speed(predictions)
             head = self.choose_head(predictions, speed)
 
-            if debug > 0:
+            # Debug mode
+            if debug > 0 and sampling > 3:
+                sampling = -1
                 sample = {
                     "array": self.frame,
                     "direction": predictions[1][0],
@@ -111,35 +113,7 @@ class RaceOn:
             self.pwm.set_pwm(1, 0, speed)
             self.pwm.set_pwm(2, 0, head)
             self.nb_pred += 1
-
-    def race_OLD(self, show_pred=False):
-        speed = SPEED_NORMAL
-        self.start_time = time.time()
-        self.racing = True
-        self.nb_pred = 0
-        while self.racing:
-            # Grab the self.frame from the threaded video stream
-            self.frame = self.video_stream.read()
-            image = np.array([self.frame]) / 255.0  # [jj] Do we need to create a new array ? img = self.frame / 255. ?
-
-            # Get model prediction
-            predictions_raw = self.model.predict(image)
-            predictions = [np.argmax(pred, axis=1) for pred in predictions_raw]  # Why ?
-
-            # Decide action
-            direction = self.choose_direction(predictions)
-            head = self.choose_head(predictions, speed)
-            speed = self.choose_speed(predictions)
-
-            if show_pred:
-                print("""Predictions = {}
-                Direction = {}, Head = {}, Speed = {}""".format(predictions, direction, head, speed))
-
-            # Apply values to engines
-            self.pwm.set_pwm(0, 0, direction)
-            self.pwm.set_pwm(1, 0, speed)
-            self.pwm.set_pwm(2, 0, head)
-            self.nb_pred += 1
+            sampling += 1
 
     # TODO (pclement) reinitialize to init values
     def stop(self):
@@ -158,7 +132,7 @@ class RaceOn:
         if self.buffer is not None and len(self.buffer) > 0:
             print('Saving buffer pictures to : "{}"'.format(OUTPUT_DIRECTORY))
             for i, img in enumerate(self.buffer):
-                pic_file = '{}_{}_image{}.jpg'.format(img["speed"], img["direction"], i)
+                pic_file = '{}_image{}_{}_{}.jpg'.format(self.start_time, i, img["speed"], img["direction"])
                 pic = Image.fromarray(img["array"], 'RGB')
                 pic.save("{}{}".format(OUTPUT_DIRECTORY, pic_file))
             print('{} pictures saved.'.format(i + 1))
