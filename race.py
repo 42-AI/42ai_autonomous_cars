@@ -11,6 +11,7 @@ from keras.models import load_model
 from utils.pivideostream import PiVideoStream
 from utils.const import SPEED_NORMAL, SPEED_FAST, HEAD_UP, HEAD_DOWN, \
     DIRECTION_R, DIRECTION_L, DIRECTION_C, DIRECTION_L_M, DIRECTION_R_M
+from utils.path import OUTPUT_DIRECTORY
 
 
 def get_args():
@@ -74,7 +75,8 @@ class RaceOn:
             return HEAD_UP
         return HEAD_DOWN
 
-    def race_trial(self, buff_size=100):
+    # def race_trial(self, buff_size=100):
+    def race(self, debug=0, buff_size=100):
         self.buffer = deque(maxlen=buff_size)
         self.start_time = time.time()
         self.racing = True
@@ -82,7 +84,6 @@ class RaceOn:
         while self.racing:
             # Grab the self.frame from the threaded video stream
             self.frame = self.video_stream.read()
-            sample = {"array": self.frame}
             image = np.array([self.frame]) / 255.0  # [jj] Do we need to create a new array ? img = self.frame / 255. ?
 
             # Get model prediction
@@ -93,9 +94,17 @@ class RaceOn:
             direction = self.choose_direction(predictions)
             speed = self.choose_speed(predictions)
             head = self.choose_head(predictions, speed)
-            sample["direction"] = predictions[1][0]
-            sample["speed"] = 1 if speed == SPEED_FAST else 0
-            self.buffer.append(sample)
+
+            if debug > 0:
+                sample = {
+                    "array": self.frame,
+                    "direction": predictions[1][0],
+                    "speed": 1 if speed == SPEED_FAST else 0
+                }
+                self.buffer.append(sample)
+                if debug > 1:
+                    print("Predictions = {}, Direction = {}, Head = {}, Speed = {}".format(
+                        predictions, direction, head, speed))
 
             # Apply values to engines
             self.pwm.set_pwm(0, 0, direction)
@@ -103,13 +112,13 @@ class RaceOn:
             self.pwm.set_pwm(2, 0, head)
             self.nb_pred += 1
 
-    def race(self, show_pred=False):
+    def race_OLD(self, show_pred=False):
         speed = SPEED_NORMAL
         self.start_time = time.time()
         self.racing = True
         self.nb_pred = 0
         while self.racing:
-        # Grab the self.frame from the threaded video stream
+            # Grab the self.frame from the threaded video stream
             self.frame = self.video_stream.read()
             image = np.array([self.frame]) / 255.0  # [jj] Do we need to create a new array ? img = self.frame / 255. ?
 
@@ -147,12 +156,11 @@ class RaceOn:
 
         # Write buffer
         if self.buffer is not None and len(self.buffer) > 0:
-            output_folder = "output/"
-            print('Saving buffer pictures to : "{}"'.format(output_folder))
+            print('Saving buffer pictures to : "{}"'.format(OUTPUT_DIRECTORY))
             for i, img in enumerate(self.buffer):
                 pic_file = '{}_{}_image{}.jpg'.format(img["speed"], img["direction"], i)
                 pic = Image.fromarray(img["array"], 'RGB')
-                pic.save("{}{}".format(output_folder, pic_file))
+                pic.save("{}{}".format(OUTPUT_DIRECTORY, pic_file))
             print('{} pictures saved.'.format(i + 1))
         print("Stop")
 
@@ -167,7 +175,7 @@ if __name__ == '__main__':
         # TODO (pclement): other inputs to stop the motor & direct the wheels without having to reload the full model.
 
         starting_prompt = """Press 'go' + enter to start.
-        Press 'show' + enter to start with the printing mode.
+        Press 'debug=$LEVEL_VAL' + enter to start in debug mode of level LEVEL_VAL (ex: debug=1)
         Press 'q' + enter to totally stop the race.
         """
         racing_prompt = """Press 'q' + enter to totally stop the race\n"""
@@ -181,12 +189,12 @@ if __name__ == '__main__':
                 user_input = input(racing_prompt) if started else input(starting_prompt)
             if user_input == "go" and not started:
                 print("Race is on.")
-                race_on.race(show_pred=False)
+                race_on.race(debug=0)
                 started = True
-            elif user_input == "show" and not started:
-                print("Race is on. test mode")
-                race_on.race_trial()
-                # race_on.race(show_pred=True)
+            elif user_input[:6] == "debug=" and not started:
+                debug_lvl = int(user_input.split("=")[1])
+                print("Race is on in Debug mode level {}".format(debug_lvl))
+                race_on.race(debug=debug_lvl)
                 started = True
             elif user_input == "q":
                 keep_going = False
