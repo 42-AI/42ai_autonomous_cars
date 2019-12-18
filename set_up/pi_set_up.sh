@@ -10,7 +10,7 @@ then
     bash ~/miniconda.sh -b -p ~/miniconda
     rm ~/miniconda.sh
     export PATH=~/miniconda/bin:$PATH
-    echo "Mini conda installed"
+    echo "Miniconda installed"
 fi
 
 # Check for xbox driver and python-picamera
@@ -19,12 +19,10 @@ sudo apt-get install xboxdrv
 sudo apt-get install python3-picamera
 
 conda update conda
-conda env remove -n patate-env
-conda env create -n patate-env python=3.7 -f ./patate-env.yml
-conda activate patate-env
-sudo pip install picamera
+conda env remove -n patate_py353
+conda env create --file ./patate_py353.yml
 
-echo "patate-env activated"
+echo "patate_py353 env created."
 
 ## XboxControler:
 # sudo apt-get install xboxdrv

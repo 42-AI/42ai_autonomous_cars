@@ -1,4 +1,4 @@
-name: patate-env
+name: patate_py373
 channels:
   - conda-forge
   - defaults
@@ -94,4 +94,4 @@ dependencies:
     - adafruit-gpio==1.0.3
     - adafruit-pca9685==1.0.1
     - adafruit-pureio==1.0.4
-prefix: /usr/local/Caskroom/miniconda/base/envs/patate-env
+prefix: /usr/local/Caskroom/miniconda/base/envs/patate_py373
