@@ -4,7 +4,7 @@
 # Run this script from the utils folder like this: source desktop_set_up.sh
 
 
-if [ ! -e /usr/local/bin/conda ]
+if [[ ! -e /usr/local/bin/conda ]]
 then
     brew cask install miniconda
     conda config --add channels conda-forge
