@@ -63,7 +63,7 @@ class RaceOn:
 
     @staticmethod
     def choose_speed(predictions):
-        if predictions[1] == 1 and predictions[0] == 1:
+        if predictions[1] == 2 and predictions[0] == 1:
             return SPEED_FAST
         return SPEED_NORMAL
 
