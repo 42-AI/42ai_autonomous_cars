@@ -18,8 +18,6 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("model_path", type=str,
                         help="Provide the model path.\n")
-    parser.add_argument("-t", "--trial", action="store_true",
-                        help="Run in trail mode: record las 'buff_size' picture and measure pred rate.\n")
     return parser.parse_args()
 
 
@@ -69,9 +67,8 @@ class RaceOn:
             return SPEED_FAST
         return SPEED_NORMAL
 
-    @staticmethod
-    def choose_head(predictions, speed):
-        if speed == SPEED_FAST and predictions[1] == 1 and predictions[0] == 1:
+    def choose_head(self, predictions, speed):
+        if speed == self.choose_speed(predictions) == SPEED_FAST:
             return HEAD_UP
         return HEAD_DOWN
 
@@ -81,6 +78,7 @@ class RaceOn:
         self.racing = True
         self.nb_pred = 0
         sampling = 0
+        speed = SPEED_NORMAL
         while self.racing:
             # Grab the self.frame from the threaded video stream
             self.frame = self.video_stream.read()
@@ -92,8 +90,8 @@ class RaceOn:
 
             # Decide action
             direction = self.choose_direction(predictions)
-            speed = self.choose_speed(predictions)
             head = self.choose_head(predictions, speed)
+            speed = self.choose_speed(predictions)
 
             # Debug mode
             if debug > 0 and sampling > 3:
@@ -141,6 +139,7 @@ class RaceOn:
 
 if __name__ == '__main__':
     options = get_args()
+    debug_mode_list = [1, 2]
     race_on = None
     try:
         race_on = RaceOn(options.model_path)
@@ -148,10 +147,10 @@ if __name__ == '__main__':
 
         # TODO (pclement): other inputs to stop the motor & direct the wheels without having to reload the full model.
 
-        starting_prompt = """Press 'go' + enter to start.
-        Press 'debug=$LEVEL_VAL' + enter to start in debug mode of level LEVEL_VAL (ex: debug=1)
-        Press 'q' + enter to totally stop the race.
-        """
+        starting_prompt = """Type 'go' to start.
+        Type 'debug=$LEVEL_VAL' to start in debug mode of level LEVEL_VAL (LEVEL_VAL can be {})
+        Type 'q' to totally stop the race.
+        """.format(debug_mode_list)
         racing_prompt = """Press 'q' + enter to totally stop the race\n"""
         keep_going = True
         started = False
@@ -167,6 +166,8 @@ if __name__ == '__main__':
                 started = True
             elif user_input[:6] == "debug=" and not started:
                 debug_lvl = int(user_input.split("=")[1])
+                if debug_lvl not in debug_mode_list:
+                    print("'{}' is not a valid debug mode. Please choose between:{}".format(debug_lvl, debug_mode_list))
                 print("Race is on in Debug mode level {}".format(debug_lvl))
                 race_on.race(debug=debug_lvl)
                 started = True
