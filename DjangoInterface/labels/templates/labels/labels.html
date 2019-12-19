@@ -1,0 +1,556 @@
+{% extends 'base.html' %}
+
+{% block title %}Labels{% endblock %}
+
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/style_labels.css' %}" />
+
+{# JQUERY FILE UPLOAD SCRIPTS #}
+<script src="{% static 'scripts/jquery.min.js' %}"></script>
+<script src="{% static 'scripts/jquery.ui.widget.js' %}"></script>
+<script src="{% static 'scripts/jquery.iframe-transport.js' %}"></script>
+<script src="{% static 'scripts/jquery.fileupload.js' %}"></script>
+<script src="{% static 'scripts/jszip-utils.min.js' %}"></script>
+<script src="{% static 'scripts/upload_images.js' %}"></script>
+{# BOOTSTRAP FILE UPLOAD SCRIPTS #}
+<script src="{% static 'scripts/bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+{# PHOTOS PAGE SCRIPTS #}
+<script type="text/javascript" src="http://stuk.github.io/jszip/dist/jszip.min.js"></script>
+<script type="text/javascript" src="http://stuk.github.io/jszip/vendor/FileSaver.js"></script>
+{# CROPPER #}
+<script src="{% static 'scripts/jquery.Jcrop.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'scripts/jquery.Jcrop.css' %}" type="text/css" />
+
+<div id="h_commands">
+	{# BUTTON TO TRIGGER THE ACTION #}
+	<button type="button" class="btn btn-primary js-upload-photos" style="margin: 10px 10px 10px 10px;">
+		<span class="glyphicon glyphicon-cloud-upload"></span> Upload photos
+	</button>
+	<div id="h_commands">
+		<h4 style="margin : 10px; color: black;">W : </h4>
+		<input id="W_inp" type="text" style="text-align: center;" disabled></input>
+		<h4 style="margin : 10px; color: black;">H : </h4>
+		<input id="H_inp" type="text" style="text-align: center;" disabled></input>
+	</div>
+</div>
+
+{# DISPLAY THE UPLOAD PROGRESS #}
+<div class="modal fade" id="modal-progress" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Uploading...</h4>
+      </div>
+      <div class="modal-body">
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="content_div">	
+	<div id="gallery">
+		{# FILE INPUT TO BE USED BY THE PLUG-IN #}
+		<input id="fileupload" type="file" accept=".jpeg,.jpg,.png" name="file" multiple
+			   style="display: none;"
+			   data-url="{% url 'labels' %}"
+			   data-form-data='{"csrfmiddlewaretoken": "{{ csrf_token }}"}'>
+
+		{# DISPLAY THE UPLOADED PHOTOS #}
+			{% for photo in photos %}
+				{% if photo.file.name == sel %}
+					<a style="outline: 4px solid red;" onclick="show_pic('{{ photo.file.url }}', '{{ photo.file.name }}');"><img src={{ photo.file.url }} alt={{ photo.file.name }} width="160" height="120"></a></td>
+				{% else %}
+					<a onclick="show_pic('{{ photo.file.url }}', '{{ photo.file.name }}');"><img src={{ photo.file.url }} alt={{ photo.file.name }} width="160" height="120"></a></td>
+				{% endif %}
+			{% endfor %}
+	</div>	
+	<div id="pic_div"></div>
+</div>
+
+<div id="count_div"><h1 id="cur" style="color: black;"></h1><h1 id="count_h1" style="color: black;">{{ photos|length }} pics</h1></div>
+
+<div id="h_commands">
+	<div id="h_actions">
+		<button onclick="del()"><img src="{% static 'img/del.png' %}" alt="Del"></button>
+		<button onclick="save()"><img src="{% static 'img/save.png' %}" alt="Save"></button>
+	</div>
+	<div id="h_actions">
+		<button onclick="zoom()"><img id="zoom_pic" src="{% static 'img/zoom-out.png' %}" alt="zoom-out"></button>
+		<button id="crop_but" onclick="crop_all()"><img id="crop_pic" src="{% static 'img/crop-nok.png' %}" alt="Crop"></button>
+	</div>
+</div>
+<script>
+	var None = null;
+	
+	//Set Sizes
+	var H = window.innerHeight / 2;
+	if (window.innerWidth < 768)
+	{
+		var W = window.innerWidth;
+	}
+	else
+	{
+		var W = window.innerWidth / 2;
+	}
+	document.getElementById("pic_div").style.width = W.toString()+'px';
+	document.getElementById("pic_div").style.height = H.toString()+'px';
+	document.getElementById("gallery").style.width = W.toString()+'px';
+	document.getElementById("gallery").style.height = H.toString()+'px';
+	
+	//set Selection event
+	var a_list = document.getElementById('gallery').querySelectorAll('a'), i;
+	for (i = 0; i < a_list.length; ++i)
+	{
+		(function() 
+		{
+			var a = a_list[i];
+			if (a.style.outline == "")
+			{
+				a.selected = false;
+			}
+			else
+			{
+				document.getElementById("gallery").scrollTo(0, a.offsetTop - H/2);
+				show_pic(a.firstChild.src, a.firstChild.alt);
+			}
+			a.style.margin = "5px 5px 5px 5px";
+			var k = i + 1;
+			a.addEventListener('click', function(event)
+									{											
+												if (a.selected==false)
+												{
+													var img_list = document.getElementById('gallery').querySelectorAll('a'), j;
+													for (j = 0; j < img_list.length; ++j)
+													{
+														img_list[j].selected = false;
+														img_list[j].style.outline="";
+													}
+													a.style.outline="4px solid red";
+													a.selected=true;
+													document.getElementById("cur").innerHTML = k.toString() + " / ";
+												}
+												else
+												{
+													a.style.outline="";
+													a.selected=false;
+													document.getElementById('pic_div').innerHTML = "";
+													document.getElementById("cur").innerHTML = "0 / ";
+												}
+												
+											}
+									)
+		}());
+	}
+	
+	var cropping = null;
+	function crop(c)
+	{
+		delete c.w;
+		delete c.h;
+		cropping = c;
+	};
+	
+	function crop_all()
+	{
+		if (document.getElementById("pic_div").innerHTML != "" && document.getElementById("zoom_pic").alt == "zoom-in")
+		{
+			if (size_changed > 0)
+			{
+				if (size_changed == 2)
+				{
+					message = "Image is too large, \n";
+				}
+				else
+				{
+					message = "";
+				}
+				if (window.confirm(message + "Resize all pictures with selected size ?"))
+				{
+					post_to_url('resize/' + String(Math.floor(document.getElementById("W_inp").value)) + "_" + String(Math.floor(document.getElementById("H_inp").value)));
+				}
+			}
+			else if (cropping != null && window.confirm("Crop all pictures with selected borders ?"))
+			{
+				post_to_url('crop/' + JSON.stringify(cropping));
+			}
+			else
+			{
+				window.alert("No Data to Crop/Resize...");
+			}
+		}
+	}
+	
+	function zoom()
+	{
+		if (document.getElementById("pic_div").innerHTML != "")
+		{
+			if (document.getElementById("zoom_pic").alt == "zoom-in")
+			{
+				document.getElementById("zoom_pic").src = "{% static 'img/zoom-out.png' %}";
+				document.getElementById("zoom_pic").alt = "zoom-out";
+				show_pic(document.getElementById("image_elem").src, document.getElementById("image_elem").alt);
+				document.getElementById("crop_pic").src = "{% static 'img/crop-nok.png' %}";
+				document.getElementById("crop_but").disabled = true;
+			}
+			else
+			{
+				document.getElementById("zoom_pic").src = "{% static 'img/zoom-in.png' %}";
+				document.getElementById("zoom_pic").alt = "zoom-in";
+				show_pic(document.getElementById("image_elem").src, document.getElementById("image_elem").alt);
+				document.getElementById("crop_pic").src = "{% static 'img/crop.png' %}";
+				document.getElementById("crop_but").disabled = false;
+			}
+		}
+	}
+	
+	var size_changed = 0
+	function show_pic(url, alt)
+	{
+		size_changed = 0;
+		var el = document.getElementById('pic_div');
+
+		if (el.childElementCount!=0)
+		{
+			el.innerHTML = "";
+		}
+		
+		var img = document.createElement("IMG");
+		img.src = url;
+		img.alt = url;
+		img.id = "image_elem";
+		
+		document.getElementById("W_inp").value = img.width;
+		document.getElementById("H_inp").value = img.height;
+		
+		el.appendChild(img);
+
+		if (document.getElementById("zoom_pic").alt == "zoom-in")
+		{
+			if (img.width > W || img.height > H)
+			{
+				img.width = W;
+				img.height = H;
+				size_changed = 2;
+			}
+			
+			jQuery(function($) {
+				$(img).Jcrop(
+					{
+						setSelect:   [ 0, 0, W, H ],
+						onSelect: crop,
+						onChange: crop
+					}
+				);
+			});
+			document.getElementById('W_inp').disabled = false;
+			document.getElementById('H_inp').disabled = false;
+			$('#W_inp').on('input', function() { 
+				size_changed = 1;
+			});
+			$('#H_inp').on('input', function() { 
+				size_changed = 1;
+			});
+		}
+		else
+		{
+			img.width = W;
+			img.height = H;
+			document.getElementById("W_inp").disabled = true;
+			document.getElementById("H_inp").disabled = true;
+		}
+		
+		var label = document.createElement("h2");
+		label.id = "pic_p";
+		var alt_tab = alt.split("/");
+		var i = 0;
+		while (alt_tab[i].search("_") == -1 && i < alt_tab.length)
+		{
+			i++;
+		}
+		cleaned_label = alt_tab[i].split("_")[0];
+		label.innerHTML = "Label : " + cleaned_label;
+		el.appendChild(label);
+		var j = 0;
+		var img_list = document.getElementById('gallery').querySelectorAll('a');
+		while (img_list[j] && img_list[j].selected == false)
+		{
+			j++;
+		}
+		document.getElementById("cur").innerHTML = (j + 1).toString() + ' / ';
+		
+	}
+	
+	window.addEventListener('keydown',this.keyHandler,false);
+	function keyHandler(e) {
+		var j = 0;
+		var img_list = document.getElementById('gallery').querySelectorAll('a');
+		while (img_list[j] && img_list[j].selected == false)
+		{
+			j++;
+		}
+		if (e.key == "ArrowLeft" || e.key == "ArrowRight")
+		{
+			var selected_elem = null;
+			if (j < img_list.length && img_list.length > 0)
+			{
+				img_list[j].style.outline="";
+				img_list[j].selected=false;
+				document.getElementById("cur").innerHTML = "0 / ";
+				document.getElementById("pic_div").innerHTML = "";
+				
+				if (e.key == "ArrowRight" && img_list[j + 1])
+				{
+					img_list[j + 1].style.outline="4px solid red";
+					img_list[j + 1].selected=true;
+					show_pic(img_list[j + 1].firstChild.src, img_list[j + 1].firstChild.alt);
+					selected_elem = img_list[j + 1];
+					document.getElementById("cur").innerHTML = (j + 2).toString() + " / ";
+				}
+				else if (e.key == "ArrowLeft" && img_list[j - 1])
+				{
+					img_list[j - 1].style.outline="4px solid red";
+					img_list[j - 1].selected=true;
+					show_pic(img_list[j - 1].firstChild.src, img_list[j - 1].firstChild.alt);
+					selected_elem = img_list[j - 1];
+					document.getElementById("cur").innerHTML = (j).toString() + " / ";
+				}
+			}
+			else if (j == img_list.length && img_list.length > 0)
+			{
+				if (e.key == "ArrowRight" && img_list[0])
+				{
+					img_list[0].style.outline="4px solid red";
+					img_list[0].selected=true;
+					show_pic(img_list[0].firstChild.src, img_list[0].firstChild.alt);
+					selected_elem = img_list[0];
+					document.getElementById("cur").innerHTML = "1 / ";
+				}
+				else if (e.key == "ArrowLeft" && img_list[j - 1])
+				{
+					img_list[j - 1].style.outline="4px solid red";
+					img_list[j - 1].selected=true;
+					show_pic(img_list[j - 1].firstChild.src, img_list[j - 1].firstChild.alt);
+					selected_elem = img_list[j - 1];
+					document.getElementById("cur").innerHTML = (j).toString() + " / ";
+				}
+			}
+			if (selected_elem)
+			{
+				document.getElementById("gallery").scrollTo(0, selected_elem.offsetTop - H/2);
+			}
+		}
+		else if (document.getElementById("pic_div").childElementCount!=0)
+		{
+			if (isAlpha(e.key) || isNum(e.key))
+			{
+				rename(e.key, img_list[j].firstChild.alt);
+			}
+			else if (e.key == "Delete")
+			{
+				del();
+			}
+		}
+	}
+	
+	function isAlpha(ch)
+	{
+		return /^[A-Z]$/i.test(ch);
+	}
+	
+	function isNum(ch)
+	{
+		if (!isNaN(parseInt(ch, 10)))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+	var labelsSocket = new WebSocket(
+		ws_scheme + '://' + window.location.host +
+		'/ws/labels');
+
+	// Listen for connection errors
+	labelsSocket.onerror = function (e) {      
+		console.log("labels Socket Error "); 
+	}
+	
+	labelsSocket.onclose = function(e) {
+		console.error('Labels socket closed unexpectedly');
+	};
+	
+	labelsSocket.onmessage = function(e) {
+		var data = JSON.parse(e.data);
+		var old = data['old'];
+		var new_name = data['new'];
+		var label = data['label'];
+		var err = data['err'];
+		var count = data['count'];
+		if (err)
+		{
+			window.alert(err);
+		}
+		else if (label)
+		{
+			var  j = 0;
+			var img_list = document.getElementById('gallery').querySelectorAll('a');
+			while (img_list[j] && img_list[j].firstChild.alt != old)
+			{
+				j++;
+			}
+			if (j < img_list.length)
+			{
+				img_list[j].firstChild.setAttribute("src", "/" + new_name);
+				img_list[j].firstChild.setAttribute("alt", new_name);
+				img_list[j].setAttribute("onclick", "show_pic('/" + new_name + "', '" + new_name + "')");
+				//document.getElementById("pic_p").innerHTML = "Label : " + label;
+			}
+		}
+		if (count)
+		{
+			document.getElementById("count_h1").innerHTML = count + ' pics';
+		}
+	}
+
+	function rename(label, old)
+	{
+		labelsSocket.send(JSON.stringify({
+				'old': old,
+				'label': label,
+			}));
+		
+		var  j = 0;
+		var img_list = document.getElementById('gallery').querySelectorAll('a');
+		while (img_list[j] && img_list[j].firstChild.alt != old)
+		{
+			j++;
+		}
+		img_list[j].style.outline="";
+		img_list[j].selected=false;
+		j++;
+		if (j < img_list.length)
+		{
+			img_list[j].style.outline="4px solid red";
+			img_list[j].selected=true;
+			show_pic(img_list[j].firstChild.src, img_list[j].firstChild.alt);
+		}
+	}
+	
+	function del() 
+	{	
+		var img_list = document.getElementById('gallery').querySelectorAll('a');
+		var sel = false;
+		var i;
+		
+		for (i = 0; i < img_list.length; ++i) 
+		{
+			if (img_list[i].selected == true)
+			{
+				sel = true;
+			}
+		}
+		
+		if (sel == true)
+		{
+			if (confirm("Remove selected picture ?")) {
+				for (i = 0; i < img_list.length; ++i) 
+				{
+					if (img_list[i].selected==true)
+					{
+						labelsSocket.send(JSON.stringify({
+							'old': img_list[i].firstChild.alt,
+							'label': "null",
+							}));
+						img_list[i].parentNode.removeChild(img_list[i]);
+						document.getElementById('pic_div').innerHTML = "";
+						document.getElementById('cur').innerHTML = "";
+						break;
+					}
+				}
+				i++;
+				if (img_list[i])
+				{
+					img_list[i].selected = true;
+					img_list[i].style.outline="4px solid red";
+					show_pic(img_list[i].firstChild.src, img_list[i].firstChild.alt);
+				}
+			}
+		}
+		else
+		{
+			if (confirm("Remove all pictures ?")) {
+				for (i = 0; i < img_list.length; ++i) 
+				{
+					img_list[i].parentNode.removeChild(img_list[i]);
+					document.getElementById('pic_div').innerHTML = "";
+				}
+				post_to_url('/labels/delete_all')
+			}
+		}
+	}
+	
+	function post_to_url(url) 
+	{
+		method = 'POST';
+
+		var form = document.createElement('form');
+
+		form.setAttribute('method', method);
+		form.setAttribute('action', url);
+		
+		var input = document.createElement('input');
+		input.type = 'hidden';
+		input.name = 'csrfmiddlewaretoken'
+		input.value = "{{ csrf_token }}";
+
+		form.appendChild(input);
+		document.body.appendChild(form);
+		form.submit('/labels/');
+	}
+	
+	function urlToPromise(url) {
+	return new Promise(function(resolve, reject) {
+		JSZipUtils.getBinaryContent(url, function (err, data) {
+			if(err) {
+				reject(err);
+			} else {
+				resolve(data);
+			}
+		});
+	});
+	}
+	
+	function save() 
+	{
+		var i = 0;
+		var img_list = document.getElementById('gallery').querySelectorAll('img');
+		
+		if (img_list.length > 0)
+		{
+			var zip = new JSZip();
+			for (i = 0; i < img_list.length; ++i)
+			{
+				var image_name = img_list[i].alt;
+				zip.file(image_name, urlToPromise(img_list[i].src), {binary:true});
+			}
+			zip.generateAsync({type:"blob"})
+			.then(function(content) {
+			// see download.js
+			saveAs(content, "dataset.zip");
+			});
+		}
+	}
+	
+</script>
+
+{% endblock %}
