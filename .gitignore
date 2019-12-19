@@ -10,6 +10,9 @@ __pycache__/
 # C extensions
 *.so
 
+#OS file
+.DS_STORE
+
 # Distribution / packaging
 .Python
 build/
