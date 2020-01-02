@@ -4,12 +4,14 @@
 # Run this script from the utils folder like this: source desktop_set_up.sh
 # Note picamera and xbox driver are installed separately with apt-get
 
-if [[ ! -e ~/miniconda ]]
+if [ ! -e ~/miniconda ]
 then
     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
-    bash ~/miniconda.sh -b -p ~/miniconda
+    # wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-`uname -m`.sh -O ~/miniconda.sh
+    sh ~/miniconda.sh -b -p ~/miniconda
     rm ~/miniconda.sh
     export PATH=~/miniconda/bin:$PATH
+    source ~/.zshrc
     echo "Miniconda installed"
 fi
 
