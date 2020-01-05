@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# This script aims to fix import errors
 # Run this script from the set_up folder like this: source set_pythonpath.sh
 
 PROJECT_DIRECTORY=$(dirname $PWD)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Setup conda env on Mac desktop
+# Setup conda env on Mac desktop.
 # Run this script from the set_up folder like this: source desktop_set_up.sh
 # https://towardsdatascience.com/a-guide-to-conda-environments-bc6180fc533
 
@@ -18,10 +18,10 @@ fi
 
 # install environment
 conda update conda
-conda env remove -n patate_py373
-conda env create --file ./patate_py373.yml
+conda env remove -n patate_py375
+conda env create --file ./patate_py375.yml
 
-echo "patate_py353 env created."
+echo "patate_py375 env created."
 
 
 
