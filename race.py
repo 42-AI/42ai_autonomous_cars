@@ -4,7 +4,7 @@ import time
 
 import Adafruit_PCA9685
 # noinspection PyUnresolvedReferences
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 
 from pivideostream import PiVideoStream
 from utils.const import SPEED_NORMAL, SPEED_FAST, HEAD_UP, HEAD_DOWN, \
