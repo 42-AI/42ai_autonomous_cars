@@ -1,0 +1,38 @@
+PUT image_dataset_1/_doc/1
+{
+  "img_id": "1575104536",
+  "file_name": "0.02_0.0_1575104536.51.jpg",
+  "location": "https://032854191254-patate.s3-eu-west-1.amazonaws.com/",
+  "raw": "false",
+  "augmentation": ["reverse", "blur"],
+  "color": "rgb",
+  "picture_date": "31/01/2000",
+  "upload_date": "31/01/2019",
+  "event": "iron car",
+  "track" : "piste3",
+  "track_type": "single_lane",
+  "resolution": {
+    "horizontal": 512,
+    "vertical": 214
+  },
+  "patate_version": 1,
+  "label": {
+    "direction": 1,
+    "speed": 2
+  },
+  "dataset: ["D1", "D2"],
+  "comment": "whatever you want to say about this picutre"
+}
+
+
+POST _aliases
+{
+  "actions": [
+    {
+      "add": {
+        "index": "image_dataset*",
+        "alias": "image_dataset"
+      }
+    }
+  ]
+}
