@@ -5,7 +5,7 @@
 os=$(uname)
 
 if [ -z $PYENV_ROOT ]
-  then
+then
   if [ "$os" = "Darwin" ]
   then
     echo "os is Darwin"
@@ -58,11 +58,24 @@ echo "source .zshrc"
 pyenv activate venv_3.5.3
 pip install --upgrade pip setuptools wheel
 pip install -r requirements_py353.txt
+if [ "$os" = "Linux" ]
+then
+    echo"installing specific for raspberry pi"
+    pip install picamera
+fi
 pyenv deactivate
 
 pyenv activate venv_3.7.5
 pip install --upgrade pip setuptools wheel
 pip install -r requirements_py375.txt
+if [ "$os" = "Linux" ]
+  then
+    echo"installing specific for raspberry pi"
+    pip install picamera
+    wget https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-2.0.0-cp37-cp37m-linux_armv7l.whl
+    pip3 install tensorflow-2.0.0-cp37-cp37m-linux_armv7l.whl
+    rm tensorflow-2.0.0-cp37-cp37m-linux_armv7l.whl
+fi
 pyenv deactivate
 
 cd ..
