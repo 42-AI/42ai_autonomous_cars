@@ -96,7 +96,7 @@
     "comment": "whatever you want to say about this picutre"
   },
   {
-    "img_id": "1575104536",
+    "img_id": "1537607500",
     "file_name": "0_4_1537607500.68.jpg",
     "location": "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample",
     "raw": "false",
@@ -118,5 +118,29 @@
     },
     "dataset": ["D1", "D2"],
     "comment": "whatever you want to say about this picutre"
+  },
+  {
+    "img_id": "1537607575",
+    "file_name": "0_4_1537607575.68.jpg",
+    "location": "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample",
+    "raw": "false",
+    "augmentation": ["reverse", "blur"],
+    "color": "rgb",
+    "picture_date": "30/10/2019",
+    "upload_date": "31/01/2019",
+    "event": "DIY-2019",
+    "track" : "DIY-012019",
+    "track_type": "single_lane",
+    "resolution": {
+      "horizontal": 512,
+      "vertical": 214
+    },
+    "patate_version": 1,
+    "label": {
+      "direction": 1,
+      "speed": 2
+    },
+    "dataset": ["D1", "D2"],
+    "comment": "test missing picture"
   }
 ]
