@@ -5,7 +5,6 @@ import boto3
 from botocore.exceptions import ClientError
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
-from elasticsearch.helpers.errors import BulkIndexError
 
 from get_data import cluster_param
 
@@ -108,18 +107,14 @@ def print_synthesis(upload_bucket_path, missing_pic, already_exist_pic, s3_succe
 
 def get_s3_formatted_bucket_path(bucket_name, prefix):
     """
-    Assemble a clean s3 bucket directory from bucket name and key prefix and return well formated name and
-    path for s3 upload.
-    For example:
-    bucket_name = "my-bucket/"
-    prefix = "/sub/bucket//directory/with/typo
-    will output:
-    clean_full_path = "my-bucket/sub/bucket/directory/with/typo/"
-    clean_bucket_name = "my-bucket"
-    clean_key_prefix = "sub/bucket/directory/with/typo/"
+    Created well formated name and path for upload to s3 bucket from bucket name and key prefix.
     :param bucket_name:     [string]    s3 Bucket name
     :param prefix:          [string]    key prefix (s3 sub-folder)
     :return: clean_full_path, clean_buck_name, clean_key_prefix
+
+    For example:
+    >>> get_s3_formatted_bucket_path("my-bucket/", "/sub/bucket//directory/with/typo")
+    ("my-bucket/sub/bucket/directory/with/typo/", "my-bucket", "sub/bucket/directory/with/typo/")
     """
     raw_dir = bucket_name + "/" + prefix
     dir_list_clean = [elm for elm in raw_dir.split("/") if bool(elm)]
