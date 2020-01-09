@@ -10,12 +10,14 @@ from get_data import cluster_param
 
 
 def is_single_label(label):
-    if not isinstance(label, list):
-        return True
-    return False
+    """Return True if label contains a single label {...} ; False if it contains a list of label [{...}, {...}, ...]."""
+    if isinstance(label, list):
+        return False
+    return True
 
 
 def file_exist_in_bucket(s3, bucket, key):
+    """check if key already exists in bucket. Return True if exists, False otherwise."""
     try:
         s3.Object(bucket, key).load()
     except ClientError as e:
@@ -24,6 +26,14 @@ def file_exist_in_bucket(s3, bucket, key):
 
 
 def upload_label_to_s3(l_label, s3_bucket_name, prefix=""):
+    """
+    Upload picture to s3 bucket.
+    Note that credential to access the s3 bucket shall is retrieved from env variable (see variable name in the code)
+    :param l_label:             [list]      List of labels containing picture name, path and id
+    :param s3_bucket_name:      [string]    Name of the bucket
+    :param prefix:              [string]    Prefix for every picture
+    :return:                    [tuple]     list of picture id successfully upladed, list of picture id failed to upload
+    """
     access_key_id = os.environ["PATATE_S3_KEY_ID"]
     access_key = os.environ["PATATE_S3_KEY"]
     already_exist_pic = []
@@ -43,6 +53,7 @@ def upload_label_to_s3(l_label, s3_bucket_name, prefix=""):
 
 
 def gen_bulk_doc(l_label, index):
+    """Yield well formatted document for bulk upload to ES"""
     for label in l_label:
         yield {
             "_index": index,
@@ -54,6 +65,14 @@ def gen_bulk_doc(l_label, index):
 
 
 def upload_to_es(l_label, index, host_ip, port):
+    """
+    Upload all label in l_label to Elasticsearch cluster.
+    :param l_label:
+    :param index:
+    :param host_ip:
+    :param port:
+    :return:
+    """
     try:
         user = os.environ["ES_USER_ID"]
         pwd = os.environ["ES_USER_PWD"]
@@ -67,11 +86,17 @@ def upload_to_es(l_label, index, host_ip, port):
     for error in errors:
         for error_type in error:
             failed_doc_id.append(error[error_type]["_id"])
-            print(f'  --> Couldn\'t upload document "{failed_doc_id[-1]} because : {error[error_type]["error"]["reason"]}')
+            print(f'  --> Couldn\'t upload document {failed_doc_id[-1]} because:{error[error_type]["error"]["reason"]}')
     return failed_doc_id
 
 
 def filter_out_missing_pic(label_list):
+    """
+    Check if all pictures from the label_list exists.
+    Return a list of valid_label (picture exists) and a list of missing picture id
+    :param label_list:      [list]  list of label
+    :return:                [tuple] list of valid label (picture exists) and list of missing pictures id
+    """
     missing_pic_id = []
     for i, label in enumerate(label_list):
         pics = Path(label["location"]) / label["file_name"]
@@ -107,10 +132,10 @@ def print_synthesis(upload_bucket_path, missing_pic, already_exist_pic, s3_succe
 
 def get_s3_formatted_bucket_path(bucket_name, prefix):
     """
-    Created well formated name and path for upload to s3 bucket from bucket name and key prefix.
-    :param bucket_name:     [string]    s3 Bucket name
-    :param prefix:          [string]    key prefix (s3 sub-folder)
-    :return: clean_full_path, clean_buck_name, clean_key_prefix
+    Creates a cleaned and well formatted name and path for upload to s3 bucket from the bucket name and key prefix.
+    :param bucket_name:     [string]        s3 Bucket name
+    :param prefix:          [string]        key prefix (s3 sub-folder)
+    :return:                [tuple of str]  clean_full_path, clean_buck_name, clean_key_prefix
 
     For example:
     >>> get_s3_formatted_bucket_path("my-bucket/", "/sub/bucket//directory/with/typo")
@@ -138,14 +163,18 @@ def upload_to_db(label_file, bucket_name, key_prefix, es_host_ip, es_port, es_in
       }
     ]
     then you can add any field you wish to labelized the picture.
-    :param label_file:
-    :param bucket_name:
-    :param key_prefix:
-    :param es_cluster_param:
-    :return:
+    :param label_file:          [string]    path to the file containing the labels in json format
+    :param bucket_name:         [string]    Name of the s3 bucket
+    :param key_prefix:          [string]    Prefix for every uploaded picture to s3. Unix path system (use slashes: '/')
+                                            For example if:
+                                            bucket_name = "my-bucket", key_prefix = "subfolder/"
+                                            Every picture will be uploaded to "my-bucket/subfolder/{img-id}"
+    :param es_host_ip:          [string]    Public ip of the Elasticsearch host server
+    :param es_port:             [int]       Port open for Elasticsearch on host server (typically 9200)
+    :param es_index:            [string]    Name of the index to use
     """
     if not Path(label_file).is_file():
-        print(f'File "{label_file}" can''t be found.')
+        print(f'File "{label_file}" can\'t be found.')
         exit(0)
     with Path(label_file).open(mode='r', encoding='utf-8') as fp:
         l_label = json.load(fp)
@@ -161,7 +190,6 @@ def upload_to_db(label_file, bucket_name, key_prefix, es_host_ip, es_port, es_in
     print(f'Uploading to Elasticsearch cluster...')
     failed_es_upload = upload_to_es(l_label=l_label, index=es_index, host_ip=es_host_ip, port=es_port)
     print_synthesis(upload_bucket_dir, missing_pic, already_exist_pic, s3_upload_success, failed_es_upload)
-    return l_label
 
 
 if __name__ == "__main__":
