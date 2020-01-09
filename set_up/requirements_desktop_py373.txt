@@ -1,0 +1,7 @@
+adafruit-pca9685
+h5py
+matplotlib
+numpy
+pandas
+Pillow
+tensorflow

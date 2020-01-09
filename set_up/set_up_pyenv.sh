@@ -16,9 +16,6 @@ if [ -z $PYENV_ROOT ]
     echo "os is Linux"
     sudo apt-get update
 
-    # install package for the xbox driver
-    sudo apt-get install xboxdrv
-
     # install pyenv
     sudo apt-get install bzip2 libbz2-dev libreadline6 libreadline6-dev libffi-dev libssl1.0-dev sqlite3 libsqlite3-dev -y
     git clone git://github.com/yyuu/pyenv.git ~/.pyenv
@@ -37,10 +34,10 @@ then
   source $HOME/.zshrc
 fi
 
-pyenv install 2.7.13
-pyenv install 3.5.3
-pyenv install 3.7.5
-pyenv install 3.8.0
+# pyenv install 2.7.13
+# pyenv install 3.5.3
+pyenv install 3.7.3
+# pyenv install 3.8.0
 
 
 source ~/.zshrc
@@ -48,27 +45,44 @@ source ~/.zshrc
 pyenv versions
 
 echo "creating virtualenvs"
-pyenv virtualenv 3.5.3 venv_3.5.3
-pyenv virtualenv 3.7.5 venv_3.7.5
+# pyenv virtualenv 3.5.3 venv_3.5.3
+pyenv virtualenv 3.7.5 venv_3.7.3
 
 source ~/.zshrc
 
 echo "source .zshrc"
 
-pyenv activate venv_3.5.3
+# Setting environment
+pyenv activate venv_3.7.3
 pip install --upgrade pip setuptools wheel
-pip install -r requirements_py353.txt
+if [ "$os" = "Darwin" ]
+  then
+    echo "os is Darwin"
+    pip install -r requirements_desktop_py373.txt
+  elif [ "$os" = "Linux" ]
+  then
+    echo "os is Linux"
+    # install package for the xbox driver
+    sudo apt-get install xboxdrv
+
+    sudo apt-get install -y libhdf5-dev libc-ares-dev libeigen3-dev
+    pip install keras_applications==1.0.8 --no-deps
+    pip install keras_preprocessing==1.1.0 --no-deps
+    pip install h5py==2.9.0
+    sudo apt-get install -y openmpi-bin libopenmpi-dev
+    sudo apt-get install -y libatlas-base-dev
+    pip install six mock
+    wget https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-2.0.0-cp37-cp37m-linux_armv7l.whl
+    pip install tensorflow-2.0.0-cp37-cp37m-linux_armv7l.whl
+    pip install -r requirements_raspberry_pi_py373.txt
+  fi
 pyenv deactivate
 
-pyenv activate venv_3.7.5
-pip install --upgrade pip setuptools wheel
-pip install -r requirements_py375.txt
-pyenv deactivate
 
+# Setting pyenv globql qnd local
 cd ..
-rm .python-version
-pyenv global 3.7.5
-pyenv local venv_3.7.5
+pyenv global 3.7.3
+pyenv local venv_3.7.3
 
 pyenv versions
 pyenv global

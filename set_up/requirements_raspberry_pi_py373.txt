@@ -1,0 +1,5 @@
+adafruit-pca9685
+matplotlib
+pandas
+picamera
+Pillow
