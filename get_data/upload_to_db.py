@@ -25,13 +25,17 @@ def file_exist_in_bucket(s3, bucket, key):
     return True
 
 
-def upload_label_to_s3(l_label, s3_bucket_name, prefix=""):
+def upload_label_to_s3(l_label, s3_bucket_name, prefix="", overwrite=False):
     """
     Upload picture to s3 bucket.
-    Note that credential to access the s3 bucket shall is retrieved from env variable (see variable name in the code)
-    :param l_label:             [list]      List of labels containing picture name, path and id
+    Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
+    :param l_label:             [list]      List of labels. Each label shall contains the following keys:
+                                            "file_name": the name of the picture file
+                                            "location": path to the picture directory
+                                            "img_id": id that will be used to index the picture (shall be unique)
     :param s3_bucket_name:      [string]    Name of the bucket
     :param prefix:              [string]    Prefix for every picture
+    :param overwrite:           [bool]      If True, existing pic will be overwritten by new one sharing the same img_id
     :return:                    [tuple]     list of picture id successfully upladed, list of picture id failed to upload
     """
     access_key_id = os.environ["PATATE_S3_KEY_ID"]
@@ -43,7 +47,7 @@ def upload_label_to_s3(l_label, s3_bucket_name, prefix=""):
         picture = Path(label["location"]) / label["file_name"]
         pic_id = label["img_id"]
         key = prefix + pic_id
-        if file_exist_in_bucket(s3, s3_bucket_name, key):
+        if not overwrite and file_exist_in_bucket(s3, s3_bucket_name, key):
             print(f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"')
             already_exist_pic.append(pic_id)
         else:
@@ -52,37 +56,43 @@ def upload_label_to_s3(l_label, s3_bucket_name, prefix=""):
     return upload_success, already_exist_pic
 
 
-def gen_bulk_doc(l_label, index):
+def gen_bulk_doc(l_label, index, op_type):
     """Yield well formatted document for bulk upload to ES"""
     for label in l_label:
         yield {
             "_index": index,
             "_type": "document",
-            "_op_type": "create",
+            "_op_type": op_type,
             "_id": label["img_id"],
             "_source": label
         }
 
 
-def upload_to_es(l_label, index, host_ip, port):
+def upload_to_es(l_label, index, host_ip, port, update=False):
     """
     Upload all label in l_label to Elasticsearch cluster.
-    :param l_label:
-    :param index:
-    :param host_ip:
-    :param port:
-    :return:
+    Note that credential to access the cluster is retrieved from env variable (see variable name in the code)
+    :param l_label:             [list]      List of labels. Each label shall contains the following keys:
+                                            "file_name": the name of the picture file
+                                            "location": path to the picture directory
+                                            "img_id": id that will be used to index the picture (shall be unique)
+    :param index:               [string]    Name of the index to use for indexing labels
+    :param host_ip:             [string]    Public ip of the Elasticsearch host server
+    :param port:                [int]       Port open for Elasticsearch on host server (typically 9200)
+    :param update:              [bool]      If True, existing document with same img_id will be overwritten by new ones
+    :return:                    [list]      list of failed to upload picture id
     """
     try:
         user = os.environ["ES_USER_ID"]
         pwd = os.environ["ES_USER_PWD"]
     except KeyError as err:
-        print("  --> Warning: Elasticsearch 'user' and/or password not found. Trying connection without auth...")
+        print("  --> Warning: Elasticsearch 'user' and/or password not found. Trying connection without authentication")
         user = ""
         pwd = ""
     es = Elasticsearch([{"host": host_ip, "port": port}], http_auth=(user, pwd))
+    op_type = "index" if update else "create"
+    success, errors = helpers.bulk(es, gen_bulk_doc(l_label, index, op_type), request_timeout=60, raise_on_error=False)
     failed_doc_id = []
-    success, errors = helpers.bulk(es, gen_bulk_doc(l_label, index=index), request_timeout=60, raise_on_error=False)
     for error in errors:
         for error_type in error:
             failed_doc_id.append(error[error_type]["_id"])
@@ -149,7 +159,7 @@ def get_s3_formatted_bucket_path(bucket_name, prefix):
     return clean_full_path, clean_bucket_name, clean_key_prefix
 
 
-def upload_to_db(label_file, bucket_name, key_prefix, es_host_ip, es_port, es_index):
+def upload_to_db(label_file, bucket_name, key_prefix, es_host_ip, es_port, es_index, overwrite=False):
     """
     Upload picture(s) to the DataBase according to the label file.
     Labels are uploaded to Elasticsearch cluster ; pictures are uploaded to S3 bucket.
@@ -172,6 +182,8 @@ def upload_to_db(label_file, bucket_name, key_prefix, es_host_ip, es_port, es_in
     :param es_host_ip:          [string]    Public ip of the Elasticsearch host server
     :param es_port:             [int]       Port open for Elasticsearch on host server (typically 9200)
     :param es_index:            [string]    Name of the index to use
+    :param overwrite:           [bool]      If True will overwrite picture is s3 and label in ES if same img_id is found
+                                            If False (default), only non existing img_id picture will be uploaded
     """
     if not Path(label_file).is_file():
         print(f'File "{label_file}" can\'t be found.')
@@ -184,11 +196,11 @@ def upload_to_db(label_file, bucket_name, key_prefix, es_host_ip, es_port, es_in
     l_label, missing_pic = filter_out_missing_pic(l_label)
     print(f'Uploading to s3...')
     upload_bucket_dir, bucket_name, key_prefix = get_s3_formatted_bucket_path(bucket_name, key_prefix)
-    s3_upload_success, already_exist_pic = upload_label_to_s3(l_label, bucket_name, key_prefix)
+    s3_upload_success, already_exist_pic = upload_label_to_s3(l_label, bucket_name, key_prefix, overwrite)
     l_label = [label for label in l_label if label["img_id"] in s3_upload_success]
     edit_label(l_label, "location", upload_bucket_dir)
     print(f'Uploading to Elasticsearch cluster...')
-    failed_es_upload = upload_to_es(l_label=l_label, index=es_index, host_ip=es_host_ip, port=es_port)
+    failed_es_upload = upload_to_es(l_label=l_label, index=es_index, host_ip=es_host_ip, port=es_port, update=overwrite)
     print_synthesis(upload_bucket_dir, missing_pic, already_exist_pic, s3_upload_success, failed_es_upload)
 
 
@@ -200,6 +212,4 @@ if __name__ == "__main__":
     es_ip_host = cluster_param.ES_HOST_IP
     es_port_host = cluster_param.ES_HOST_PORT
     es_index_name = cluster_param.ES_INDEX
-    l_label = upload_to_db(label_file, s3_bucket, key_prefix, es_ip_host, es_port_host, es_index_name)
-    exit(0)
-    edit_label(l_label, "location", "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample")
+    upload_to_db(label_file, s3_bucket, key_prefix, es_ip_host, es_port_host, es_index_name, overwrite=True)
