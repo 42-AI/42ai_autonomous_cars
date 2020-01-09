@@ -13,7 +13,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import load_img
 from tensorflow.keras.preprocessing.image import img_to_array
 
-import model_params_setter
+from train_data import model_params_setter
 from utils.path import TRAINING_IMAGES_DIRECTORY, VALIDATION_IMAGES_DIRECTORY
 
 
