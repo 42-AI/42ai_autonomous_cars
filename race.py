@@ -40,7 +40,7 @@ class RaceOn:
         # Create a *threaded *video stream, allow the camera sensor to warm_up
         self.video_stream = PiVideoStream().start()
         time.sleep(2)
-        self.video_stream.test()
+        # self.video_stream.test()
         self.frame = self.video_stream.read()
         self.buffer = None
         self.nb_pred = 0

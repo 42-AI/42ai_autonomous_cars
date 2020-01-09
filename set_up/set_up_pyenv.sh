@@ -18,6 +18,7 @@ then
 
     # install pyenv
     sudo apt-get install bzip2 libbz2-dev libreadline6 libreadline6-dev libffi-dev libssl1.0-dev sqlite3 libsqlite3-dev -y
+    sudo apt-get install liblzma-dev -y
     git clone git://github.com/yyuu/pyenv.git ~/.pyenv
     git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
   else
@@ -40,13 +41,13 @@ pyenv install 3.7.3
 # pyenv install 3.8.0
 
 
-source ~/.zshrc
+source $HOME/.zshrc
 
 pyenv versions
 
 echo "creating virtualenvs"
 # pyenv virtualenv 3.5.3 venv_3.5.3
-pyenv virtualenv 3.7.5 venv_3.7.3
+pyenv virtualenv 3.7.3 venv_3.7.3
 
 source ~/.zshrc
 
@@ -75,6 +76,7 @@ if [ "$os" = "Darwin" ]
     wget https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-2.0.0-cp37-cp37m-linux_armv7l.whl
     pip install tensorflow-2.0.0-cp37-cp37m-linux_armv7l.whl
     pip install -r requirements_raspberry_pi_py373.txt
+    rm tensorflow-2.0.0-cp37-cp37m-linux_armv7l.whl
   fi
 pyenv deactivate
 
