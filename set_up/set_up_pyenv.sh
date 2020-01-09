@@ -5,7 +5,7 @@
 os=$(uname)
 
 if [ -z $PYENV_ROOT ]
-  then
+then
   if [ "$os" = "Darwin" ]
   then
     echo "os is Darwin"
