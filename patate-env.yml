@@ -23,6 +23,7 @@ dependencies:
   - elasticsearch
   - boto3
   - matplotlib
+  - pytest
   - pip:
     - channels
     - adafruit-pca9685
