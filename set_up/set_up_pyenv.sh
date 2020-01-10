@@ -20,7 +20,7 @@ then
     sudo apt-get install bzip2 libbz2-dev libreadline6 libreadline6-dev libffi-dev libssl1.0-dev sqlite3 libsqlite3-dev -y
     sudo apt-get install liblzma-dev -y
     git clone git://github.com/yyuu/pyenv.git ~/.pyenv
-    git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
+    git clone https://github.com/pyenv/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
   else
     echo "OS not recognized"
     exit
