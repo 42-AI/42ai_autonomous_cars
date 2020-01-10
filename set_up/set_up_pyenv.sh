@@ -35,8 +35,6 @@ then
   source $HOME/.zshrc
 fi
 
-# pyenv install 2.7.13
-# pyenv install 3.5.3
 pyenv install 3.7.3
 # pyenv install 3.8.0
 
@@ -46,7 +44,6 @@ source $HOME/.zshrc
 pyenv versions
 
 echo "creating virtualenvs"
-# pyenv virtualenv 3.5.3 venv_3.5.3
 pyenv virtualenv 3.7.3 venv_3.7.3
 
 source ~/.zshrc
@@ -81,7 +78,7 @@ if [ "$os" = "Darwin" ]
 pyenv deactivate
 
 
-# Setting pyenv globql qnd local
+# Setting pyenv global and local
 cd ..
 pyenv global 3.7.3
 pyenv local venv_3.7.3
