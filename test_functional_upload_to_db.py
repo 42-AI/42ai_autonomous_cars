@@ -91,9 +91,9 @@ def test_delete_index_es():
     es_port_host = cluster_param.ES_HOST_PORT
     es_index_name = "test_index"
     ret = es_utils.delete_index(es_index_name, es_ip_host, es_port_host)
-    assert ret["acknowledged"] == True
+    assert ret["acknowledged"] is True
 
 
 if __name__ == "__main__":
-    test_delete_index_es()
+    test_delete_object_in_s3()
 

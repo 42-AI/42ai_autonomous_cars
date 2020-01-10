@@ -1,20 +1,25 @@
 from pathlib import Path
 import os
 import boto3
-from botocore.exceptions import ClientError
+from botocore import exceptions as boto3_exceptions
 
 
 def get_s3_resource():
     access_key_id = os.environ["PATATE_S3_KEY_ID"]
     access_key = os.environ["PATATE_S3_KEY"]
-    return boto3.resource("s3", aws_access_key_id=access_key_id, aws_secret_access_key=access_key)
+    try:
+        s3 = boto3.resource("s3", aws_access_key_id=access_key_id, aws_secret_access_key=access_key)
+    except boto3_exceptions as err:
+        print(f'Failed to connect to s3 because:\n{err}')
+        return None
+    return s3
 
 
 def file_exist_in_bucket(s3, bucket, key):
     """check if key already exists in bucket. Return True if exists, False otherwise."""
     try:
         s3.Object(bucket, key).load()
-    except ClientError as e:
+    except boto3_exceptions.ClientError as e:
         return int(e.response['Error']['Code']) != 404
     return True
 

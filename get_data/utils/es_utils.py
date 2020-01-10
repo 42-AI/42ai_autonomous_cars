@@ -1,6 +1,7 @@
 import os
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
+from elasticsearch import exceptions as es_exceptions
 
 
 def get_es_session(host_ip, port):
@@ -11,7 +12,11 @@ def get_es_session(host_ip, port):
         print("  --> Warning: Elasticsearch 'user' and/or password not found. Trying connection without authentication")
         user = ""
         pwd = ""
-    es = Elasticsearch([{"host": host_ip, "port": port}], http_auth=(user, pwd))
+    try:
+        es = Elasticsearch([{"host": host_ip, "port": port}], http_auth=(user, pwd))
+    except es_exceptions as err:
+        print(f'Failed to connect to "{host_ip}:{port}" because:\n{err}')
+        return None
     return es
 
 
@@ -42,6 +47,8 @@ def upload_to_es(l_label, index, host_ip, port, update=False):
     :return:                    [list]      list of failed to upload picture id
     """
     es = get_es_session(host_ip, port)
+    if es is None:
+        return len(l_label)
     op_type = "index" if update else "create"
     success, errors = helpers.bulk(es, gen_bulk_doc(l_label, index, op_type), request_timeout=60, raise_on_error=False)
     failed_doc_id = []
