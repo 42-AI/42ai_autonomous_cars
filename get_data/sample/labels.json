@@ -2,7 +2,7 @@
   {
     "img_id": "1517255696",
     "file_name": "0_0_1517255696.923487.jpg",
-    "location": "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample",
+    "location": "get_data/sample",
     "raw": "true",
     "augmentation": [],
     "color": "rgb",
@@ -26,7 +26,7 @@
   {
     "img_id": "r1537607726",
     "file_name": "0_1_r1537607726.37.jpg",
-    "location": "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample",
+    "location": "get_data/sample",
     "raw": "false",
     "augmentation": ["reverse"],
     "color": "rgb",
@@ -50,7 +50,7 @@
   {
     "img_id": "1517255705",
     "file_name": "0_2_1517255705.4247274.jpg",
-    "location": "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample",
+    "location": "get_data/sample",
     "raw": "true",
     "augmentation": [],
     "color": "rgb",
@@ -74,7 +74,7 @@
   {
     "img_id": "1537441219",
     "file_name": "0_3_1537441219.79.jpg",
-    "location": "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample",
+    "location": "get_data/sample",
     "raw": "true",
     "augmentation": [],
     "color": "rgb",
@@ -98,7 +98,7 @@
   {
     "img_id": "1537607500",
     "file_name": "0_4_1537607500.68.jpg",
-    "location": "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample",
+    "location": "get_data/sample",
     "raw": "false",
     "augmentation": ["reverse", "blur"],
     "color": "rgb",
@@ -122,7 +122,7 @@
   {
     "img_id": "1537607575",
     "file_name": "0_4_1537607575.68.jpg",
-    "location": "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample",
+    "location": "get_data/sample",
     "raw": "false",
     "augmentation": ["reverse", "blur"],
     "color": "rgb",

@@ -9,7 +9,7 @@ def get_es_session(host_ip, port):
         user = os.environ["ES_USER_ID"]
         pwd = os.environ["ES_USER_PWD"]
     except KeyError as err:
-        print("  --> Warning: Elasticsearch 'user' and/or password not found. Trying connection without authentication")
+        print("  --> Warning: Elasticsearch user and/or password not found. Trying connection without authentication")
         user = ""
         pwd = ""
     try:

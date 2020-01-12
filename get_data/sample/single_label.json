@@ -1,7 +1,7 @@
 {
   "img_id": "1517255696",
   "file_name": "0_0_1517255696.923487.jpg",
-  "location": "/Users/jjauzion/42/42ai_autonomous_cars/get_data/sample",
+  "location": "get_data/sample",
   "raw": "true",
   "augmentation": [],
   "color": "rgb",
