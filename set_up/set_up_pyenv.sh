@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Create envs with pyenv. Run it from the set_up folder with `source pyenv.sh`
+# Create envs with pyenv. Run it from the set_up folder with `source set_up_pyenv.sh`
 
 os=$(uname)
 
