@@ -20,8 +20,3 @@ fi
 conda update conda
 conda env remove -n patate_py373
 conda env create --file ./patate_py373.yml
-
-echo "patate_py373 env created."
-
-
-
