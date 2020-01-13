@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Setup conda env on Mac desktop.
-# Run this script from the set_up folder like this: source desktop_set_up.sh
+# Run this script from the set_up folder like this: source set_up_conda_desktop.sh
 # https://towardsdatascience.com/a-guide-to-conda-environments-bc6180fc533
 
 
