@@ -1,0 +1,24 @@
+{
+  "img_id": "1517255696",
+  "file_name": "0_0_1517255696.923487.jpg",
+  "location": "get_data/sample",
+  "raw": "true",
+  "augmentation": [],
+  "color": "rgb",
+  "picture_date": "31/01/2018",
+  "upload_date": "31/01/2019",
+  "event": "iron car",
+  "track" : "iron-car-012018",
+  "track_type": "double lane dash",
+  "resolution": {
+    "horizontal": 512,
+    "vertical": 214
+  },
+  "patate_version": 1,
+  "label": {
+    "direction": 0,
+    "speed": 0
+  },
+  "dataset": ["D1", "D2"],
+  "comment": "whatever you want to say about this picture"
+}
