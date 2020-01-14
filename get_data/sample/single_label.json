@@ -3,10 +3,10 @@
   "file_name": "0_0_1517255696.923487.jpg",
   "location": "get_data/sample",
   "raw": "true",
-  "augmentation": [],
+  "transformation": [],
   "color": "rgb",
-  "picture_date": "31/01/2018",
-  "upload_date": "31/01/2019",
+  "timestamp": "2015-01-01T12:10:30Z",
+  "upload_date": "2015-01-01T12:10:30Z",
   "event": "iron car",
   "track" : "iron-car-012018",
   "track_type": "double lane dash",
@@ -14,10 +14,30 @@
     "horizontal": 512,
     "vertical": 214
   },
-  "patate_version": 1,
+  "hardware": {
+    "car": "patate",
+    "version": 1,
+    "computer": "Raspberry_Pi2",
+    "camera": "Picam_v2"
+  },
   "label": {
     "direction": 0,
-    "speed": 0
+    "speed": 0,
+    "raw_direction": 260,
+    "raw_speed": 315
+  },
+  "const": {
+    "direction": {
+      "-0.8": 250,
+      "-0.1": 290,
+      "0.1": 327,
+      "0.8": 364,
+      "1": 400
+    },
+    "speed": {
+      "normal": 316,
+      "fast": 311
+    }
   },
   "dataset": ["D1", "D2"],
   "comment": "whatever you want to say about this picture"
