@@ -26,19 +26,6 @@
     "raw_direction": 260,
     "raw_speed": 315
   },
-  "const": {
-    "direction": {
-      "-0.8": 250,
-      "-0.1": 290,
-      "0.1": 327,
-      "0.8": 364,
-      "1": 400
-    },
-    "speed": {
-      "normal": 316,
-      "fast": 311
-    }
-  },
   "dataset": ["D1", "D2"],
   "comment": "whatever you want to say about this picture"
 }

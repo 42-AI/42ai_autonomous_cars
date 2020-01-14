@@ -92,7 +92,7 @@ Label are first created when running the car with `get_data_xbox_pad.py`
     "speed": 0,
     "raw_direction": 260,
     "raw_speed": 315
-  }
+  },
   "dataset": ["D1", "D2"],
   "comment": "whatever you want to say about this picture"
 }
