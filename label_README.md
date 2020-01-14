@@ -11,7 +11,6 @@ Label are first created when running the car with `get_data_xbox_pad.py`
    this directory. Example of a session_template.json file:
    ```
    {
-     "location": "../session",
      "event": "session_14012020",
      "track" : "piste1",
      "track_type": "single lane",
@@ -19,8 +18,6 @@ Label are first created when running the car with `get_data_xbox_pad.py`
      "comment": "night session"
    }
    ```
-   - The 'location' field can be absolute or relative path. Using relative path make it still valid after transferring
- picture from the patate to your computer.  
    - You can use to 'dataset' field to add all picture of this session to a dataset or to create a new dataset.
 3. Check that the hardware_conf.json file describes well the car. The content of this file will be added to the label of
    of each picture.  
@@ -42,6 +39,7 @@ Label are first created when running the car with `get_data_xbox_pad.py`
    {
      "img_id": "1517255696",
      "file_name": "0_0_1517255696.923487.jpg",
+     "location": "../session",
      "raw": "true",
      "color": "rgb",
      "timestamp": "2015-01-01T12:10:30Z",
