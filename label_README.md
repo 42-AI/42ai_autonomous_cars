@@ -25,12 +25,10 @@ Label are first created when running the car with `get_data_xbox_pad.py`
    Example:
    ```
    {
-     "hardware": {
-       "car": "patate",
-       "version": 1,
-       "computer": "Raspberry_Pi2",
-       "camera": "Picam_v2"
-     }
+     "car": "patate",
+     "version": 1,
+     "computer": "Raspberry_Pi2",
+     "camera": "Picam_v2"
    }
    ```
 4. Run the car with `get_data_xbox_pad.py` to collect data. This script will use the two templates described above and 
