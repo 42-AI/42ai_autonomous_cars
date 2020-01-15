@@ -25,12 +25,13 @@ class RaceOn:
     def __init__(self, model_path):
         # Racing_status
         self.racing = False
+        self.pause = False
 
         # Load model
         self.model = load_model(model_path)
 
         # Init engines
-        # TODO (pclement): A quoi sert direction speed? ajouterhead pour initialiser
+        # TODO (pclement): A quoi sert direction speed? ajouter head pour initialiser
         self.speed = SPEED_FAST
         self.direction = DIRECTION_C
         self.head = HEAD_DOWN
@@ -43,75 +44,101 @@ class RaceOn:
         self.video_stream.test()
         self.frame = self.video_stream.read()
         self.buffer = None
-        self.nb_pred = 0
+
+        # Debug and print
         self.start_time = 0
+        self.nb_pred = 0
+        self.sampling = -1
+        self.debug = 0
+
         print("RaceOn initialized")
 
     @staticmethod
-    def choose_direction(predictions):
+    def get_motor_direction(predicted_labels):
         # TODO (pclement): Make it more modular so it can handle 3 or 5 direction--> dictionnary or list in utils.const?
-        if predictions[1] == 0:
+        if predicted_labels[1] == 0:
             return DIRECTION_L_M
-        elif predictions[1] == 1:
+        elif predicted_labels[1] == 1:
             return DIRECTION_L
-        elif predictions[1] == 2:
+        elif predicted_labels[1] == 2:
             return DIRECTION_C
-        elif predictions[1] == 3:
+        elif predicted_labels[1] == 3:
             return DIRECTION_R
-        elif predictions[1] == 4:
+        elif predicted_labels[1] == 4:
             return DIRECTION_R_M
 
     @staticmethod
-    def choose_speed(predictions):
-        if predictions[1] == 1 and predictions[0] == 1:
+    def get_motor_speed(predicted_labels):
+        if predicted_labels[1] == 1 and predicted_labels[0] == 1:
             return SPEED_FAST
         return SPEED_NORMAL
 
-    def choose_head(self, predictions, speed):
-        if speed == self.choose_speed(predictions) == SPEED_FAST:
+    def get_motor_head(self, predicted_labels, motor_speed):
+        if motor_speed == self.get_motor_speed(predicted_labels) == SPEED_FAST:
             return HEAD_UP
         return HEAD_DOWN
 
-    def race(self, debug=0, buff_size=100):
+    def get_predictions(self, motor_speed):
+        # Grab the self.frame from the threaded video stream
+        self.frame = self.video_stream.read()
+        image = np.array([self.frame]) / 255.0  # [jj] Do we need to create a new array ? img = self.frame / 255. ?
+
+        # Get model prediction
+        predictions_raw = self.model.predict(image)
+        predicted_labels = [np.argmax(pred, axis=1) for pred in predictions_raw]  # Why ?
+
+        motor_direction = self.get_motor_direction(predicted_labels)
+        motor_head = self.get_motor_head(predicted_labels, motor_speed)
+        motor_speed = self.get_motor_speed(predicted_labels)
+        return predicted_labels, motor_direction, motor_head, motor_speed
+
+    def check_debug_mode(self, predicted_labels, motor_direction, motor_head, motor_speed):
+        if self.debug > 0 and self.sampling > 3:
+            self.sampling = -1
+            sample = {
+                "array": self.frame,
+                "direction": predicted_labels[1][0],
+                "speed": 1 if motor_speed == SPEED_FAST else 0
+            }
+            self.buffer.append(sample)
+            if self.debug > 1:
+                print("Predictions = {}, Direction = {}, Head = {}, Speed = {}".format(
+                    predicted_labels, motor_direction, motor_head, motor_speed))
+
+    def run_engine(self, motor_direction, motor_speed, motor_head):
+        self.pwm.set_pwm(0, 0, motor_direction)
+        self.pwm.set_pwm(1, 0, motor_speed)
+        self.pwm.set_pwm(2, 0, motor_head)
+
+    def treat_user_input(self, user_inp):
+        if user_inp == 'q':
+            self.stop()
+        elif user_inp == 'p':
+            self.pause = True
+            self.pwm.set_pwm(1,0,0)  # get motor_speed to 0
+        elif user_inp == 'go':
+            self.pause = False
+
+    def race(self, debug=0, buff_size=100, queue_input):
         self.buffer = deque(maxlen=buff_size)
         self.start_time = time.time()
         self.racing = True
         self.nb_pred = 0
-        sampling = 0
-        speed = SPEED_NORMAL
+        self.sampling = -1
+        self.debug = debug
+        motor_speed = SPEED_NORMAL
+
         while self.racing:
-            # Grab the self.frame from the threaded video stream
-            self.frame = self.video_stream.read()
-            image = np.array([self.frame]) / 255.0  # [jj] Do we need to create a new array ? img = self.frame / 255. ?
+            if not queue_input.empty():
+                self.treat_user_input(queue_input.get(block=False))
+            # Decide action and run motor
+            if not self.pause:
+                predicted_labels, motor_direction, motor_head, motor_speed = self.get_predictions(motor_speed)
+                self.run_engine(motor_direction, motor_speed, motor_head)
+                self.check_debug_mode(predicted_labels, motor_direction, motor_speed, motor_head)
+                self.nb_pred += 1
+                self.sampling += 1
 
-            # Get model prediction
-            predictions_raw = self.model.predict(image)
-            predictions = [np.argmax(pred, axis=1) for pred in predictions_raw]  # Why ?
-
-            # Decide action
-            direction = self.choose_direction(predictions)
-            head = self.choose_head(predictions, speed)
-            speed = self.choose_speed(predictions)
-
-            # Debug mode
-            if debug > 0 and sampling > 3:
-                sampling = -1
-                sample = {
-                    "array": self.frame,
-                    "direction": predictions[1][0],
-                    "speed": 1 if speed == SPEED_FAST else 0
-                }
-                self.buffer.append(sample)
-                if debug > 1:
-                    print("Predictions = {}, Direction = {}, Head = {}, Speed = {}".format(
-                        predictions, direction, head, speed))
-
-            # Apply values to engines
-            self.pwm.set_pwm(0, 0, direction)
-            self.pwm.set_pwm(1, 0, speed)
-            self.pwm.set_pwm(2, 0, head)
-            self.nb_pred += 1
-            sampling += 1
 
     # TODO (pclement) reinitialize to init values
     def stop(self):
@@ -129,12 +156,21 @@ class RaceOn:
         # Write buffer
         if self.buffer is not None and len(self.buffer) > 0:
             print('Saving buffer pictures to : "{}"'.format(OUTPUT_DIRECTORY))
+            i = 0
             for i, img in enumerate(self.buffer):
                 pic_file = '{}_image{}_{}_{}.jpg'.format(self.start_time, i, img["speed"], img["direction"])
                 pic = Image.fromarray(img["array"], 'RGB')
                 pic.save("{}{}".format(OUTPUT_DIRECTORY, pic_file))
             print('{} pictures saved.'.format(i + 1))
         print("Stop")
+
+
+def get_input_queue(out_q, racing_prompt):
+    while True:
+        user_input = input(racing_prompt)
+        out_q.put(user_input)
+        if user_input =="q":
+            break
 
 
 if __name__ == '__main__':
@@ -144,8 +180,6 @@ if __name__ == '__main__':
     try:
         race_on = RaceOn(options.model_path)
         print("Are you ready ?")
-
-        # TODO (pclement): other inputs to stop the motor & direct the wheels without having to reload the full model.
 
         starting_prompt = """Type 'go' to start.
         Type 'debug=$LEVEL_VAL' to start in debug mode of level LEVEL_VAL (LEVEL_VAL can be {})
