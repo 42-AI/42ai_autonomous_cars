@@ -1,0 +1,7 @@
+# AWS
+BUCKET_NAME = "032854191254-patate"
+
+# ES cluster
+ES_HOST_IP = "34.243.201.63"
+ES_HOST_PORT = 9200
+ES_INDEX = "patate-db-1"
