@@ -40,7 +40,7 @@ class RaceOn:
         # Create a *threaded *video stream, allow the camera sensor to warm_up
         self.video_stream = PiVideoStream().start()
         time.sleep(2)
-        self.video_stream.test()
+        # self.video_stream.test()
         self.frame = self.video_stream.read()
         self.buffer = None
         self.nb_pred = 0
@@ -63,7 +63,7 @@ class RaceOn:
 
     @staticmethod
     def choose_speed(predictions):
-        if predictions[1] == 1 and predictions[0] == 1:
+        if predictions[1] == 2 and predictions[0] == 1:
             return SPEED_FAST
         return SPEED_NORMAL
 
