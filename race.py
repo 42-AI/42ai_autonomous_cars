@@ -6,7 +6,7 @@ from collections import deque
 
 import Adafruit_PCA9685
 # noinspection PyUnresolvedReferences
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 
 from utils.pivideostream import PiVideoStream
 from utils.const import SPEED_NORMAL, SPEED_FAST, HEAD_UP, HEAD_DOWN, \
@@ -155,11 +155,7 @@ if __name__ == '__main__':
         keep_going = True
         started = False
         while keep_going:
-            try:  # This is for python2
-                # noinspection PyUnresolvedReferences
-                user_input = raw_input(racing_prompt) if started else raw_input(starting_prompt)
-            except NameError:
-                user_input = input(racing_prompt) if started else input(starting_prompt)
+            user_input = input(racing_prompt) if started else input(starting_prompt)
             if user_input == "go" and not started:
                 print("Race is on.")
                 race_on.race(debug=0)
