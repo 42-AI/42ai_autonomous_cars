@@ -8,12 +8,12 @@ import random
 import matplotlib.pyplot as plt
 import pandas as pd
 
-import keras.callbacks
-from keras.models import Model
-from keras.preprocessing.image import load_img
-from keras.preprocessing.image import img_to_array
+import tensorflow.keras.callbacks
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing.image import load_img
+from tensorflow.keras.preprocessing.image import img_to_array
 
-import model_params_setter
+from train_data import model_params_setter
 from utils.path import TRAINING_IMAGES_DIRECTORY, VALIDATION_IMAGES_DIRECTORY
 
 
@@ -69,7 +69,7 @@ class TrainModel:
         self.model = Model(inputs=self.model_inputs, outputs=self.model_outputs)
         self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         print(self.model.summary)
-        best_checkpoint = keras.callbacks.ModelCheckpoint(self.model_name, monitor='val_loss', verbose=1,
+        best_checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(self.model_name, monitor='val_loss', verbose=1,
                                                           save_best_only=True, mode='min')
         self.model.fit(self.images, [self.labels_speed, self.labels_directions],
                        batch_size=64, epochs=100, validation_split=0.2,

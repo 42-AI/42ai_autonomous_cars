@@ -1,12 +1,14 @@
 import argparse
-import numpy as np
-import time
-from PIL import Image
 from collections import deque
+import numpy as np
+from  queue import Queue
+from threading import Thread
+import time
 
 import Adafruit_PCA9685
 # noinspection PyUnresolvedReferences
-from keras.models import load_model
+from PIL import Image
+from tensorflow.keras.models import load_model
 
 from utils.pivideostream import PiVideoStream
 from utils.const import SPEED_NORMAL, SPEED_FAST, HEAD_UP, HEAD_DOWN, \
@@ -41,7 +43,7 @@ class RaceOn:
         # Create a *threaded *video stream, allow the camera sensor to warm_up
         self.video_stream = PiVideoStream().start()
         time.sleep(2)
-        self.video_stream.test()
+        # self.video_stream.test()
         self.frame = self.video_stream.read()
         self.buffer = None
 
@@ -69,7 +71,7 @@ class RaceOn:
 
     @staticmethod
     def get_motor_speed(predicted_labels):
-        if predicted_labels[1] == 1 and predicted_labels[0] == 1:
+        if predicted_labels[1] == 2 and predicted_labels[0] == 1:
             return SPEED_FAST
         return SPEED_NORMAL
 
@@ -119,7 +121,7 @@ class RaceOn:
         elif user_inp == 'go':
             self.pause = False
 
-    def race(self, debug=0, buff_size=100, queue_input):
+    def race(self, debug=0, buff_size=100, queue_input=None):
         self.buffer = deque(maxlen=buff_size)
         self.start_time = time.time()
         self.racing = True
@@ -131,8 +133,9 @@ class RaceOn:
         while self.racing:
             if not queue_input.empty():
                 self.treat_user_input(queue_input.get(block=False))
-            # Decide action and run motor
+
             if not self.pause:
+                # Decide action and run motor
                 predicted_labels, motor_direction, motor_head, motor_speed = self.get_predictions(motor_speed)
                 self.run_engine(motor_direction, motor_speed, motor_head)
                 self.check_debug_mode(predicted_labels, motor_direction, motor_speed, motor_head)
@@ -151,7 +154,9 @@ class RaceOn:
         # Performance status
         elapse_time = time.time() - self.start_time
         pred_rate = self.nb_pred / float(elapse_time)
-        print('{} prediction in {}s -> {} pred/s'.format(self.nb_pred, elapse_time, pred_rate))
+        print(f'{self.nb_pred} prediction in {elapse_time}s -> {pred_rate} pred/s')
+        # TODO if paused this value is False. Either print this caveat or elapse time becomes an attribute and manage
+        #  when pause
 
         # Write buffer
         if self.buffer is not None and len(self.buffer) > 0:
@@ -165,10 +170,13 @@ class RaceOn:
         print("Stop")
 
 
-def get_input_queue(out_q, racing_prompt):
+def get_input_queue(out_q):
+    racing_prompt = """Press 'q' + enter to totally stop the race
+    Press 'p' + enter to pause the race
+    Press 'go' + enter to resume race\n"""
     while True:
-        user_input = input(racing_prompt)
-        out_q.put(user_input)
+        user_inp = input(racing_prompt)
+        out_q.put(user_inp)
         if user_input =="q":
             break
 
@@ -179,34 +187,35 @@ if __name__ == '__main__':
     race_on = None
     try:
         race_on = RaceOn(options.model_path)
-        print("Are you ready ?")
+        q = Queue()
 
-        starting_prompt = """Type 'go' to start.
-        Type 'debug=$LEVEL_VAL' to start in debug mode of level LEVEL_VAL (LEVEL_VAL can be {})
+        starting_prompt = f"""Type 'go' to start.
+        Type 'debug=$LEVEL_VAL' to start in debug mode of level LEVEL_VAL (LEVEL_VAL can be {debug_mode_list})
         Type 'q' to totally stop the race.
-        """.format(debug_mode_list)
-        racing_prompt = """Press 'q' + enter to totally stop the race\n"""
-        keep_going = True
-        started = False
-        while keep_going:
-            try:  # This is for python2
-                # noinspection PyUnresolvedReferences
-                user_input = raw_input(racing_prompt) if started else raw_input(starting_prompt)
-            except NameError:
-                user_input = input(racing_prompt) if started else input(starting_prompt)
-            if user_input == "go" and not started:
+        """
+
+        # keep_going = True
+        # started = False
+        while True:
+            user_input = input(starting_prompt)
+            if user_input == "go":  # and not started:
                 print("Race is on.")
-                race_on.race(debug=0)
-                started = True
-            elif user_input[:6] == "debug=" and not started:
+                input_thread = Thread(target=get_input_queue, args=(q,))
+                race_thread = Thread(target=race_on.race, kwargs={'debug': 0, 'queue': q})
+                break
+                # started = True
+            elif user_input[:6] == "debug=":  # and not started:
                 debug_lvl = int(user_input.split("=")[1])
                 if debug_lvl not in debug_mode_list:
                     print("'{}' is not a valid debug mode. Please choose between:{}".format(debug_lvl, debug_mode_list))
-                print("Race is on in Debug mode level {}".format(debug_lvl))
-                race_on.race(debug=debug_lvl)
-                started = True
+                else:
+                    print("Race is on in Debug mode level {}".format(debug_lvl))
+                    input_thread = Thread(target=get_input_queue, args=(q,))
+                    race_thread = Thread(target=race_on.race, kwargs={'debug': debug_lvl, 'queue': q})
+                    break
+                # started = True
             elif user_input == "q":
-                keep_going = False
+                break
     except KeyboardInterrupt:
         pass
     finally:

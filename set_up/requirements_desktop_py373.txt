@@ -1,0 +1,15 @@
+# adafruit-pca9685
+boto3
+django==2.2
+django-extensions
+djangorestframework
+djangorestframework-jwt
+elasticsearch
+h5py
+matplotlib
+numpy
+pandas
+Pillow
+pytest
+service_identity
+tensorflow
