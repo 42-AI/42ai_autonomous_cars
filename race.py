@@ -1,7 +1,7 @@
 import argparse
 from collections import deque
 import numpy as np
-from  queue import Queue
+from queue import Queue
 from threading import Thread
 import time
 
@@ -114,7 +114,7 @@ class RaceOn:
 
     def treat_user_input(self, user_inp):
         if user_inp == 'q':
-            self.stop()
+            self.racing = False
         elif user_inp == 'p':
             self.pause = True
             self.pwm.set_pwm(1,0,0)  # get motor_speed to 0
@@ -167,7 +167,8 @@ class RaceOn:
                 pic = Image.fromarray(img["array"], 'RGB')
                 pic.save("{}{}".format(OUTPUT_DIRECTORY, pic_file))
             print('{} pictures saved.'.format(i + 1))
-        print("Stop")
+
+        print("Stopped properly")
 
 
 def get_input_queue(out_q):
@@ -177,8 +178,15 @@ def get_input_queue(out_q):
     while True:
         user_inp = input(racing_prompt)
         out_q.put(user_inp)
-        if user_input =="q":
+        if user_inp == 'q':
             break
+
+
+def run_threads(thread1, thread2):
+    thread1.start()
+    thread2.start()
+    thread1.join()
+    thread2.join()
 
 
 if __name__ == '__main__':
@@ -194,24 +202,23 @@ if __name__ == '__main__':
         Type 'q' to totally stop the race.
         """
 
-        # keep_going = True
-        # started = False
         while True:
             user_input = input(starting_prompt)
-            if user_input == "go":  # and not started:
+            if user_input == "go":
                 print("Race is on.")
                 input_thread = Thread(target=get_input_queue, args=(q,))
-                race_thread = Thread(target=race_on.race, kwargs={'debug': 0, 'queue': q})
+                race_thread = Thread(target=race_on.race, kwargs={'debug': 0, 'queue_input': q})
+                run_threads(input_thread, race_thread)
                 break
-                # started = True
-            elif user_input[:6] == "debug=":  # and not started:
+            elif user_input[:6] == "debug=":
                 debug_lvl = int(user_input.split("=")[1])
                 if debug_lvl not in debug_mode_list:
                     print("'{}' is not a valid debug mode. Please choose between:{}".format(debug_lvl, debug_mode_list))
                 else:
                     print("Race is on in Debug mode level {}".format(debug_lvl))
                     input_thread = Thread(target=get_input_queue, args=(q,))
-                    race_thread = Thread(target=race_on.race, kwargs={'debug': debug_lvl, 'queue': q})
+                    race_thread = Thread(target=race_on.race, kwargs={'debug': debug_lvl, 'queue_input': q})
+                    run_threads(input_thread, race_thread)
                     break
                 # started = True
             elif user_input == "q":
