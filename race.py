@@ -28,15 +28,12 @@ class RaceOn:
         # Racing_status
         self.racing = False
         self.pause = False
+        self.stopped = False
 
         # Load model
         self.model = load_model(model_path)
 
         # Init engines
-        # TODO (pclement): A quoi sert direction speed? ajouter head pour initialiser
-        self.speed = SPEED_FAST
-        self.direction = DIRECTION_C
-        self.head = HEAD_DOWN
         self.pwm = Adafruit_PCA9685.PCA9685()
         self.pwm.set_pwm_freq(50)
 
@@ -49,6 +46,7 @@ class RaceOn:
 
         # Debug and print
         self.start_time = 0
+        self.elapsed_time = 0
         self.nb_pred = 0
         self.sampling = -1
         self.debug = 0
@@ -57,7 +55,6 @@ class RaceOn:
 
     @staticmethod
     def get_motor_direction(predicted_labels):
-        # TODO (pclement): Make it more modular so it can handle 3 or 5 direction--> dictionnary or list in utils.const?
         if predicted_labels[1] == 0:
             return DIRECTION_L_M
         elif predicted_labels[1] == 1:
@@ -115,11 +112,14 @@ class RaceOn:
     def treat_user_input(self, user_inp):
         if user_inp == 'q':
             self.racing = False
+            self.stop()
         elif user_inp == 'p':
             self.pause = True
-            self.pwm.set_pwm(1,0,0)  # get motor_speed to 0
+            self.pwm.set_pwm(1, 0, 0)
+            self.elapsed_time += time.time() - self.start_time
         elif user_inp == 'go':
             self.pause = False
+            self.start_time = time.time()
 
     def race(self, debug=0, buff_size=100, queue_input=None):
         self.buffer = deque(maxlen=buff_size)
@@ -142,21 +142,19 @@ class RaceOn:
                 self.nb_pred += 1
                 self.sampling += 1
 
-
-    # TODO (pclement) reinitialize to init values
     def stop(self):
         self.racing = False
+        self.stopped = True
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
         self.pwm.set_pwm(2, 0, 0)
         self.video_stream.stop()
 
         # Performance status
-        elapse_time = time.time() - self.start_time
-        pred_rate = self.nb_pred / float(elapse_time)
-        print(f'{self.nb_pred} prediction in {elapse_time}s -> {pred_rate} pred/s')
-        # TODO if paused this value is False. Either print this caveat or elapse time becomes an attribute and manage
-        #  when pause
+        if self.start_time > 0:
+            self.elapsed_time += time.time() - self.start_time
+            pred_rate = self.nb_pred / float(self.elapsed_time)
+            print(f'{self.nb_pred} prediction in {self.elapsed_time}s -> {pred_rate} pred/s')
 
         # Write buffer
         if self.buffer is not None and len(self.buffer) > 0:
@@ -199,8 +197,7 @@ if __name__ == '__main__':
 
         starting_prompt = f"""Type 'go' to start.
         Type 'debug=$LEVEL_VAL' to start in debug mode of level LEVEL_VAL (LEVEL_VAL can be {debug_mode_list})
-        Type 'q' to totally stop the race.
-        """
+        Type 'q' to totally stop the race.\n"""
 
         while True:
             user_input = input(starting_prompt)
@@ -220,12 +217,11 @@ if __name__ == '__main__':
                     race_thread = Thread(target=race_on.race, kwargs={'debug': debug_lvl, 'queue_input': q})
                     run_threads(input_thread, race_thread)
                     break
-                # started = True
             elif user_input == "q":
                 break
     except KeyboardInterrupt:
         pass
     finally:
-        if race_on is not None:
+        if race_on is not None and race_on.stopped is False:
             race_on.stop()
         print("Race is over.")
