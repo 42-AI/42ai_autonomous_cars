@@ -131,9 +131,6 @@ class RaceOn:
         motor_speed = SPEED_NORMAL
 
         while self.racing:
-            if not queue_input.empty():
-                self.treat_user_input(queue_input.get(block=False))
-
             if not self.pause:
                 # Decide action and run motor
                 predicted_labels, motor_direction, motor_head, motor_speed = self.get_predictions(motor_speed)
@@ -141,10 +138,13 @@ class RaceOn:
                 self.check_debug_mode(predicted_labels, motor_direction, motor_speed, motor_head)
                 self.nb_pred += 1
                 self.sampling += 1
+            if not queue_input.empty():
+                self.treat_user_input(queue_input.get(block=False))
 
     def stop(self):
         self.racing = False
         self.stopped = True
+        time.sleep(2)
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
         self.pwm.set_pwm(2, 0, 0)
