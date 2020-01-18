@@ -44,7 +44,7 @@ class TrainingSession:
         self.camera.framerate = FRAME_RATE
         self.camera.exposure_mode = EXPOSURE_MODE
         self.rawCapture = PiRGBArray(self.camera, size=IMAGE_SIZE)
-        time.sleep(0.5)
+        time.sleep(2)
 
         # Setup xbox pad
         self.joy = xbox.Joystick()
