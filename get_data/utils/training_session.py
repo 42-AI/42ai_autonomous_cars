@@ -15,7 +15,8 @@ from picamera.array import PiRGBArray
 from get_data.utils import xbox
 from get_data.utils import label_handler
 from utils.const import SPEED_FAST, SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE,\
-    DIRECTION_C, DIRECTION_L, DIRECTION_L_M, DIRECTION_R, DIRECTION_R_M, HEAD_DOWN, HEAD_UP
+    DIRECTION_C, DIRECTION_L, DIRECTION_L_M, DIRECTION_R, DIRECTION_R_M, HEAD_DOWN, HEAD_UP,\
+    MAX_SPEED, STOP_SPEED, MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT
 from utils import car_mapping
 
 
@@ -34,9 +35,10 @@ class TrainingSession:
         # Init speed direction
         self.speed = SPEED_NORMAL
         self.direction = DIRECTION_C
+        self.head = HEAD_DOWN
 
         # Set head down
-        self.pwm.set_pwm(2, 0, HEAD_DOWN)
+        self.pwm.set_pwm(2, 0, self.head)
 
         # Setup Camera
         self.camera = PiCamera()
@@ -57,9 +59,14 @@ class TrainingSession:
             "camera": {
                 "resolution": self.camera.resolution,
                 "frame_rate": str(self.camera.framerate),
-                "exposure_mode": self.camera.exposure_mode
+                "exposure_mode": self.camera.exposure_mode,
+                "camera_position": self.head
             },
             "constant": {
+                "max_speed": MAX_SPEED,
+                "stop_speed": STOP_SPEED,
+                "max_direction_l": MAX_DIRECTION_LEFT,
+                "max_direction_r": MAX_DIRECTION_RIGHT,
                 "speed_normal": SPEED_NORMAL,
                 "speed_fast": SPEED_FAST,
                 "direction_l_m": DIRECTION_L_M,
@@ -77,13 +84,12 @@ class TrainingSession:
         label = {
             "img_id": img_id,
             "file_name": file_name,
+            "file_type": file_name.split(".")[-1],
             "label": {
                 "raw_direction": self.direction,
                 "raw_speed": self.speed,
-                "direction": self.label[1],
-                "speed": self.label[0],
-                "trigger": self.trigger,
-                "x_cursor": self.x_cursor
+                "label_direction": self.label[1],
+                "label_speed": self.label[0],
             },
             "timestamp": timestamp
         }
@@ -110,7 +116,7 @@ class TrainingSession:
             self.controls(show_mode)
             if self.label[0] != -1 and time.time() - start > self.delay:
                 im = Image.fromarray(image, 'RGB')
-                t_stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+                t_stamp = datetime.now().strftime("%Y%m%dT%Hh%Mm%Ss%f")
                 picture_path = Path(self.meta_label.output_dir) / f'{self.label[0]}_{self.label[1]}_{str(t_stamp)}.jpg'
                 label = self.create_label(img_id=t_stamp, file_name=picture_path.name, timestamp=t_stamp)
                 label = dict(self.meta_label.template, **label)  # shallow copy meta_label and add label key/val
