@@ -12,5 +12,4 @@ VALIDATION_IMAGES_DIRECTORY = "images/validation_set_images/"
 
 # Label
 SESSION_TEMPLATE_NAME = "session_template.json"
-LABEL_TEMPLATE_FILE = "get_data/label_template.json"
 HARDWARE_CONF_FILE = "hardware_conf.json"

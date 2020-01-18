@@ -7,7 +7,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("delay", type=float,
                         help="Provide the delay between 2 capture of images.\n")
-    parser.add_argument("output_dir", type=str, help="Path to the directory where the picture shall be saved")
+    parser.add_argument("picture_dir", type=str, help="Path to the directory where the picture shall be saved")
     return parser.parse_args()
 
 

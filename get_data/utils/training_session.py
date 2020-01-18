@@ -52,51 +52,10 @@ class TrainingSession:
         self.joy = xbox.Joystick()
 
         # Init Label
-        self.meta_label = label_handler.Label(car_setting=self.get_car_setting(), output_dir=output_dir)
-
-    def get_car_setting(self):
-        car_setting = {
-            "camera": {
-                "resolution": self.camera.resolution,
-                "frame_rate": str(self.camera.framerate),
-                "exposure_mode": self.camera.exposure_mode,
-                "camera_position": self.head
-            },
-            "constant": {
-                "max_speed": MAX_SPEED,
-                "stop_speed": STOP_SPEED,
-                "max_direction_l": MAX_DIRECTION_LEFT,
-                "max_direction_r": MAX_DIRECTION_RIGHT,
-                "speed_normal": SPEED_NORMAL,
-                "speed_fast": SPEED_FAST,
-                "direction_l_m": DIRECTION_L_M,
-                "direction_l": DIRECTION_L,
-                "direction_c": DIRECTION_C,
-                "direction_r": DIRECTION_R,
-                "direction_r_m": DIRECTION_R_M,
-                "head_up": HEAD_UP,
-                "head_down": HEAD_DOWN
-            }
-        }
-        return car_setting
-
-    def create_label(self, img_id, file_name, timestamp):
-        label = {
-            "img_id": img_id,
-            "file_name": file_name,
-            "file_type": file_name.split(".")[-1],
-            "label": {
-                "raw_direction": self.direction,
-                "raw_speed": self.speed,
-                "label_direction": self.label[1],
-                "label_speed": self.label[0],
-            },
-            "timestamp": timestamp
-        }
-        return label
+        self.meta_label = label_handler.Label(picture_dir=output_dir, camera_position=self.head)
 
     def save_and_clear_buffer(self):
-        print(f'Saving picture to "{self.meta_label.output_dir}" ...', end=" ", flush=True)
+        print(f'Saving picture to "{self.meta_label.picture_dir}" ...', end=" ", flush=True)
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
         for picture_path, im in self.buffer:
@@ -117,10 +76,15 @@ class TrainingSession:
             if self.label[0] != -1 and time.time() - start > self.delay:
                 im = Image.fromarray(image, 'RGB')
                 t_stamp = datetime.now().strftime("%Y%m%dT%Hh%Mm%Ss%f")
-                picture_path = Path(self.meta_label.output_dir) / f'{self.label[0]}_{self.label[1]}_{str(t_stamp)}.jpg'
-                label = self.create_label(img_id=t_stamp, file_name=picture_path.name, timestamp=t_stamp)
-                label = dict(self.meta_label.template, **label)  # shallow copy meta_label and add label key/val
-                l_label.append(label)
+                picture_path = Path(self.meta_label.picture_dir) / f'{self.label[0]}_{self.label[1]}_{str(t_stamp)}.jpg'
+                self.meta_label.set_label(img_id=t_stamp,
+                                          file_name=picture_path.name,
+                                          timestamp=t_stamp,
+                                          raw_dir=self.direction,
+                                          raw_speed=self.speed,
+                                          label_dir=self.label[1],
+                                          label_speed=self.label[0])
+                l_label.append(self.meta_label.get_copy())
                 self.buffer.append((picture_path, im))
                 if show_mode:
                     print(f'{i}: trigger:{self.trigger} ; joystick:{self.x_cursor} ; pic_path:"{picture_path}""')
@@ -135,7 +99,7 @@ class TrainingSession:
                 self.pwm.set_pwm(1, 0, 0)
                 self.save_and_clear_buffer()
                 print("Stop")
-                output_label = Path(self.meta_label.output_dir) / "labels.json"
+                output_label = Path(self.meta_label.picture_dir) / "labels.json"
                 with output_label.open(mode='w', encoding='utf-8') as fp:
                     json.dump(l_label, fp)
                 return

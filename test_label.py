@@ -1,41 +1,44 @@
 import pytest
 import json
+from pathlib import Path
 
 from get_data.utils import label_handler as lb
 
 
 def test_init_label_file_valid_dir():
     output = "get_data/sample"
-    label = lb.Label(output_dir=output)
-    session_template = label.get_session_template()
-    assert session_template != {}
-    assert label.output_dir == output
+    label = lb.Label(picture_dir=output)
+    with Path(output).open(mode='r', encoding='utf-8') as fp:
+        session_template = json.load(fp)
+    assert label.picture_dir == output
     assert label.template["location"] == output
+    for key, val in session_template.items():
+        assert label.template[key] == val
 
 
 def test_init_label_file_invalid_dir():
     output = "wrong/dir"
     with pytest.raises(IOError):
-        label = lb.Label(output_dir=output)
+        label = lb.Label(picture_dir=output)
 
 
 def test_init_label_file_wrong_json_format():
     output = "get_data/sample/wrong_format"
     with pytest.raises(json.JSONDecodeError):
-        label = lb.Label(output_dir=output)
+        label = lb.Label(picture_dir=output)
 
 
 def test_change_output_dir():
     output = "get_data/sample"
-    label = lb.Label(output_dir=output)
-    label.output_dir = "foo/bar/"
+    label = lb.Label(picture_dir=output)
+    label.picture_dir = "foo/bar/"
     assert label.template["location"] == "foo/bar/"
-    assert label.output_dir == "foo/bar/"
+    assert label.picture_dir == "foo/bar/"
 
 
 def test_change_car_setting():
     output = "get_data/sample"
-    label = lb.Label(output_dir=output)
+    label = lb.Label(picture_dir=output)
     car_setting = {"setting1": 10, "s2": "boabab"}
     label.car_setting = car_setting
     assert label.template["car_setting"] == car_setting
@@ -44,7 +47,7 @@ def test_change_car_setting():
 
 def test_change_session_template():
     output = "get_data/sample"
-    label = lb.Label(output_dir=output)
+    label = lb.Label(picture_dir=output)
     session_template = {"t1": 10, "t2": "boabab"}
     label.session_template = session_template
     for key, val in session_template.items():
@@ -54,7 +57,7 @@ def test_change_session_template():
 
 def test_change_hardware_conf():
     output = "get_data/sample"
-    label = lb.Label(output_dir=output)
+    label = lb.Label(picture_dir=output)
     hardware = {"t1": 10, "t2": "boabab"}
     label.hardware_conf = hardware
     assert label.template["hardware"] == hardware
