@@ -143,10 +143,6 @@ class TrainingSession:
         self.x_cursor = round(self.joy.leftX(), 2)  # X-axis of the left stick (values -1.0 to 1.0)
         self.direction = car_mapping.get_direction_from_xbox_joystick(self.x_cursor)
         self.label[1] = car_mapping.get_label_from_direction(self.direction)
-        if show_mode:
-            print("""Trigger = {} and speed set to {}
-            X_cursor = {} and direction set to {}""".format(
-                self.trigger, self.speed, self.x_cursor, self.direction))
         # Set motor direction and speed
         self.pwm.set_pwm(0, 0, self.direction)
         self.pwm.set_pwm(1, 0, self.speed)
