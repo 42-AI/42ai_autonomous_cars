@@ -23,10 +23,10 @@ def test_car_mapping_linear_trigger_min():
 
 
 def test_car_mapping_linear_trigger_max():
-    direction = car_mapping._linear_speed_trigger_mapping(1)
-    assert direction == MAX_SPEED
+    speed = car_mapping._linear_speed_trigger_mapping(1)
+    assert speed == MAX_SPEED
 
 
 def test_car_mapping_linear_trigger_middle():
-    direction = car_mapping._linear_speed_trigger_mapping(0.5)
-    assert direction == round(MAX_SPEED / 2)
+    speed = car_mapping._linear_speed_trigger_mapping(0.5)
+    assert speed == round((MAX_SPEED + STOP_SPEED) / 2)
