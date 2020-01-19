@@ -16,7 +16,7 @@ class Label:
         self.init_label_template(camera_position, raise_error=raise_error)
 
     def __str__(self):
-        return str(self._template)
+        return json.dumps(self._template, indent=4)
 
     def __getitem__(self, item):
         return self._template[item]
