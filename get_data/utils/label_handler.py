@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from utils import car_mapping as cm
 from utils.path import SESSION_TEMPLATE_NAME, HARDWARE_CONF_FILE
 from utils.const import SPEED_FAST, SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, \
     DIRECTION_C, DIRECTION_L, DIRECTION_L_M, DIRECTION_R, DIRECTION_R_M, HEAD_DOWN, HEAD_UP, \
@@ -44,6 +45,8 @@ class Label:
         self.init_hardware_conf_from_file(raise_error=raise_error)
         self.init_session_template_from_file(directory=self.picture_dir, raise_error=raise_error)
         self._template["raw"] = True
+        self.set_label()
+        self.add_normalized_speed_dir()
 
     def init_car_setting_from_const(self, cam_resolution=IMAGE_SIZE, cam_framerate=FRAME_RATE,
                                     cam_exposure_mode=EXPOSURE_MODE, cam_position="unknown"):
@@ -115,7 +118,7 @@ class Label:
         self._template["hardware_conf"] = hardware_conf
 
     def set_label(self, img_id=None, file_name="", timestamp=None,
-                  raw_direction=None, raw_speed=None, label_direction=None, label_speed=None):
+                  raw_direction=MAX_DIRECTION_LEFT, raw_speed=STOP_SPEED, label_direction=None, label_speed=None):
         label = {
             "img_id": img_id,
             "file_name": file_name,
@@ -130,6 +133,10 @@ class Label:
         }
         for key, val in label.items():
             self._template[key] = val
+
+    def add_normalized_speed_dir(self):
+        self._template["label"]["normalized_speed"] = cm.get_normalized_speed(self._template["label"]["raw_speed"])
+        self._template["label"]["normalized_direction"] = cm.get_normalized_direction(self._template["label"]["raw_direction"])
 
     def get_copy(self):
         return self._template.copy()

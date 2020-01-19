@@ -100,9 +100,11 @@ class TrainingSession:
                 self.pwm.set_pwm(1, 0, 0)
                 self.save_and_clear_buffer()
                 print("Stop")
+                for label in l_label:
+                    label.add_normalized_speed_dir()
                 output_label = Path(self.meta_label.picture_dir) / "labels.json"
                 with output_label.open(mode='w', encoding='utf-8') as fp:
-                    json.dump(l_label, fp)
+                    json.dump(l_label, fp, indent=4)
                 return
 
     def controls(self):

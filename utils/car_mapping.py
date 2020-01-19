@@ -72,6 +72,30 @@ def _linear_speed_trigger_mapping(speed):
     return round(_linear_speed_trigger_mapping.a * speed + _linear_speed_trigger_mapping.b)
 
 
+def get_normalized_direction(direction):
+    """
+    -1 = MAX_LEFT * a + b
+    1 = MAX_RIGHT * a + b
+    --> 2 = (MAX_RIGHT - MAX_LEFT) * a
+    --> b = 1 - MAX_RIGHT * a
+    """
+    a = 2 / (MAX_DIRECTION_RIGHT - MAX_DIRECTION_LEFT)
+    b = 1 - MAX_DIRECTION_RIGHT * a
+    return round(a * direction + b, 2)
+
+
+def get_normalized_speed(speed):
+    """
+    0 = STOP_SPEED * a + b
+    1 = MAX_SPEED * a + b
+    --> 1 = (MAX_SPEED - STOP_SPEED) * a
+    --> b = -STOP_SPEED * a
+    """
+    a = 1 / (MAX_SPEED - STOP_SPEED)
+    b = -STOP_SPEED * a
+    return round(a * speed + b, 2)
+
+
 def get_speed_from_xbox_trigger(trigger):
     return _two_speed_trigger_mapping(trigger)
 

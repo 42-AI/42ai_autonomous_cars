@@ -1,0 +1,56 @@
+{
+    "location": null,
+    "car_setting": {
+        "camera": {
+            "resolution": [
+                160,
+                96
+            ],
+            "frame_rate": 32,
+            "exposure_mode": "off",
+            "camera_position": "unknown"
+        },
+        "constant": {
+            "max_speed": 307,
+            "stop_speed": 322,
+            "max_direction_l": 250,
+            "max_direction_r": 400,
+            "speed_normal": 316,
+            "speed_fast": 311,
+            "direction_l_m": 250,
+            "direction_l": 290,
+            "direction_c": 327,
+            "direction_r": 364,
+            "direction_r_m": 400,
+            "head_up": 150,
+            "head_down": 120
+        }
+    },
+    "hardware_conf": {
+        "car": "patate",
+        "version": 1,
+        "computer": "Raspberry_Pi2",
+        "camera": "Picam"
+    },
+    "event": "",
+    "track": "",
+    "track_picture": "",
+    "track_type": "",
+    "dataset": [
+        ""
+    ],
+    "comment": "",
+    "raw": true,
+    "img_id": null,
+    "file_name": "",
+    "file_type": "",
+    "label": {
+        "raw_direction": 250,
+        "raw_speed": 322,
+        "label_direction": null,
+        "label_speed": null,
+        "normalized_speed": 0.0,
+        "normalized_direction": -1.0
+    },
+    "timestamp": null
+}
