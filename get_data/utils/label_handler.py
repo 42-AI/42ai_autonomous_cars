@@ -10,27 +10,40 @@ from utils.const import SPEED_FAST, SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSU
 class Label:
 
     def __init__(self, picture_dir=None, camera_position="unknown", raise_error=True):
-        self.template = {}
+        self._template = {}
+        self.picture_dir_key = "location"
         self.picture_dir = picture_dir
         self.init_label_template(camera_position, raise_error=raise_error)
 
     def __str__(self):
-        return str(self.template)
+        return str(self._template)
+
+    def __getitem__(self, item):
+        return self._template[item]
+
+    def __setitem__(self, key, value):
+        if key == self.picture_dir_key:
+            self._picture_dir = value
+        self._template[key] = value
 
     def set_picture_dir(self, directory):
         self._picture_dir = directory
-        self.template["location"] = self._picture_dir
+        self._template[self.picture_dir_key] = self._picture_dir
 
     def get_picture_dir(self):
         return self._picture_dir
 
+    def get_template(self):
+        return self._template
+
     picture_dir = property(get_picture_dir, set_picture_dir)
+    template = property(get_template)
 
     def init_label_template(self, camera_position="unknown", raise_error=True):
         self.init_car_setting_from_const(cam_position=camera_position)
         self.init_hardware_conf_from_file(raise_error=raise_error)
         self.init_session_template_from_file(directory=self.picture_dir, raise_error=raise_error)
-        self.template["raw"] = True
+        self._template["raw"] = True
 
     def init_car_setting_from_const(self, cam_resolution=IMAGE_SIZE, cam_framerate=FRAME_RATE,
                                     cam_exposure_mode=EXPOSURE_MODE, cam_position="unknown"):
@@ -57,10 +70,10 @@ class Label:
                 "head_down": HEAD_DOWN
             }
         }
-        self.template["car_setting"] = car_setting
+        self._template["car_setting"] = car_setting
 
     def init_session_template_from_file(self, directory, raise_error=True):
-        """Init the session template from the file named SESSION_TEMPLATE_NAME and located in 'directory'"""
+        """Init the session _template from the file named SESSION_TEMPLATE_NAME and located in 'directory'"""
         if directory is None:
             session_template = Label.get_default_session_template()
         else:
@@ -78,11 +91,11 @@ class Label:
                 try:
                     session_template = get_template(session_template_file)
                 except IOError as err:
-                    print(f'ERROR: File "{session_template_file}" could not be read because : {err}')
+                    print(f'ERROR: Session _template file "{session_template_file}" could not be read because : {err}')
                 except json.JSONDecodeError as err:
-                    print(f'JSON DECODE ERROR: in file "{session_template_file}" : {err}')
+                    print(f'JSON DECODE ERROR: in session _template file "{session_template_file}" : {err}')
         for key, val in session_template.items():
-            self.template[key] = val
+            self._template[key] = val
 
     def init_hardware_conf_from_file(self, raise_error=True):
         """Initialize the hardware conf with the HARDWARE_CONF_FILE"""
@@ -99,27 +112,27 @@ class Label:
                 print(f'ERROR: File "{hardware_conf_file}" could not be read because : {err}')
             except json.JSONDecodeError as err:
                 print(f'JSON DECODE ERROR: in file "{hardware_conf_file}" : {err}')
-        self.template["hardware_conf"] = hardware_conf
+        self._template["hardware_conf"] = hardware_conf
 
-    def set_label(self, img_id=None, file_name=None, timestamp=None,
-                  raw_dir=None, raw_speed=None, label_dir=None, label_speed=None):
+    def set_label(self, img_id=None, file_name="", timestamp=None,
+                  raw_direction=None, raw_speed=None, label_direction=None, label_speed=None):
         label = {
             "img_id": img_id,
             "file_name": file_name,
-            "file_type": file_name.split(".")[-1] if file_name is not None else None,
+            "file_type": file_name.split(".")[-1],
             "label": {
-                "raw_direction": raw_dir,
+                "raw_direction": raw_direction,
                 "raw_speed": raw_speed,
-                "label_direction": label_dir,
+                "label_direction": label_direction,
                 "label_speed": label_speed
             },
             "timestamp": timestamp
         }
         for key, val in label.items():
-            self.template[key] = val
+            self._template[key] = val
 
     def get_copy(self):
-        return self.template.copy()
+        return self._template.copy()
 
     @staticmethod
     def get_default_session_template():

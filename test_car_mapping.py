@@ -1,5 +1,5 @@
 from utils import car_mapping
-from utils.const import MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, MAX_SPEED
+from utils.const import MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, MAX_SPEED, STOP_SPEED
 
 
 def test_car_mapping_linear_joystick_full_right():
@@ -19,7 +19,7 @@ def test_car_mapping_linear_joystick_center():
 
 def test_car_mapping_linear_trigger_min():
     direction = car_mapping._linear_speed_trigger_mapping(0)
-    assert direction == 0
+    assert direction == STOP_SPEED
 
 
 def test_car_mapping_linear_trigger_max():

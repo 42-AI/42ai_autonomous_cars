@@ -72,7 +72,7 @@ class TrainingSession:
             # convert img as Array
             image = frame.array
             # control car
-            self.controls(show_mode)
+            self.controls()
             if self.label[0] != -1 and time.time() - start > self.delay:
                 im = Image.fromarray(image, 'RGB')
                 t_stamp = datetime.now().strftime("%Y%m%dT%Hh%Mm%Ss%f")
@@ -80,14 +80,15 @@ class TrainingSession:
                 self.meta_label.set_label(img_id=t_stamp,
                                           file_name=picture_path.name,
                                           timestamp=t_stamp,
-                                          raw_dir=self.direction,
+                                          raw_direction=self.direction,
                                           raw_speed=self.speed,
-                                          label_dir=self.label[1],
+                                          label_direction=self.label[1],
                                           label_speed=self.label[0])
                 l_label.append(self.meta_label.get_copy())
                 self.buffer.append((picture_path, im))
                 if show_mode:
-                    print(f'{i}: trigger:{self.trigger} ; joystick:{self.x_cursor} ; pic_path:"{picture_path}""')
+                    print(f'{i}: trigger|label:{self.trigger}|{self.label[0]} ;'
+                          f' joystick|label:{self.x_cursor}|{self.label[1]} ; pic_path:"{picture_path}"')
                 i += 1
                 start = time.time()
                 if len(self.buffer) > max_buff_size:
@@ -104,7 +105,7 @@ class TrainingSession:
                     json.dump(l_label, fp)
                 return
 
-    def controls(self, show_mode):
+    def controls(self):
         # Get speed label
         self.trigger = round(self.joy.rightTrigger(), 2)  # Right trigger position (values 0 to 1.0)
         self.speed = car_mapping.get_speed_from_xbox_trigger(self.trigger)
