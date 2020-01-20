@@ -13,7 +13,7 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
-    session = ts.TrainingSession(args.delay, output_dir=args.output_dir)
+    session = ts.TrainingSession(args.delay, output_dir=args.picture_dir)
 
     print("Are you ready to drive?")
     starting_prompt = """Press 'go' + enter to start.
