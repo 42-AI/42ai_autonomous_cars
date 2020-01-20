@@ -82,11 +82,12 @@ class TrainingSession:
                                           raw_speed=self.speed,
                                           label_direction=self.label[1],
                                           label_speed=self.label[0])
+                self.meta_label.add_normalized_speed_dir()
                 l_label.append(self.meta_label.get_copy())
                 self.buffer.append((picture_path, im))
                 if show_mode:
-                    print(f'{i}: trigger|label:{self.trigger}|{self.label[0]} ;'
-                          f' joystick|label:{self.x_cursor}|{self.label[1]} ; pic_path:"{picture_path}"')
+                    print(f'{i}: trigger:{self.trigger}|{self.label[0]} ;'
+                          f' joystick:{self.x_cursor}|{self.label[1]} ; pic_path:"{picture_path}"')
                 i += 1
                 start = time.time()
                 if len(self.buffer) > max_buff_size:
@@ -98,8 +99,6 @@ class TrainingSession:
                 self.pwm.set_pwm(1, 0, 0)
                 self.save_and_clear_buffer()
                 print("Stop")
-                for label in l_label:
-                    label.add_normalized_speed_dir()
                 output_label = Path(self.meta_label.picture_dir) / "labels.json"
                 with output_label.open(mode='w', encoding='utf-8') as fp:
                     json.dump(l_label, fp, indent=4)

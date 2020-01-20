@@ -79,9 +79,10 @@ def get_normalized_direction(direction):
     --> 2 = (MAX_RIGHT - MAX_LEFT) * a
     --> b = 1 - MAX_RIGHT * a
     """
-    a = 2 / (MAX_DIRECTION_RIGHT - MAX_DIRECTION_LEFT)
-    b = 1 - MAX_DIRECTION_RIGHT * a
-    return round(a * direction + b, 2)
+    if "a" not in get_normalized_direction.__dict__:
+        get_normalized_direction.a = 2 / (MAX_DIRECTION_RIGHT - MAX_DIRECTION_LEFT)
+        get_normalized_direction.b = 1 - MAX_DIRECTION_RIGHT * get_normalized_direction.a
+    return round(get_normalized_direction.a * direction + get_normalized_direction.b, 2)
 
 
 def get_normalized_speed(speed):
@@ -91,9 +92,10 @@ def get_normalized_speed(speed):
     --> 1 = (MAX_SPEED - STOP_SPEED) * a
     --> b = -STOP_SPEED * a
     """
-    a = 1 / (MAX_SPEED - STOP_SPEED)
-    b = -STOP_SPEED * a
-    return round(a * speed + b, 2)
+    if "a" not in get_normalized_speed.__dict__:
+        get_normalized_speed.a = 1 / (MAX_SPEED - STOP_SPEED)
+        get_normalized_speed.b = -STOP_SPEED * get_normalized_speed.a
+    return round(get_normalized_speed.a * speed + get_normalized_speed.b, 2)
 
 
 def get_speed_from_xbox_trigger(trigger):
