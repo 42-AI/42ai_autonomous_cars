@@ -74,9 +74,9 @@ def _linear_speed_trigger_mapping(speed):
 
 def get_normalized_direction(direction):
     """
-    -1 = MAX_LEFT * a + b
-    1 = MAX_RIGHT * a + b
-    --> 2 = (MAX_RIGHT - MAX_LEFT) * a
+    -1 = MAX_DIRECTION_LEFT * a + b
+    1 = MAX_DIRECTION_RIGHT * a + b
+    --> 2 = (MAX_DIRECTION_RIGHT - MAX_DIRECTION_LEFT) * a
     --> b = 1 - MAX_RIGHT * a
     """
     if "a" not in get_normalized_direction.__dict__:
@@ -99,15 +99,15 @@ def get_normalized_speed(speed):
 
 
 def get_speed_from_xbox_trigger(trigger):
-    return _two_speed_trigger_mapping(trigger)
+    return _linear_speed_trigger_mapping(trigger)
+
+
+def get_direction_from_xbox_joystick(joystick):
+    return _linear_direction_joystick_mapping(joystick)
 
 
 def get_label_from_speed(speed):
     return _two_label_speed_mapping(speed)
-
-
-def get_direction_from_xbox_joystick(joystick):
-    return _five_direction_joystick_mapping(joystick)
 
 
 def get_label_from_direction(direction):
