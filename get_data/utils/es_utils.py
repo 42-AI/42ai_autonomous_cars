@@ -1,21 +1,24 @@
 import os
-from elasticsearch import Elasticsearch
+import elasticsearch
 from elasticsearch import helpers
-from elasticsearch import exceptions as es_exceptions
 
 
 def get_es_session(host_ip, port):
     try:
         user = os.environ["ES_USER_ID"]
         pwd = os.environ["ES_USER_PWD"]
-    except KeyError as err:
+    except KeyError:
         print("  --> Warning: Elasticsearch user and/or password not found. Trying connection without authentication")
         user = ""
         pwd = ""
     try:
-        es = Elasticsearch([{"host": host_ip, "port": port}], http_auth=(user, pwd))
-    except es_exceptions as err:
-        print(f'Failed to connect to "{host_ip}:{port}" because:\n{err}')
+        es = elasticsearch.Elasticsearch([{"host": host_ip, "port": port, "timeout": 10}], http_auth=(user, pwd))
+        connection_ok = es.ping()
+        if not connection_ok:
+            print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}"')
+            return None
+    except elasticsearch.ElasticsearchException as err:
+        print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}" because:\n{err}')
         return None
     return es
 
@@ -25,7 +28,7 @@ def gen_bulk_doc(l_label, index, op_type):
     for label in l_label:
         yield {
             "_index": index,
-            "_type": "document",
+            "_type": "_doc",
             "_op_type": op_type,
             "_id": label["img_id"],
             "_source": label
@@ -48,7 +51,7 @@ def upload_to_es(l_label, index, host_ip, port, update=False):
     """
     es = get_es_session(host_ip, port)
     if es is None:
-        return len(l_label)
+        return [label["img_id"] for label in l_label]
     op_type = "index" if update else "create"
     success, errors = helpers.bulk(es, gen_bulk_doc(l_label, index, op_type), request_timeout=60, raise_on_error=False)
     failed_doc_id = []

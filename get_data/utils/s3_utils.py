@@ -1,7 +1,23 @@
 from pathlib import Path
+import re
 import os
 import boto3
 from botocore import exceptions as boto3_exceptions
+
+
+def is_valid_s3_key(name):
+    if "valid" not in is_valid_s3_key.__dict__:  # check if it is the first call to this function
+        is_valid_s3_key.valid_regex = r"[^a-zA-Z0-9!/\-_\*'\(\)]"
+        is_valid_s3_key.exp = re.compile(is_valid_s3_key.valid_regex)
+    res = is_valid_s3_key.exp.search(name)
+    return (True, is_valid_s3_key.valid_regex) if res is None else (False, is_valid_s3_key.valid_regex)
+
+
+def generate_valid_s3_key_from_str(name):
+    if "valid" not in generate_valid_s3_key_from_str.__dict__:  # check if it is the first call to this function
+        generate_valid_s3_key_from_str.valid_regex = r"[^a-zA-Z0-9!/\-_\*'\(\)]"
+        generate_valid_s3_key_from_str.exp = re.compile(generate_valid_s3_key_from_str.valid_regex)
+    return generate_valid_s3_key_from_str.exp.sub("_", name)
 
 
 def get_s3_resource():

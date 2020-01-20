@@ -8,7 +8,7 @@
     "color": "rgb",
     "picture_date": "31/01/2018",
     "upload_date": "31/01/2019",
-    "event": "iron car",
+    "event": "sample_test",
     "track" : "iron-car-012018",
     "track_type": "double lane dash",
     "resolution": {
@@ -32,7 +32,7 @@
     "color": "rgb",
     "picture_date": "31/01/2018",
     "upload_date": "31/01/2019",
-    "event": "iron car",
+    "event": "sample_test",
     "track" : "iron-car-012018",
     "track_type": "double lane yellow dash",
     "resolution": {
@@ -56,7 +56,7 @@
     "color": "rgb",
     "picture_date": "31/01/2018",
     "upload_date": "31/01/2019",
-    "event": "iron car",
+    "event": "sample_test",
     "track" : "iron-car-012018",
     "track_type": "double lane dash",
     "resolution": {
@@ -80,7 +80,7 @@
     "color": "rgb",
     "picture_date": "31/01/2018",
     "upload_date": "31/01/2019",
-    "event": "iron car",
+    "event": "sample_test",
     "track" : "iron-car-012018",
     "track_type": "double lane dash",
     "resolution": {
@@ -104,7 +104,7 @@
     "color": "rgb",
     "picture_date": "30/10/2019",
     "upload_date": "31/01/2019",
-    "event": "DIY-2019",
+    "event": "sample_test_2",
     "track" : "DIY-012019",
     "track_type": "single_lane",
     "resolution": {
@@ -128,7 +128,7 @@
     "color": "rgb",
     "picture_date": "30/10/2019",
     "upload_date": "31/01/2019",
-    "event": "DIY-2019",
+    "event": "sample_test_2",
     "track" : "DIY-012019",
     "track_type": "single_lane",
     "resolution": {
