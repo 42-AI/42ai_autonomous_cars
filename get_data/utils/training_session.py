@@ -86,8 +86,9 @@ class TrainingSession:
                 l_label.append(self.meta_label.get_copy())
                 self.buffer.append((picture_path, im))
                 if show_mode:
-                    print(f'{i}: trigger:{self.trigger}|{self.label[0]} ;'
-                          f' joystick:{self.x_cursor}|{self.label[1]} ; pic_path:"{picture_path}"')
+                    print(f'{i}: speed:x={self.trigger}|l={self.label[0]}|n={self.meta_label["label"]["normalized_speed"]}'
+                          f' ; dir:x={self.x_cursor}|l={self.label[1]}|n={self.meta_label["label"]["normalized_direction"]}'
+                          f' ; pic_path:"{picture_path}"')
                 i += 1
                 start = time.time()
                 if len(self.buffer) > max_buff_size:
