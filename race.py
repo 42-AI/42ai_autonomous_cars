@@ -28,7 +28,6 @@ class RaceOn:
         # Racing_status
         self.racing = False
         self.pause = False
-        self.stopped = False
 
         # Load model
         self.model = load_model(model_path)
@@ -83,7 +82,7 @@ class RaceOn:
         image = np.array([self.frame]) / 255.0  # [jj] Do we need to create a new array ? img = self.frame / 255. ?
 
         # Get model prediction
-        predictions_raw = self.model.predict(image)
+        predictions_raw = self.model(image)
         predicted_labels = [np.argmax(pred, axis=1) for pred in predictions_raw]  # Why ?
 
         motor_direction = self.get_motor_direction(predicted_labels)
@@ -109,17 +108,26 @@ class RaceOn:
         self.pwm.set_pwm(1, 0, motor_speed)
         self.pwm.set_pwm(2, 0, motor_head)
 
-    def treat_user_input(self, user_inp):
+    def treat_user_input(self, user_inp, buff_size):
         if user_inp == 'q':
-            self.racing = False
             self.stop()
         elif user_inp == 'p':
-            self.pause = True
             self.pwm.set_pwm(1, 0, 0)
-            self.elapsed_time += time.time() - self.start_time
+            if self.pause is False:
+                self.elapsed_time += (time.time() - self.start_time)
+                self.print_info()
+                self.elapsed_time, self.nb_pred = 0, 0
+            else:
+                print("Already paused.")
+            self.pause = True
         elif user_inp == 'go':
+            self.buffer = deque(maxlen=buff_size)
+            if self.pause is True:
+                self.start_time = time.time()
+            else:
+                print("Already on the go.")
             self.pause = False
-            self.start_time = time.time()
+
 
     def race(self, debug=0, buff_size=100, queue_input=None):
         self.buffer = deque(maxlen=buff_size)
@@ -139,20 +147,21 @@ class RaceOn:
                 self.nb_pred += 1
                 self.sampling += 1
             if not queue_input.empty():
-                self.treat_user_input(queue_input.get(block=False))
+                self.treat_user_input(queue_input.get(block=False), buff_size)
 
     def stop(self):
         self.racing = False
-        self.stopped = True
-        time.sleep(2)
+        time.sleep(2)  # TODO check without
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
         self.pwm.set_pwm(2, 0, 0)
+        self.print_info()
         self.video_stream.stop()
+        print("Stopped properly")
 
+    def print_info(self):
         # Performance status
-        if self.start_time > 0:
-            self.elapsed_time += time.time() - self.start_time
+        if self.elapsed_time > 0:
             pred_rate = self.nb_pred / float(self.elapsed_time)
             print(f'{self.nb_pred} prediction in {self.elapsed_time}s -> {pred_rate} pred/s')
 
@@ -165,8 +174,7 @@ class RaceOn:
                 pic = Image.fromarray(img["array"], 'RGB')
                 pic.save("{}{}".format(OUTPUT_DIRECTORY, pic_file))
             print('{} pictures saved.'.format(i + 1))
-
-        print("Stopped properly")
+            self.buffer = None
 
 
 def get_input_queue(out_q):
@@ -222,6 +230,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     finally:
-        if race_on is not None and race_on.stopped is False:
+        if race_on is not None:
             race_on.stop()
         print("Race is over.")
