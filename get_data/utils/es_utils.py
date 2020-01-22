@@ -1,6 +1,7 @@
 import os
 import elasticsearch
 from elasticsearch import helpers
+from tqdm import tqdm
 
 
 def get_es_session(host_ip, port):
@@ -25,7 +26,7 @@ def get_es_session(host_ip, port):
 
 def gen_bulk_doc(l_label, index, op_type):
     """Yield well formatted document for bulk upload to ES"""
-    for label in l_label:
+    for label in tqdm(l_label):
         yield {
             "_index": index,
             "_type": "_doc",

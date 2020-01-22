@@ -3,6 +3,7 @@ import re
 import os
 import boto3
 from botocore import exceptions as boto3_exceptions
+from tqdm import tqdm
 
 
 def is_valid_s3_key(name):
@@ -56,16 +57,18 @@ def upload_to_s3_from_label(l_label, s3_bucket_name, prefix="", overwrite=False)
     s3 = get_s3_resource()
     already_exist_pic = []
     upload_success = []
-    for label in l_label:
+    log = ""
+    for label in tqdm(l_label):
         picture = Path(label["location"]) / label["file_name"]
         pic_id = label["img_id"]
         key = prefix + pic_id
         if not overwrite and file_exist_in_bucket(s3, s3_bucket_name, key):
-            print(f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"')
+            log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'
             already_exist_pic.append(pic_id)
         else:
             s3.meta.client.upload_file(str(picture), s3_bucket_name, key)
             upload_success.append(pic_id)
+    print(log)
     return upload_success, already_exist_pic
 
 
