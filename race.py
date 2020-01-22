@@ -47,13 +47,13 @@ class RaceOn:
         self.start_time = 0
         self.elapsed_time = 0
         self.nb_pred = 0
-        self.sampling = -1
+        self.sampling = 0
         self.debug = 0
 
         print("RaceOn initialized")
 
     @staticmethod
-    def get_motor_direction(predicted_labels):
+    def _get_motor_direction(predicted_labels):
         if predicted_labels[1] == 0:
             return DIRECTION_L_M
         elif predicted_labels[1] == 1:
@@ -66,17 +66,17 @@ class RaceOn:
             return DIRECTION_R_M
 
     @staticmethod
-    def get_motor_speed(predicted_labels):
+    def _get_motor_speed(predicted_labels):
         if predicted_labels[1] == 2 and predicted_labels[0] == 1:
             return SPEED_FAST
         return SPEED_NORMAL
 
-    def get_motor_head(self, predicted_labels, motor_speed):
-        if motor_speed == self.get_motor_speed(predicted_labels) == SPEED_FAST:
+    def _get_motor_head(self, predicted_labels, motor_speed):
+        if motor_speed == self._get_motor_speed(predicted_labels) == SPEED_FAST:
             return HEAD_UP
         return HEAD_DOWN
 
-    def get_predictions(self, motor_speed):
+    def _get_predictions(self, motor_speed):
         # Grab the self.frame from the threaded video stream
         self.frame = self.video_stream.read()
         image = np.array([self.frame]) / 255.0  # [jj] Do we need to create a new array ? img = self.frame / 255. ?
@@ -85,14 +85,14 @@ class RaceOn:
         predictions_raw = self.model(image)
         predicted_labels = [np.argmax(pred, axis=1) for pred in predictions_raw]  # Why ?
 
-        motor_direction = self.get_motor_direction(predicted_labels)
-        motor_head = self.get_motor_head(predicted_labels, motor_speed)
-        motor_speed = self.get_motor_speed(predicted_labels)
+        motor_direction = self._get_motor_direction(predicted_labels)
+        motor_head = self._get_motor_head(predicted_labels, motor_speed)
+        motor_speed = self._get_motor_speed(predicted_labels)
         return predicted_labels, motor_direction, motor_head, motor_speed
 
-    def check_debug_mode(self, predicted_labels, motor_direction, motor_head, motor_speed):
+    def _check_debug_mode(self, predicted_labels, motor_direction, motor_head, motor_speed):
         if self.debug > 0 and self.sampling > 1:
-            self.sampling = -1
+            self.sampling = 0
             sample = {
                 "array": self.frame,
                 "direction": predicted_labels[1][0],
@@ -103,12 +103,12 @@ class RaceOn:
                 print("Predictions = {}, Direction = {}, Head = {}, Speed = {}".format(
                     predicted_labels, motor_direction, motor_head, motor_speed))
 
-    def run_engine(self, motor_direction, motor_speed, motor_head):
+    def _run_engine(self, motor_direction, motor_speed, motor_head):
         self.pwm.set_pwm(0, 0, motor_direction)
         self.pwm.set_pwm(1, 0, motor_speed)
         self.pwm.set_pwm(2, 0, motor_head)
 
-    def treat_user_input(self, user_inp, buff_size):
+    def _treat_user_input(self, user_inp, buff_size):
         if user_inp == 'q':
             self.elapsed_time += (time.time() - self.start_time)
             self.stop()
@@ -116,7 +116,7 @@ class RaceOn:
             self.pwm.set_pwm(1, 0, 0)
             if self.pause is False:
                 self.elapsed_time += (time.time() - self.start_time)
-                self.print_info()
+                self._print_info()
                 self.elapsed_time, self.nb_pred = 0, 0
             else:
                 print("Already paused.")
@@ -141,26 +141,26 @@ class RaceOn:
         while self.racing:
             if not self.pause:
                 # Decide action and run motor
-                predicted_labels, motor_direction, motor_head, motor_speed = self.get_predictions(motor_speed)
-                self.run_engine(motor_direction, motor_speed, motor_head)
-                self.check_debug_mode(predicted_labels, motor_direction, motor_speed, motor_head)
+                predicted_labels, motor_direction, motor_head, motor_speed = self._get_predictions(motor_speed)
+                self._run_engine(motor_direction, motor_speed, motor_head)
+                self._check_debug_mode(predicted_labels, motor_direction, motor_speed, motor_head)
                 self.nb_pred += 1
                 self.sampling += 1
             if not queue_input.empty():
-                self.treat_user_input(queue_input.get(block=False), buff_size)
+                self._treat_user_input(queue_input.get(block=False), buff_size)
 
     def stop(self):
         self.racing = False
-        self.print_info()
+        self._print_info()
         time.sleep(2)  # TODO check without
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
         self.pwm.set_pwm(2, 0, 0)
-        self.print_info()
+        self._print_info()
         self.video_stream.stop()
         print("Stopped properly")
 
-    def print_info(self):
+    def _print_info(self):
         # Performance status
         if self.elapsed_time > 0:
             pred_rate = self.nb_pred / float(self.elapsed_time)
