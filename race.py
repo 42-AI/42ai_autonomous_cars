@@ -156,7 +156,6 @@ class RaceOn:
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
         self.pwm.set_pwm(2, 0, 0)
-        self._print_info()
         self.video_stream.stop()
         print("Stopped properly")
 
@@ -231,6 +230,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     finally:
-        if race_on is not None:
+        if race_on is not None and race_on.racing is True:
             race_on.stop()
         print("Race is over.")
