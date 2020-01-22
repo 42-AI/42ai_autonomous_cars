@@ -17,6 +17,7 @@ def _get_args():
 
 
 if __name__ == "__main__":
+    """Upload date (picture + label) to ES and S3 from a label.json file"""
     args = _get_args()
     label_file = args.label_file
     bucket_name = cluster_param.BUCKET_NAME if args.bucket is None else args.bucket
