@@ -70,10 +70,10 @@ def get_label_list_from_file(file):
 def generate_key_prefix(l_label):
     """
     Generate the key prefix for a list of label.
-    Return None if one ofthe following test fail:
+    Return None if one of the following test fail:
         Check that the "event" name is well formated for s3 bucket key.
         Check all label in the list have the same "event" name
-    Return the key_prefix if test are OK. Key prefix is defined as follow:
+    Return the key_prefix if tests are OK. Key prefix is defined as follow:
         "{event_name}/{picture_date}/"
         Note: the date will be the date of the first picture in the label list
     :param l_label:     [list]  list of labels
@@ -110,13 +110,13 @@ def upload_to_db(label_file, bucket_name, es_host_ip, es_port, es_index, key_pre
       }
     ]
     then you can add any field you wish to labelized the picture.
-    Note: if picture already exist in s3 and is not overwritten, upload to ES will be tried anyway.
+    Note: if the picture already exists in s3 and is not overwritten, upload to ES will be tried anyway.
     :param label_file:      [string]    path to the file containing the labels in json format
     :param bucket_name:     [string]    Name of the s3 bucket
     :param es_host_ip:      [string]    Public ip of the Elasticsearch host server
     :param es_port:         [int]       Port open for Elasticsearch on host server (typically 9200)
     :param es_index:        [string]    Name of the index to use
-    :param overwrite:       [bool]      If True will overwrite picture is s3 and label in ES if same img_id is found
+    :param overwrite:       [bool]      If True, new picture/label will overwrite existing ones in s3/ES with same img_id
                                         If False (default), only non existing img_id picture will be uploaded
     :param key_prefix:      [string]    If None, default key is used. Default key is as follow:
                                         {event_name}/{upload_date}/
