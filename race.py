@@ -110,6 +110,7 @@ class RaceOn:
 
     def treat_user_input(self, user_inp, buff_size):
         if user_inp == 'q':
+            self.elapsed_time += (time.time() - self.start_time)
             self.stop()
         elif user_inp == 'p':
             self.pwm.set_pwm(1, 0, 0)
@@ -151,11 +152,11 @@ class RaceOn:
 
     def stop(self):
         self.racing = False
+        self.print_info()
         time.sleep(2)  # TODO check without
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
         self.pwm.set_pwm(2, 0, 0)
-        self.print_info()
         self.video_stream.stop()
         print("Stopped properly")
 
