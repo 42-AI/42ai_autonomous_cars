@@ -129,7 +129,6 @@ class RaceOn:
                 print("Already on the go.")
             self.pause = False
 
-
     def race(self, debug=0, buff_size=100, queue_input=None):
         self.buffer = deque(maxlen=buff_size)
         self.start_time = time.time()
@@ -157,6 +156,7 @@ class RaceOn:
         self.pwm.set_pwm(0, 0, 0)
         self.pwm.set_pwm(1, 0, 0)
         self.pwm.set_pwm(2, 0, 0)
+        self.print_info()
         self.video_stream.stop()
         print("Stopped properly")
 
