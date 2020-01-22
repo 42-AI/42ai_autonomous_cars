@@ -91,7 +91,7 @@ class RaceOn:
         return predicted_labels, motor_direction, motor_head, motor_speed
 
     def check_debug_mode(self, predicted_labels, motor_direction, motor_head, motor_speed):
-        if self.debug > 0 and self.sampling > 3:
+        if self.debug > 0 and self.sampling > 1:
             self.sampling = -1
             sample = {
                 "array": self.frame,
@@ -134,7 +134,7 @@ class RaceOn:
         self.start_time = time.time()
         self.racing = True
         self.nb_pred = 0
-        self.sampling = -1
+        self.sampling = 0
         self.debug = debug
         motor_speed = SPEED_NORMAL
 
