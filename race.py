@@ -108,7 +108,7 @@ class RaceOn:
         self.pwm.set_pwm(1, 0, motor_speed)
         self.pwm.set_pwm(2, 0, motor_head)
 
-    def _treat_user_input(self, user_inp, buff_size):
+    def _treat_user_input(self, user_inp):
         if user_inp == 'q':
             self.elapsed_time += (time.time() - self.start_time)
             self.stop()
@@ -122,7 +122,6 @@ class RaceOn:
                 print("Already paused.")
             self.pause = True
         elif user_inp == 'go':
-            self.buffer = deque(maxlen=buff_size)
             if self.pause is True:
                 self.start_time = time.time()
             else:
@@ -147,7 +146,7 @@ class RaceOn:
                 self.nb_pred += 1
                 self.sampling += 1
             if not queue_input.empty():
-                self._treat_user_input(queue_input.get(block=False), buff_size)
+                self._treat_user_input(queue_input.get(block=False))
 
     def stop(self):
         self.racing = False
@@ -164,8 +163,9 @@ class RaceOn:
         if self.elapsed_time > 0:
             pred_rate = self.nb_pred / float(self.elapsed_time)
             print(f'{self.nb_pred} prediction in {self.elapsed_time}s -> {pred_rate} pred/s')
+        self._write_and_clear_buffer()
 
-        # Write buffer
+    def _write_and_clear_buffer(self):
         if self.buffer is not None and len(self.buffer) > 0:
             print('Saving buffer pictures to : "{}"'.format(OUTPUT_DIRECTORY))
             i = 0
@@ -174,7 +174,7 @@ class RaceOn:
                 pic = Image.fromarray(img["array"], 'RGB')
                 pic.save("{}{}".format(OUTPUT_DIRECTORY, pic_file))
             print('{} pictures saved.'.format(i + 1))
-            self.buffer = None
+            self.buffer.clear()
 
 
 def get_input_queue(out_q):
