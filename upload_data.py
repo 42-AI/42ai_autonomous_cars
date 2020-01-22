@@ -4,21 +4,34 @@ from get_data import upload_to_db as upload
 from get_data import cluster_param
 
 
-def _get_args():
-    parser = argparse.ArgumentParser()
+def _get_args(description):
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument("label_file", type=str, help="Path to the json label file")
     parser.add_argument("-b", "--bucket", default=None,
-                        help="If not defined, bucket name is retrived from the db_param.py file")
+                        help="OPTIONAL. By default, bucket name is retrieved from the cluster_param.py file")
     parser.add_argument("-k", "--key", default=None,
-                        help="Key prefix: upload to https://s3.amazonaws.com/<bucket_name>/<key_prefix><file_name>")
+                        help="OPTIONAL. By default, key is automatically generated from the label. Final url of the "
+                             "picture: https://s3.amazonaws.com/<bucket_name>/<key_prefix><file_name>)")
     parser.add_argument("-i", "--index", default=None,
-                        help="If not defined, index name is retrived from the db_param.py file")
+                        help="OPTIONAL. By default, index name is retrieved from the cluster_param.py file")
+    parser.add_argument("-f", "--force", action="store_true",
+                        help="Force option will overwrite existing pictures and labels in S3 and ES with new one"
+                             " if same img_id is found")
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    """Upload date (picture + label) to ES and S3 from a label.json file"""
-    args = _get_args()
+def upload_data():
+    """
+    Upload date picture and label to S3 and ES from a label file (json format). The label file can contain one or
+    a list of label.
+    To see a label template, use the write_label_template.py function.
+    You will need credential for the upload. Access keys shall be defined in the following environment variables:
+    export PATATE_S3_KEY_ID="your_access_key_id"
+    export PATATE_S3_KEY="your_secret_key_code"
+    export ES_USER_ID="your_es_user_id"
+    export ES_USER_PWD="your_es_password"
+    """
+    args = _get_args(upload_data.__doc__)
     label_file = args.label_file
     bucket_name = cluster_param.BUCKET_NAME if args.bucket is None else args.bucket
     key_prefix = args.key
@@ -26,4 +39,8 @@ if __name__ == "__main__":
     es_ip_host = cluster_param.ES_HOST_IP
     es_port_host = cluster_param.ES_HOST_PORT
     upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
-                        overwrite=False, key_prefix=key_prefix)
+                        overwrite=args.force, key_prefix=key_prefix)
+
+
+if __name__ == "__main__":
+    upload_data()
