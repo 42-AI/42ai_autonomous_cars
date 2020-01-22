@@ -20,6 +20,7 @@ dependencies:
   - tensorflow
   - h5py
   - elasticsearch
+  - elasticsearch-dsl
   - boto3
   - matplotlib
   - pytest
