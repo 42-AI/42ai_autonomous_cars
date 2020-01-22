@@ -21,16 +21,16 @@ def generate_valid_s3_key_from_str(name):
     return generate_valid_s3_key_from_str.exp.sub("_", name)
 
 
-def get_s3_resurce():
+def get_s3_resource():
     env_var_name_key_id = "PATATE_S3_KEY_ID"
     env_var_name_key = "PATATE_S3_KEY"
     try:
-        access_key_id = os.environ["PATATE_S3_KEY_ID"]
-        access_key = os.environ["PATATE_S3_KEY"]
+        access_key_id = os.environ[env_var_name_key_id]
+        access_key = os.environ[env_var_name_key]
         s3 = boto3.resource("s3", aws_access_key_id=access_key_id, aws_secret_access_key=access_key)
     except KeyError:
         print(f'Environment variable {env_var_name_key} or {env_var_name_key_id} not found. '
-              f'Can\'t connect to S3 without credential')
+              f'Can\'t connect to S3 without credential.')
         return None
     except boto3_exceptions as err:
         print(f'Failed to connect to s3 because:\n{err}')
@@ -61,6 +61,8 @@ def upload_to_s3_from_label(l_label, s3_bucket_name, prefix="", overwrite=False)
     :return:                    [tuple]     list of picture id successfully upladed, list of picture id failed to upload
     """
     s3 = get_s3_resource()
+    if s3 is None:
+        exit(1)
     already_exist_pic = []
     upload_success = []
     log = ""
