@@ -114,11 +114,13 @@ def test_delete_index_es():
 
 
 def test_generate_key_prefix_ok():
-    date = datetime.now().strftime("%Y%m%d")
+    date_str = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
+    date = datetime.now()
     event_name = "event_test"
-    l_label = [{"event": event_name, "img_id": 1}, {"event": event_name, "img_id": 2}]
+    l_label = [{"event": event_name, "img_id": 1, "timestamp": date_str},
+               {"event": event_name, "img_id": 2, "timestamp": date_str}]
     key = upload.generate_key_prefix(l_label)
-    assert key == f'{event_name}/{date}/'
+    assert key == f'{event_name}/{date.year}{date.month}{date.day}/'
 
 
 def test_generate_key_prefix_invalid_name():

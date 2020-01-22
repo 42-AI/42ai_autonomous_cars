@@ -74,12 +74,14 @@ def generate_key_prefix(l_label):
         Check that the "event" name is well formated for s3 bucket key.
         Check all label in the list have the same "event" name
     Return the key_prefix if test are OK. Key prefix is defined as follow:
-        "{event_name}/{today_date}/"
+        "{event_name}/{picture_date}/"
+        Note: the date will be the date of the first picture in the label list
     :param l_label:     [list]  list of labels
-    :return:            [str]   key prefix: "{event_name}/{today_date}/"
+    :return:            [str]   key prefix: "{event_name}/{picture_date}/"
     """
     try:
         event = l_label[0]["event"]
+        date = datetime.strptime(l_label[0]["timestamp"], "%Y%m%dT%H-%M-%S-%f")
     except KeyError:
         return None
     for label in l_label:
@@ -90,8 +92,7 @@ def generate_key_prefix(l_label):
         if label["event"] != event:
             print(f'Key bucket can\'t be generated because event name is not unique. Got {event} and {label["event"]}.')
             return None
-    date = datetime.now().strftime("%Y%m%d")
-    return f'{event}/{date}/'
+    return f'{event}/{date.year}{date.month}{date.day}/'
 
 
 def upload_to_db(label_file, bucket_name, es_host_ip, es_port, es_index, key_prefix=None, overwrite=False):
@@ -120,7 +121,7 @@ def upload_to_db(label_file, bucket_name, es_host_ip, es_port, es_index, key_pre
     :param key_prefix:      [string]    If None, default key is used. Default key is as follow:
                                         {event_name}/{upload_date}/
                                         So the picture will be uploaded to:
-                                        "https://s3.amazonaws.com/{my-bucket}/{event_name}/{upload_date}/"
+                                        "https://s3.amazonaws.com/{my-bucket}/{event_name}/{picture_date}/"
     :return:                [tuple]     (int) s3 success upload, (int) ES success upload, (int) total nb of upload error
                                         Return None, None, None on error
     """
