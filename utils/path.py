@@ -10,4 +10,4 @@ VALIDATION_IMAGES_DIRECTORY = "images/validation_set_images/"
 
 # Label
 SESSION_TEMPLATE_NAME = "session_template.json"
-HARDWARE_CONF_FILE = "hardware_conf.json"
+HARDWARE_CONF_FILE = "utils/hardware_conf.json"
