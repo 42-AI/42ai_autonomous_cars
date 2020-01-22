@@ -2,6 +2,10 @@ import os
 import elasticsearch
 from elasticsearch import helpers
 from tqdm import tqdm
+import json
+from pathlib import Path
+
+from utils.path import INDEX_TEMPLATE
 
 
 def get_es_session(host_ip, port):
@@ -24,7 +28,17 @@ def get_es_session(host_ip, port):
     return es
 
 
-def gen_bulk_doc(l_label, index, op_type):
+def create_patate_db_index(host_ip, host_port, index_name):
+    """Create an index in ES from the template defined in utils.path"""
+    es = get_es_session(host_ip, host_port)
+    if es is None:
+        return None
+    with Path(INDEX_TEMPLATE).open(mode='r', encoding='utf-8') as fp:
+        index_template = json.load(fp)
+    es.indices.create(index_name, body=index_template)
+
+
+def _gen_bulk_doc(l_label, index, op_type):
     """Yield well formatted document for bulk upload to ES"""
     for label in tqdm(l_label):
         yield {
@@ -54,7 +68,7 @@ def upload_to_es(l_label, index, host_ip, port, update=False):
     if es is None:
         return [label["img_id"] for label in l_label]
     op_type = "index" if update else "create"
-    success, errors = helpers.bulk(es, gen_bulk_doc(l_label, index, op_type), request_timeout=60, raise_on_error=False)
+    success, errors = helpers.bulk(es, _gen_bulk_doc(l_label, index, op_type), request_timeout=60, raise_on_error=False)
     failed_doc_id = []
     for error in errors:
         for error_type in error:
