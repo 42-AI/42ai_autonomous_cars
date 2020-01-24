@@ -13,3 +13,4 @@ Pillow
 pytest
 service_identity
 tensorflow
+tqdm

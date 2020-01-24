@@ -23,6 +23,7 @@ dependencies:
   - boto3
   - matplotlib
   - pytest
+  - tqdm
   - pip:
     - channels
     - adafruit-pca9685

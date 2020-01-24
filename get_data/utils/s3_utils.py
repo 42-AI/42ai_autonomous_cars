@@ -1,14 +1,37 @@
 from pathlib import Path
+import re
 import os
 import boto3
 from botocore import exceptions as boto3_exceptions
+from tqdm import tqdm
+
+
+def is_valid_s3_key(name):
+    if "valid" not in is_valid_s3_key.__dict__:  # check if it is the first call to this function
+        is_valid_s3_key.valid_regex = r"[^a-zA-Z0-9!/\-_\*'\(\)]"
+        is_valid_s3_key.exp = re.compile(is_valid_s3_key.valid_regex)
+    res = is_valid_s3_key.exp.search(name)
+    return (True, is_valid_s3_key.valid_regex) if res is None else (False, is_valid_s3_key.valid_regex)
+
+
+def generate_valid_s3_key_from_str(name):
+    if "valid" not in generate_valid_s3_key_from_str.__dict__:  # check if it is the first call to this function
+        generate_valid_s3_key_from_str.valid_regex = r"[^a-zA-Z0-9!/\-_\*'\(\)]"
+        generate_valid_s3_key_from_str.exp = re.compile(generate_valid_s3_key_from_str.valid_regex)
+    return generate_valid_s3_key_from_str.exp.sub("_", name)
 
 
 def get_s3_resource():
-    access_key_id = os.environ["PATATE_S3_KEY_ID"]
-    access_key = os.environ["PATATE_S3_KEY"]
+    env_var_name_key_id = "PATATE_S3_KEY_ID"
+    env_var_name_key = "PATATE_S3_KEY"
     try:
+        access_key_id = os.environ[env_var_name_key_id]
+        access_key = os.environ[env_var_name_key]
         s3 = boto3.resource("s3", aws_access_key_id=access_key_id, aws_secret_access_key=access_key)
+    except KeyError:
+        print(f'Environment variable {env_var_name_key} or {env_var_name_key_id} not found. '
+              f'Can\'t connect to S3 without credential.')
+        return None
     except boto3_exceptions as err:
         print(f'Failed to connect to s3 because:\n{err}')
         return None
@@ -38,18 +61,22 @@ def upload_to_s3_from_label(l_label, s3_bucket_name, prefix="", overwrite=False)
     :return:                    [tuple]     list of picture id successfully upladed, list of picture id failed to upload
     """
     s3 = get_s3_resource()
+    if s3 is None:
+        exit(1)
     already_exist_pic = []
     upload_success = []
-    for label in l_label:
+    log = ""
+    for label in tqdm(l_label):
         picture = Path(label["location"]) / label["file_name"]
         pic_id = label["img_id"]
         key = prefix + pic_id
         if not overwrite and file_exist_in_bucket(s3, s3_bucket_name, key):
-            print(f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"')
+            log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'
             already_exist_pic.append(pic_id)
         else:
             s3.meta.client.upload_file(str(picture), s3_bucket_name, key)
             upload_success.append(pic_id)
+    print(log)
     return upload_success, already_exist_pic
 
 

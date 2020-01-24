@@ -1,31 +1,49 @@
 import os
-from elasticsearch import Elasticsearch
+import elasticsearch
 from elasticsearch import helpers
-from elasticsearch import exceptions as es_exceptions
+from tqdm import tqdm
+import json
+from pathlib import Path
+
+from utils.path import INDEX_TEMPLATE
 
 
 def get_es_session(host_ip, port):
     try:
         user = os.environ["ES_USER_ID"]
         pwd = os.environ["ES_USER_PWD"]
-    except KeyError as err:
+    except KeyError:
         print("  --> Warning: Elasticsearch user and/or password not found. Trying connection without authentication")
         user = ""
         pwd = ""
     try:
-        es = Elasticsearch([{"host": host_ip, "port": port}], http_auth=(user, pwd))
-    except es_exceptions as err:
-        print(f'Failed to connect to "{host_ip}:{port}" because:\n{err}')
+        es = elasticsearch.Elasticsearch([{"host": host_ip, "port": port, "timeout": 10}], http_auth=(user, pwd))
+        connection_ok = es.ping()
+        if not connection_ok:
+            print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}"')
+            return None
+    except elasticsearch.ElasticsearchException as err:
+        print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}" because:\n{err}')
         return None
     return es
 
 
-def gen_bulk_doc(l_label, index, op_type):
+def create_patate_db_index(host_ip, host_port, index_name):
+    """Create an index in ES from the template defined in utils.path"""
+    es = get_es_session(host_ip, host_port)
+    if es is None:
+        return None
+    with Path(INDEX_TEMPLATE).open(mode='r', encoding='utf-8') as fp:
+        index_template = json.load(fp)
+    es.indices.create(index_name, body=index_template)
+
+
+def _gen_bulk_doc(l_label, index, op_type):
     """Yield well formatted document for bulk upload to ES"""
-    for label in l_label:
+    for label in tqdm(l_label):
         yield {
             "_index": index,
-            "_type": "document",
+            "_type": "_doc",
             "_op_type": op_type,
             "_id": label["img_id"],
             "_source": label
@@ -48,9 +66,9 @@ def upload_to_es(l_label, index, host_ip, port, update=False):
     """
     es = get_es_session(host_ip, port)
     if es is None:
-        return len(l_label)
+        return [label["img_id"] for label in l_label]
     op_type = "index" if update else "create"
-    success, errors = helpers.bulk(es, gen_bulk_doc(l_label, index, op_type), request_timeout=60, raise_on_error=False)
+    success, errors = helpers.bulk(es, _gen_bulk_doc(l_label, index, op_type), request_timeout=60, raise_on_error=False)
     failed_doc_id = []
     for error in errors:
         for error_type in error:

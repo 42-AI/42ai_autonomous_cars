@@ -73,8 +73,8 @@ class TrainingSession:
             self.controls()
             if self.label[0] != -1 and time.time() - start > self.delay:
                 im = Image.fromarray(image, 'RGB')
-                t_stamp = datetime.now().strftime("%Y%m%dT%Hh%Mm%Ss%f")
-                picture_path = Path(self.meta_label.picture_dir) / f'{self.label[0]}_{self.label[1]}_{str(t_stamp)}.jpg'
+                t_stamp = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
+                picture_path = Path(self.meta_label.picture_dir) / f'{str(t_stamp)}#s{self.label[0]}_d{self.label[1]}.jpg'
                 self.meta_label.set_label(img_id=t_stamp,
                                           file_name=picture_path.name,
                                           timestamp=t_stamp,
