@@ -2,37 +2,37 @@
     "location": {
         "type": "match",
         "field": "keyword",
-        "value": ""
+        "query": ""
     },
     "event": {
         "type": "match",
         "field": "",
-        "value": "test_create_label"
+        "query": "test_create_label"
     },
     "track": {
         "type": "match",
         "field": "",
-        "value": ""
+        "query": ""
     },
     "track_type": {
         "type": "match",
         "field": "",
-        "value": ""
+        "query": ""
     },
     "dataset": {
         "type": "match",
         "field": "keyword",
-        "value": ""
+        "query": ""
     },
     "comment": {
         "type": "match",
         "field": "",
-        "value": ""
+        "query": ""
     },
     "raw": {
         "type": "match",
         "field": "",
-        "value": ""
+        "query": ""
     },
     "upload_date": {
         "type": "range",
@@ -43,47 +43,45 @@
     "img_id": {
         "type": "match",
         "field": "keyword",
-        "value": ""
+        "query": ""
     },
     "file_type": {
         "type": "match",
         "field": "",
-        "value": ""
+        "query": ""
     },
-    "label": {
-        "raw_direction": {
-            "type": "range",
-            "field": "",
-            "gte": "0",
-            "lte": "400"
-        },
-        "raw_speed": {
-            "type": "match",
-            "field": "",
-            "value": "250"
-        },
-        "label_direction": {
-            "type": "match",
-            "field": "",
-            "value": ""
-        },
-        "label_speed": {
-            "type": "match",
-            "field": "",
-            "value": ""
-        },
-        "normalized_speed": {
-            "type": "match",
-            "field": "",
-            "value": ""
-        },
-        "normalized_direction": {
-            "type": "match",
-            "field": "",
-            "value": ""
-        }
+    "label.raw_direction": {
+        "type": "range",
+        "field": "",
+        "gte": "0",
+        "lte": "400"
     },
-    "timestamp": {
+    "label.raw_speed": {
+        "type": "match",
+        "field": "",
+        "query": "250"
+    },
+    "label.label_direction": {
+        "type": "match",
+        "field": "",
+        "query": ""
+    },
+    "label.label_speed": {
+        "type": "match",
+        "field": "",
+        "query": ""
+    },
+    "label.normalized_speed": {
+        "type": "match",
+        "field": "",
+        "query": ""
+    },
+    "label.normalized_direction": {
+        "type": "match",
+        "field": "",
+        "query": ""
+    },
+    "label.timestamp": {
         "type": "range",
         "field": "",
         "gte": "",
