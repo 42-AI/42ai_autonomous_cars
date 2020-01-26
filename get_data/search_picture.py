@@ -25,8 +25,8 @@ def _add_query(search_obj, field, query, bool="match"):
         return None
 
 
-def get_search_query_from_dict(d_query):
-    s = esdsl.Search()
+def get_search_query_from_dict(es_index, d_query):
+    s = esdsl.Search(index=es_index)
     for field, query in d_query.items():
         if "type" not in query or query["type"] == "": continue
         s = _add_query(s, field, query)
@@ -35,8 +35,9 @@ def get_search_query_from_dict(d_query):
 
 def run_query(search_obj):
     es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
-    s = search_obj.using(using=es, index="patate-db")
+    s = search_obj.using(es)
     s = s.source(["img_id", "file_name"])
     result = s.execute()
+    print(f'total hits: {result.hits.total.value}')
     for pic in result:
         print(pic)

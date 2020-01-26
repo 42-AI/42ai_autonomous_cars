@@ -68,7 +68,7 @@ def test_simple_match_search(get_dic_and_package_query):
             }
         }
     }
-    query = search_picture.get_search_query_from_dict(d_query)
+    query = search_picture.get_search_query_from_dict("", d_query)
     assert query.to_dict() == expected_query
 
 
@@ -82,7 +82,7 @@ def test_keyword_match_search(get_dic_and_package_query):
             }
         }
     }
-    query = search_picture.get_search_query_from_dict(d_query)
+    query = search_picture.get_search_query_from_dict("", d_query)
     assert query.to_dict() == expected_query
 
 
@@ -96,7 +96,7 @@ def test_simple_range_search(get_dic_and_package_query):
             }
         }
     }
-    query = search_picture.get_search_query_from_dict(d_query)
+    query = search_picture.get_search_query_from_dict("", d_query)
     assert query.to_dict() == expected_query
 
 
@@ -110,7 +110,7 @@ def test_simple_range_search_2(get_dic_and_package_query):
             }
         }
     }
-    query = search_picture.get_search_query_from_dict(d_query)
+    query = search_picture.get_search_query_from_dict("", d_query)
     assert query.to_dict() == expected_query
 
 
@@ -128,7 +128,7 @@ def test_filter_range_search(get_dic_and_package_query):
             }
         }
     }
-    query = search_picture.get_search_query_from_dict(d_query)
+    query = search_picture.get_search_query_from_dict("", d_query)
     assert query.to_dict() == expected_query
 
 
@@ -152,5 +152,5 @@ def test_two_field_bool_search(get_dic_and_package_query):
             }
         }
     }
-    query = search_picture.get_search_query_from_dict(d_query)
+    query = search_picture.get_search_query_from_dict("", d_query)
     assert query.to_dict() == expected_query
