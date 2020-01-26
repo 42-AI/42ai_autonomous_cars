@@ -79,7 +79,7 @@ To check the actual state of the label format, you can print a template to a jso
 
 ## 2. How to upload pictures and labels to the database 
 
-Function `upload_to_db` read labels from a file, upload picture to s3 and labels to ES cluster.  
+Use the function `upload_to_db` to read labels from a file, upload picture to s3 and labels to ES cluster.  
 See usage with `-h` option.
 
 Note that you will need credential for Elasticsearch and s3. Ask admin for details.
@@ -91,7 +91,26 @@ export PATATE_S3_KEY="your_secret_key_code"
 export ES_USER_ID="your_es_user_id"
 export ES_USER_PWD="your_es_password"
 ```
-**MAKE SURE TO NEVER UPLOAD YOUR KEY TO GITHUB OR SIMILAR**
+**MAKE SURE TO NEVER UPLOAD YOUR CREDENTIALS TO GITHUB OR OTHER PUBLIC REPO**
+
+
+## 3. How to re lablize pictures manually
+
+TO DO
+
+## 4. How to search for picture in the database
+
+Use the function `find_picture.py` to look for picture in the database.
+See usage with `-h` option for details.
+
+A json file sample can be found in `get_data/sample/search_json`.
+
+For details on how this json works, see the docstring of the search function in es_utils
+
+
+## 5. How to download pictures
+
+TO DO
 
 
 ## 6. BONUS TRACK - Database architecture

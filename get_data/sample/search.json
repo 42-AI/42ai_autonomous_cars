@@ -1,6 +1,6 @@
 {
     "location": {
-        "type": "match",
+        "type": "",
         "field": "keyword",
         "query": ""
     },
@@ -10,27 +10,27 @@
         "query": "test_create_label"
     },
     "track": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": ""
     },
     "track_type": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": ""
     },
     "dataset": {
-        "type": "match",
+        "type": "",
         "field": "keyword",
         "query": ""
     },
     "comment": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": ""
     },
     "raw": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": ""
     },
@@ -42,49 +42,49 @@
         "lte": "20201230"
     },
     "img_id": {
-        "type": "match",
+        "type": "",
         "field": "keyword",
         "query": ""
     },
     "file_type": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": ""
     },
     "label.raw_direction": {
-        "type": "range",
+        "type": "",
         "bool": "filter",
         "field": "",
         "gte": "0",
         "lte": "400"
     },
     "label.raw_speed": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": "250"
     },
     "label.label_direction": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": ""
     },
     "label.label_speed": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": ""
     },
     "label.normalized_speed": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": ""
     },
     "label.normalized_direction": {
-        "type": "match",
+        "type": "",
         "field": "",
         "query": ""
     },
     "label.timestamp": {
-        "type": "range",
+        "type": "",
         "bool": "filter",
         "field": "",
         "gte": "",
