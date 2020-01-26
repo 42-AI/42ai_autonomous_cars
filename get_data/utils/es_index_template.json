@@ -166,7 +166,7 @@
       },
       "timestamp" : {
         "type" : "date",
-        "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS"
+        "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy"
       },
       "track" : {
         "type" : "text",
@@ -192,7 +192,7 @@
       },
       "upload_date" : {
         "type" : "date",
-        "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS"
+        "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy"
       }
     }
   },
