@@ -1,6 +1,7 @@
 import os
 import elasticsearch
 from elasticsearch import helpers
+import elasticsearch_dsl as esdsl
 from tqdm import tqdm
 import json
 from pathlib import Path
@@ -81,3 +82,66 @@ def delete_index(index, host_ip, port):
     """Delete index from ES cluster"""
     es = get_es_session(host_ip, port)
     return es.indices.delete(index=index, ignore=[400, 404])
+
+
+def _add_query(search_obj, field, query, bool="match"):
+    """Add a query to the existing seach obj"""
+    if "field" in query:
+        field = f'{field}.{query["field"]}' if query["field"] != "" else field
+        query.pop("field")
+    if "bool" in query:
+        bool = query["bool"]
+        query.pop("bool")
+    query_type = query["type"]
+    query.pop("type")
+    repackage_query = {field: query}
+    if bool == "match" or bool == "must":
+        return search_obj.query(query_type, **repackage_query)
+    elif bool == "filter":
+        return search_obj.filter(query_type, **repackage_query)
+    else:
+        print(f'Unknown value for "bool" argument. Got {bool}')
+        return None
+
+
+def get_search_query_from_dict(es_index, d_query):
+    """
+    Takes a dictionary describing a search and return the equivalent search object.
+    Expected search dictionary:
+    {
+        "field_name": {         # name of the field we are searching (e.g.: "event")
+            "type": "match",    # search type (eg: "range", "match", ..etc)
+            "field": "keyword", # OPTIONAL: subfield for the search (eg: "keyword", "analyzed", ...etc)
+            "bool": "filter",   # OPTIONAL: specify the bool operator (eg: "filter", "must", "should", ..etc)
+            "bool": "filter",   # OPTIONAL: subfield for the search (eg: "keyword", "analyzed", ...etc)
+            # Other field depends on the "type" field value. Those fields are exactly those expected by Elasticsearch
+             for this type of query. See Elasticsearch documentation.
+            # For example, for a "range" search field could be:
+            "gte": "20200119"
+            "lte": "20210215"
+        },
+        "field_name_2": {...},
+        ...
+    }
+    :param es_index:        [string]    Name of the index to search in
+    :param d_query:         [dict]      Search description dictionary
+    :return:                [object]    Elasticsearch-dsl search object
+    """
+    s = esdsl.Search(index=es_index)
+    for field, query in d_query.items():
+        if "type" not in query or query["type"] == "": continue
+        s = _add_query(s, field, query)
+    return s
+
+
+def run_query(es, search_obj):
+    """
+    Run the query defined by the 'search_obj' on the Elasticsearch cluster defined by 'es'.
+    :param es:              [object]    Elasticsearch session
+    :param search_obj:      [object]    Elasticsearch-dsl search object
+    :return:                [object]    Elasticsearch-dsl response object
+    """
+    s = search_obj.using(es)
+    s = s.source(["img_id", "file_name"])
+    s = s[0:10000]
+    return s.execute()
