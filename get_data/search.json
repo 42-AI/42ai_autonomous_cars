@@ -36,6 +36,7 @@
     },
     "upload_date": {
         "type": "range",
+        "bool": "filter",
         "field": "",
         "gte": "20191230",
         "lte": "20201230"
@@ -52,6 +53,7 @@
     },
     "label.raw_direction": {
         "type": "range",
+        "bool": "filter",
         "field": "",
         "gte": "0",
         "lte": "400"
@@ -83,6 +85,7 @@
     },
     "label.timestamp": {
         "type": "range",
+        "bool": "filter",
         "field": "",
         "gte": "",
         "lte": ""
