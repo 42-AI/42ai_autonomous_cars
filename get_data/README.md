@@ -107,6 +107,9 @@ A json file sample can be found in `get_data/sample/search_json`.
 
 For details on how this json works, see the docstring of the search function in es_utils
 
+NOTE: At the moment, there is a limitation in the number of picture that will be return:  
+Only the first 10 000 pictures found will be returned.
+
 
 ## 5. How to download pictures
 
