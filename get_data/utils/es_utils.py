@@ -84,6 +84,17 @@ def delete_index(index, host_ip, port):
     return es.indices.delete(index=index, ignore=[400, 404])
 
 
+def delete_document(index, doc_id, es=None, host_ip=None, port=9200):
+    if isinstance(doc_id, list):
+        print("Bulk delete not yet implemented... sorry :/")
+        exit(1)
+    if bool(es) == bool(host_ip):
+        print("host_ip and port will be ignored since es session object is provided")
+    if es is None:
+        es = get_es_session(host_ip, port)
+    return es.delete(index=index, id=doc_id, refresh=True)
+
+
 def _add_query(search_obj, field, query, bool="match"):
     """Add a query to the existing seach obj"""
     if "field" in query:
@@ -142,6 +153,6 @@ def run_query(es, search_obj):
     :return:                [object]    Elasticsearch-dsl response object
     """
     s = search_obj.using(es)
-    s = s.source(["img_id", "file_name"])
+    s = s.source(["img_id", "file_name", "location"])
     s = s[0:10000]
     return s.execute()

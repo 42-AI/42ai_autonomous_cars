@@ -100,7 +100,7 @@ TO DO
 
 ## 4. How to search for picture in the database
 
-Use the function `find_picture.py` to look for picture in the database.
+Use the function `find_picture_in_db.py` to look for picture in the database.
 See usage with `-h` option for details.
 
 A json file sample can be found in `get_data/sample/search_json`.

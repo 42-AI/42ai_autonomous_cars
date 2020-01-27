@@ -5,9 +5,9 @@
   "raw": "true",
   "transformation": [],
   "color": "rgb",
-  "timestamp": "2015-01-01T12:10:30Z",
-  "upload_date": "2015-01-01T12:10:30Z",
-  "event": "iron car",
+  "timestamp": "20150101T12-10-30-000000",
+  "upload_date": "20150101T12-10-30-000000",
+  "event": "sample_test",
   "track" : "iron-car-012018",
   "track_type": "double lane dash",
   "resolution": {

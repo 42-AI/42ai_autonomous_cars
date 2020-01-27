@@ -1,6 +1,6 @@
 import argparse
 
-from get_data import find_pictures_in_db as find
+from get_data import get_from_db as dl
 
 
 if __name__ == "__main__":
@@ -9,5 +9,5 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output", type=str, default=None,
                         help="Path to the output file where to save the list of picture")
     args = parser.parse_args()
-    find.find_picture(args.file, args.output)
+    dl.find_picture_in_db(args.file, args.output)
 

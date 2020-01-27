@@ -12,7 +12,7 @@ Function test shall be executed in order (from top to bottom)
 
 def test_upload_to_db():
     label_file = "get_data/sample/labels.json"
-    bucket_name = "032854191254-patate"
+    bucket_name = cluster_param.BUCKET_NAME
     key_prefix = ""
     es_ip_host = cluster_param.ES_HOST_IP
     es_port_host = cluster_param.ES_HOST_PORT
@@ -24,7 +24,7 @@ def test_upload_to_db():
 
 def test_upload_to_db_overwrite():
     label_file = "get_data/sample/labels.json"
-    bucket_name = "032854191254-patate"
+    bucket_name = cluster_param.BUCKET_NAME
     key_prefix = ""
     es_ip_host = cluster_param.ES_HOST_IP
     es_port_host = cluster_param.ES_HOST_PORT
@@ -40,7 +40,7 @@ def test_upload_to_db_s3_KO_es_OK():
     es_index_name = "test_index"
     es_utils.delete_index(es_index_name, es_ip_host, es_port_host)
     label_file = "get_data/sample/labels.json"
-    bucket_name = "032854191254-patate"
+    bucket_name = cluster_param.BUCKET_NAME
     key_prefix = ""
     s3_success, es_success, fail = upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
                                                        key_prefix=key_prefix, overwrite=False)
@@ -49,7 +49,7 @@ def test_upload_to_db_s3_KO_es_OK():
 
 def test_upload_to_db_cant_overwrite():
     label_file = "get_data/sample/labels.json"
-    bucket_name = "032854191254-patate"
+    bucket_name = cluster_param.BUCKET_NAME
     key_prefix = ""
     es_ip_host = cluster_param.ES_HOST_IP
     es_port_host = cluster_param.ES_HOST_PORT
@@ -61,7 +61,7 @@ def test_upload_to_db_cant_overwrite():
 
 def test_upload_to_db_key_prefix():
     label_file = "get_data/sample/labels.json"
-    bucket_name = "032854191254-patate/"
+    bucket_name = cluster_param.BUCKET_NAME + "/"
     key_prefix = "/weird/path//"
     es_ip_host = cluster_param.ES_HOST_IP
     es_port_host = cluster_param.ES_HOST_PORT
@@ -73,7 +73,7 @@ def test_upload_to_db_key_prefix():
 
 def test_upload_to_db_single_label():
     label_file = "get_data/sample/single_label.json"
-    bucket_name = "032854191254-patate"
+    bucket_name = cluster_param.BUCKET_NAME
     key_prefix = ""
     es_ip_host = cluster_param.ES_HOST_IP
     es_port_host = cluster_param.ES_HOST_PORT
@@ -85,7 +85,7 @@ def test_upload_to_db_single_label():
 
 def test_delete_object_in_s3():
     label_file = "get_data/sample/labels.json"
-    bucket_name = "032854191254-patate"
+    bucket_name = cluster_param.BUCKET_NAME
     key_prefix = ""
     l_label = upload.get_label_list_from_file(label_file)
     id_list = [label["img_id"] for label in l_label]
@@ -96,7 +96,7 @@ def test_delete_object_in_s3():
 
 def test_delete_object_in_s3_key_prefix():
     label_file = "get_data/sample/labels.json"
-    bucket_name = "032854191254-patate"
+    bucket_name = cluster_param.BUCKET_NAME
     key_prefix = "/weird/path//"
     l_label = upload.get_label_list_from_file(label_file)
     id_list = [label["img_id"] for label in l_label]
