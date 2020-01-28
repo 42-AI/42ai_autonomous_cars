@@ -86,7 +86,7 @@ def delete_index(index, host_ip, port):
 
 def delete_document(index, doc_id, es=None, host_ip=None, port=9200):
     if isinstance(doc_id, list):
-        print("Bulk delete not yet implemented... sorry :/")
+        print("Bulk delete not yet implemented... sorry, list of doc_id not accepted yet :/")
         exit(1)
     if bool(es) == bool(host_ip):
         print("host_ip and port will be ignored since es session object is provided")
