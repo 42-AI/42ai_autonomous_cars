@@ -2,8 +2,8 @@ from datetime import datetime
 
 from get_data import upload_to_db as upload
 from get_data import cluster_param
-from get_data.utils import s3_utils
-from get_data.utils import es_utils
+from get_data.src import s3_utils
+from get_data.src import es_utils
 
 """
 Function test shall be executed in order (from top to bottom)

@@ -13,4 +13,4 @@ SESSION_TEMPLATE_NAME = "session_template.json"
 HARDWARE_CONF_FILE = "utils/hardware_conf.json"
 
 # ES
-INDEX_TEMPLATE = "get_data/utils/es_index_template.json"
+INDEX_TEMPLATE = "get_data/src/es_index_template.json"

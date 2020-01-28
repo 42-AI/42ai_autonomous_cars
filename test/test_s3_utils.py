@@ -1,4 +1,4 @@
-from get_data.utils import s3_utils
+from get_data.src import s3_utils
 
 
 def test_is_valid_s3_key_simple():

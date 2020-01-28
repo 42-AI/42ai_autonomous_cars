@@ -10,12 +10,12 @@ This file describes how to get data:
 
 ## 1. How to record picture and create label
 
-The script `collect_data.py` is used to run the car in manual mode (control with xbox pad). Picture will be recorded
+The script `run_manual.py` is used to run the car in manual mode (control with xbox pad). Picture will be recorded
 during the run and for each recorded picture, a label is automatically created.  
 Usage:
 1. Create a directory where you want to store the pictures for this session. For instance /user/workdir/session  
 2. In this directory create a session_template.json file. This template will be used to pre-fill every pictures' label. 
-To get the expected session_template run `collect_data.py --session_template` or `-s`.  
+To get the expected session_template run `run_manual.py --session_template` or `-s`.  
 Example of a session_template.json file:
    ```
    {
@@ -39,7 +39,7 @@ Example of a session_template.json file:
      "camera": "Picam_v2"
    }
    ```
-4. Run the car with `collect_data.py` to collect data. Run `collect_data.py -h` for the usage. 
+4. Run the car with `run_manual.py` to collect data. Run `run_manual.py -h` for the usage. 
 This script will record the pictures and create the label for each pictures. All the labels will be saved in a single 
 file. Each labels will contains the session_template.json data and the hardware_conf data plus information specific 
 to each pictures.  

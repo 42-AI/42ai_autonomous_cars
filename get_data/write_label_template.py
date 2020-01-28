@@ -1,7 +1,12 @@
 import argparse
 from pathlib import Path
+import sys
+import os
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(CURRENT_DIR)
+sys.path.append(PARENT_DIR)
 
-from get_data.utils import label_handler
+from get_data.src import label_handler
 
 
 def show_label_template():
