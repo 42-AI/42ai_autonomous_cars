@@ -5,6 +5,7 @@ django-extensions
 djangorestframework
 djangorestframework-jwt
 elasticsearch
+elasticsearch-dsl
 h5py
 matplotlib
 numpy

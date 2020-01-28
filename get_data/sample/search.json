@@ -1,0 +1,93 @@
+{
+    "location": {
+        "type": "",
+        "field": "keyword",
+        "query": ""
+    },
+    "event": {
+        "type": "match",
+        "field": "",
+        "query": "test_create_label"
+    },
+    "track": {
+        "type": "",
+        "field": "",
+        "query": ""
+    },
+    "track_type": {
+        "type": "",
+        "field": "",
+        "query": ""
+    },
+    "dataset": {
+        "type": "",
+        "field": "keyword",
+        "query": ""
+    },
+    "comment": {
+        "type": "",
+        "field": "",
+        "query": ""
+    },
+    "raw": {
+        "type": "",
+        "field": "",
+        "query": ""
+    },
+    "upload_date": {
+        "type": "range",
+        "bool": "filter",
+        "field": "",
+        "gte": "20191230",
+        "lte": "20201230"
+    },
+    "img_id": {
+        "type": "",
+        "field": "keyword",
+        "query": ""
+    },
+    "file_type": {
+        "type": "",
+        "field": "",
+        "query": ""
+    },
+    "label.raw_direction": {
+        "type": "",
+        "bool": "filter",
+        "field": "",
+        "gte": "0",
+        "lte": "400"
+    },
+    "label.raw_speed": {
+        "type": "",
+        "field": "",
+        "query": "250"
+    },
+    "label.label_direction": {
+        "type": "",
+        "field": "",
+        "query": ""
+    },
+    "label.label_speed": {
+        "type": "",
+        "field": "",
+        "query": ""
+    },
+    "label.normalized_speed": {
+        "type": "",
+        "field": "",
+        "query": ""
+    },
+    "label.normalized_direction": {
+        "type": "",
+        "field": "",
+        "query": ""
+    },
+    "label.timestamp": {
+        "type": "",
+        "bool": "filter",
+        "field": "",
+        "gte": "",
+        "lte": ""
+    }
+}
