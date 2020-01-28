@@ -5,6 +5,8 @@ import boto3
 from botocore import exceptions as boto3_exceptions
 from tqdm import tqdm
 
+from conf.cluster_conf import ENV_VAR_FOR_AWS_USER_ID, ENV_VAR_FOR_AWS_USER_KEY
+
 
 def is_valid_s3_key(name):
     if "valid" not in is_valid_s3_key.__dict__:  # check if it is the first call to this function
@@ -22,14 +24,12 @@ def generate_valid_s3_key_from_str(name):
 
 
 def get_s3_resource():
-    env_var_name_key_id = "PATATE_S3_KEY_ID"
-    env_var_name_key = "PATATE_S3_KEY"
     try:
-        access_key_id = os.environ[env_var_name_key_id]
-        access_key = os.environ[env_var_name_key]
+        access_key_id = os.environ[ENV_VAR_FOR_AWS_USER_ID]
+        access_key = os.environ[ENV_VAR_FOR_AWS_USER_KEY]
         s3 = boto3.resource("s3", aws_access_key_id=access_key_id, aws_secret_access_key=access_key)
     except KeyError:
-        print(f'Environment variable {env_var_name_key} or {env_var_name_key_id} not found. '
+        print(f'Environment variable {ENV_VAR_FOR_AWS_USER_ID} or {ENV_VAR_FOR_AWS_USER_KEY} not found. '
               f'Can\'t connect to S3 without credential.')
         return None
     except boto3_exceptions as err:

@@ -7,12 +7,13 @@ import json
 from pathlib import Path
 
 from conf.path import INDEX_TEMPLATE
+from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY
 
 
 def get_es_session(host_ip, port):
     try:
-        user = os.environ["ES_USER_ID"]
-        pwd = os.environ["ES_USER_PWD"]
+        user = os.environ[ENV_VAR_FOR_ES_USER_ID]
+        pwd = os.environ[ENV_VAR_FOR_ES_USER_KEY]
     except KeyError:
         print("  --> Warning: Elasticsearch user and/or password not found. Trying connection without authentication")
         user = ""

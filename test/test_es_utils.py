@@ -1,7 +1,7 @@
 import pytest
 
 from get_data.src import es_utils
-from conf.cluster_param import ES_HOST_PORT, ES_HOST_IP
+from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP
 
 
 @pytest.fixture()

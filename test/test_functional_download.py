@@ -5,15 +5,15 @@ import time
 
 from get_data.src import s3_utils, get_from_db, upload_to_db as upload
 from get_data.src import es_utils
-from conf import cluster_param
+from conf import cluster_conf
 
 
 @pytest.fixture
 def test_init():
-    bucket_name = cluster_param.BUCKET_NAME
+    bucket_name = cluster_conf.BUCKET_NAME
     key_prefix = "test_download"
-    es_ip_host = cluster_param.ES_HOST_IP
-    es_port_host = cluster_param.ES_HOST_PORT
+    es_ip_host = cluster_conf.ES_HOST_IP
+    es_port_host = cluster_conf.ES_HOST_PORT
     es_index_name = "test_index"
     output_test_folder = Path("output_test_folder")
     output_test_folder.mkdir()
@@ -22,7 +22,7 @@ def test_init():
     print("Deleting test pictures from s3")
     s3_utils.delete_all_in_s3_folder(bucket=bucket_name, key_prefix=key_prefix)
     print("Deleting test index")
-    es_utils.delete_index(es_index_name, host_ip=cluster_param.ES_HOST_IP, port=cluster_param.ES_HOST_PORT)
+    es_utils.delete_index(es_index_name, host_ip=cluster_conf.ES_HOST_IP, port=cluster_conf.ES_HOST_PORT)
     print("Deleting test folder...")
     for file in output_test_folder.iterdir():
         file.unlink()
@@ -30,7 +30,7 @@ def test_init():
 
 
 def test_download_single_file(test_init):
-    label_file = "get_data/sample/single_label.json"
+    label_file = "test/resources/single_label.json"
     output_test_folder, bucket_name, key_prefix, es_ip_host, es_port_host, es_index_name = test_init
     with Path(label_file).open(mode='r', encoding='utf-8') as fp:
         label = json.load(fp)
@@ -45,7 +45,7 @@ def test_download_single_file(test_init):
 
 
 def test_download_full_pipeline(test_init):
-    label_file = "get_data/sample/labels.json"
+    label_file = "test/resources/labels.json"
     output_test_folder, bucket_name, key_prefix, es_ip_host, es_port_host, es_index_name = test_init
     s3_success, es_success, fail = upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
                                                        key_prefix=key_prefix, overwrite=True)

@@ -6,19 +6,19 @@ PARENT_DIR = os.path.dirname(CURRENT_DIR)
 sys.path.append(PARENT_DIR)
 
 from get_data.src import upload_to_db as upload
-from conf import cluster_param
+from conf import cluster_conf
 
 
 def _get_args(description):
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("label_file", type=str, help="Path to the json label file")
     parser.add_argument("-b", "--bucket", default=None,
-                        help="OPTIONAL. By default, bucket name is retrieved from the cluster_param.py file")
+                        help="OPTIONAL. By default, bucket name is retrieved from the cluster_conf.py file")
     parser.add_argument("-k", "--key", default=None,
                         help="OPTIONAL. By default, key is automatically generated from the label. Final url of the "
                              "picture: https://s3.amazonaws.com/<bucket_name>/<key_prefix><file_name>)")
     parser.add_argument("-i", "--index", default=None,
-                        help="OPTIONAL. By default, index name is retrieved from the cluster_param.py file")
+                        help="OPTIONAL. By default, index name is retrieved from the cluster_conf.py file")
     parser.add_argument("-f", "--force", action="store_true",
                         help="Force option will overwrite existing pictures and labels in S3 and ES with new one"
                              " if same img_id is found")
@@ -38,11 +38,11 @@ def upload_data():
     """
     args = _get_args(upload_data.__doc__)
     label_file = args.label_file
-    bucket_name = cluster_param.BUCKET_NAME if args.bucket is None else args.bucket
+    bucket_name = cluster_conf.BUCKET_NAME if args.bucket is None else args.bucket
     key_prefix = args.key
-    es_index_name = cluster_param.ES_INDEX if args.index is None else args.index
-    es_ip_host = cluster_param.ES_HOST_IP
-    es_port_host = cluster_param.ES_HOST_PORT
+    es_index_name = cluster_conf.ES_INDEX if args.index is None else args.index
+    es_ip_host = cluster_conf.ES_HOST_IP
+    es_port_host = cluster_conf.ES_HOST_PORT
     upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
                         overwrite=args.force, key_prefix=key_prefix)
 
