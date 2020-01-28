@@ -6,7 +6,7 @@ from get_data import get_from_db
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Search picture in the database according to a query json file and "
                                                  "download missing picture in the picture dir.\nA picture is missing if"
-                                                 "the 'file_name', as stored in the db, can't be found in picture_dir.")
+                                                 " the 'file_name', as stored in the db, can't be found in picture_dir.")
     parser.add_argument("-q", "--query", required=True, type=str,
                         help="Path to the input file, json format, containing the search parameters")
     parser.add_argument("-p", "--picture_dir", required=True, type=str, default=None,
