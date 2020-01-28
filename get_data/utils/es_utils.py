@@ -124,7 +124,6 @@ def get_search_query_from_dict(es_index, d_query):
             "type": "match",    # search type (eg: "range", "match", ..etc)
             "field": "keyword", # OPTIONAL: subfield for the search (eg: "keyword", "analyzed", ...etc)
             "bool": "filter",   # OPTIONAL: specify the bool operator (eg: "filter", "must", "should", ..etc)
-            "bool": "filter",   # OPTIONAL: subfield for the search (eg: "keyword", "analyzed", ...etc)
             # Other field depends on the "type" field value. Those fields are exactly those expected by Elasticsearch
              for this type of query. See Elasticsearch documentation.
             # For example, for a "range" search field could be:
