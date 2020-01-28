@@ -14,7 +14,7 @@ from picamera.array import PiRGBArray
 
 from get_data.src import xbox
 from get_data.src import label_handler
-from utils.const import SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, DIRECTION_C, HEAD_DOWN
+from conf.const import SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, DIRECTION_C, HEAD_DOWN
 from utils import car_mapping
 
 

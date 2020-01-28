@@ -3,11 +3,9 @@ import json
 from pathlib import Path
 import time
 
-from get_data import upload_to_db as upload
-from get_data.src import s3_utils
+from get_data.src import s3_utils, get_from_db, upload_to_db as upload
 from get_data.src import es_utils
-from get_data import cluster_param
-from get_data import get_from_db
+from conf import cluster_param
 
 
 @pytest.fixture

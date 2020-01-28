@@ -1,5 +1,5 @@
 from utils import car_mapping
-from utils.const import MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, MAX_SPEED, STOP_SPEED
+from conf.const import MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, MAX_SPEED, STOP_SPEED
 
 
 def test_car_mapping_linear_joystick_full_right():

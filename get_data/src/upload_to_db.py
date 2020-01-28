@@ -2,8 +2,8 @@ from pathlib import Path
 import json
 from datetime import datetime
 
-from .src import s3_utils
-from .src import es_utils
+from get_data.src import s3_utils
+from get_data.src import es_utils
 
 
 def is_single_label(label):

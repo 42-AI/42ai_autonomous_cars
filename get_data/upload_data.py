@@ -5,8 +5,8 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(CURRENT_DIR)
 sys.path.append(PARENT_DIR)
 
-from get_data import upload_to_db as upload
-from get_data import cluster_param
+from get_data.src import upload_to_db as upload
+from conf import cluster_param
 
 
 def _get_args(description):

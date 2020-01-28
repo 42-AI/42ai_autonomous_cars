@@ -1,0 +1,196 @@
+{
+  "mappings" : {
+    "properties" : {
+      "car_setting" : {
+        "properties" : {
+          "camera" : {
+            "properties" : {
+              "camera_position" : {
+                "type" : "short"
+              },
+              "exposure_mode" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              },
+              "frame_rate" : {
+                "type" : "short"
+              },
+              "resolution" : {
+                "type" : "short"
+              }
+            }
+          },
+          "constant" : {
+            "properties" : {
+              "direction_c" : {
+                "type" : "short"
+              },
+              "direction_l" : {
+                "type" : "short"
+              },
+              "direction_l_m" : {
+                "type" : "short"
+              },
+              "direction_r" : {
+                "type" : "short"
+              },
+              "direction_r_m" : {
+                "type" : "short"
+              },
+              "head_down" : {
+                "type" : "short"
+              },
+              "head_up" : {
+                "type" : "short"
+              },
+              "max_direction_l" : {
+                "type" : "short"
+              },
+              "max_direction_r" : {
+                "type" : "short"
+              },
+              "max_speed" : {
+                "type" : "short"
+              },
+              "speed_fast" : {
+                "type" : "short"
+              },
+              "speed_normal" : {
+                "type" : "short"
+              },
+              "stop_speed" : {
+                "type" : "short"
+              }
+            }
+          }
+        }
+      },
+      "comment" : {
+        "type" : "text"
+      },
+      "dataset" : {
+        "type" : "text",
+        "fields" : {
+          "keyword" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          }
+        }
+      },
+      "event" : {
+        "type" : "text",
+        "fields" : {
+          "keyword" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          }
+        }
+      },
+      "file_name" : {
+        "type" : "keyword",
+        "ignore_above" : 256
+      },
+      "file_type" : {
+        "type" : "keyword",
+        "ignore_above" : 256
+      },
+      "hardware_conf" : {
+        "properties" : {
+          "camera" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "car" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "computer" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "version" : {
+            "type" : "short"
+          }
+        }
+      },
+      "img_id" : {
+        "type" : "keyword",
+        "ignore_above" : 256
+      },
+      "label" : {
+        "properties" : {
+          "label_direction" : {
+            "type" : "byte"
+          },
+          "label_speed" : {
+            "type" : "byte"
+          },
+          "normalized_direction" : {
+            "type" : "float"
+          },
+          "normalized_speed" : {
+            "type" : "float"
+          },
+          "raw_direction" : {
+            "type" : "short"
+          },
+          "raw_speed" : {
+            "type" : "short"
+          }
+        }
+      },
+      "location" : {
+        "type" : "keyword",
+        "ignore_above" : 256
+      },
+      "raw" : {
+        "type" : "boolean"
+      },
+      "timestamp" : {
+        "type" : "date",
+        "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy"
+      },
+      "track" : {
+        "type" : "text",
+        "fields" : {
+          "keyword" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          }
+        }
+      },
+      "track_picture" : {
+        "type" : "keyword",
+        "ignore_above" : 256
+      },
+      "track_type" : {
+        "type" : "text",
+        "fields" : {
+          "keyword" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          }
+        }
+      },
+      "upload_date" : {
+        "type" : "date",
+        "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy"
+      }
+    }
+  }
+}

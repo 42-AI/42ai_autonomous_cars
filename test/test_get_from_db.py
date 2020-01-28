@@ -1,6 +1,6 @@
 import pytest
 
-from get_data import get_from_db
+from get_data.src import get_from_db
 
 
 @pytest.fixture()

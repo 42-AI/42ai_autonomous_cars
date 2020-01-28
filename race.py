@@ -11,9 +11,9 @@ from PIL import Image
 from tensorflow.keras.models import load_model
 
 from utils.pivideostream import PiVideoStream
-from utils.const import SPEED_NORMAL, SPEED_FAST, HEAD_UP, HEAD_DOWN, \
+from conf.const import SPEED_NORMAL, SPEED_FAST, HEAD_UP, HEAD_DOWN, \
     DIRECTION_R, DIRECTION_L, DIRECTION_C, DIRECTION_L_M, DIRECTION_R_M
-from utils.path import OUTPUT_DIRECTORY
+from conf.path import OUTPUT_DIRECTORY
 
 
 def get_args():

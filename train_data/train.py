@@ -14,7 +14,7 @@ from tensorflow.keras.preprocessing.image import load_img
 from tensorflow.keras.preprocessing.image import img_to_array
 
 from train_data import model_params_setter
-from utils.path import TRAINING_IMAGES_DIRECTORY, VALIDATION_IMAGES_DIRECTORY
+from conf.path import TRAINING_IMAGES_DIRECTORY, VALIDATION_IMAGES_DIRECTORY
 
 
 class TrainModel:

@@ -6,7 +6,7 @@ from tqdm import tqdm
 import json
 from pathlib import Path
 
-from utils.path import INDEX_TEMPLATE
+from conf.path import INDEX_TEMPLATE
 
 
 def get_es_session(host_ip, port):
@@ -30,7 +30,7 @@ def get_es_session(host_ip, port):
 
 
 def create_patate_db_index(host_ip, host_port, index_name):
-    """Create an index in ES from the template defined in utils.path"""
+    """Create an index in ES from the template defined in utils.path. TODO: add alias and opt for write index"""
     es = get_es_session(host_ip, host_port)
     if es is None:
         return None

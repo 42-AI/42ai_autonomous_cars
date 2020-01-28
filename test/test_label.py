@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 from get_data.src import label_handler as lb
-from utils.path import SESSION_TEMPLATE_NAME
+from conf.path import SESSION_TEMPLATE_NAME
 
 
 def test_label_handler_empty_init():

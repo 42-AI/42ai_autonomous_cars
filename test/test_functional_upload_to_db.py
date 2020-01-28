@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from get_data import upload_to_db as upload
-from get_data import cluster_param
-from get_data.src import s3_utils
+from conf import cluster_param
+from get_data.src import s3_utils, upload_to_db as upload
 from get_data.src import es_utils
 
 """
