@@ -4,9 +4,8 @@ This file describes how to get data:
 1. Record pictures and create labels
 2. Upload pictures and labels to the database
 3. Re labelize manually the pictures
-4. Search for picture in the database
-5. Download pictures
-6. BONUS TRACK - A small description of the database architecture
+4. Search and download pictures from the database
+5. BONUS TRACK - A small description of the database architecture
 
 
 ## 1. How to record picture and create label
@@ -98,26 +97,23 @@ export ES_USER_PWD="your_es_password"
 
 TO DO
 
-## 4. How to search for picture in the database
+## 4. How to search and download pictures from the database
 
-Use the function `find_picture.py` to look for picture in the database.
+Use the function `search_and_download.py`. It will look for picture in the database matching your query, look if 
+pictures are already in the local picture directory, and if not, it will download the missing picture.  
+A picture is missing if the "file_name", as stored in the db, can't be found in picture directory.
 See usage with `-h` option for details.
 
 A json file sample can be found in `get_data/sample/search_json`.
 
-For details on how this json works, see the docstring of the search function in es_utils.  
+For details on how this json works, see the docstring of the get_search_query_from_dict function in es_utils.  
 For details on the ES query works, look at the doc: https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html
 
 NOTE: At the moment, there is a limitation in the number of picture that will be return:  
 Only the first 10 000 pictures found will be returned.
 
 
-## 5. How to download pictures
-
-TO DO
-
-
-## 6. BONUS TRACK - Database architecture
+## 5. BONUS TRACK - Database architecture
 The database is made of two parts: the picture are stored in AWS S3 file storage service, associated labels are stored
 in the Elasticsearch cluster.
 The labels contain the path to the picture (ie: url of the picture)

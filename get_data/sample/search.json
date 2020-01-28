@@ -52,11 +52,10 @@
         "query": ""
     },
     "label.raw_direction": {
-        "type": "",
+        "type": "match",
         "bool": "filter",
         "field": "",
-        "gte": "0",
-        "lte": "400"
+        "query": "400"
     },
     "label.raw_speed": {
         "type": "",

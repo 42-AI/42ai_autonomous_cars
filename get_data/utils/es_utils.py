@@ -84,6 +84,17 @@ def delete_index(index, host_ip, port):
     return es.indices.delete(index=index, ignore=[400, 404])
 
 
+def delete_document(index, doc_id, es=None, host_ip=None, port=9200):
+    if isinstance(doc_id, list):
+        print("Bulk delete not yet implemented... sorry, list of doc_id not accepted yet :/")
+        exit(1)
+    if bool(es) == bool(host_ip):
+        print("host_ip and port will be ignored since es session object is provided")
+    if es is None:
+        es = get_es_session(host_ip, port)
+    return es.delete(index=index, id=doc_id, refresh=True)
+
+
 def _add_query(search_obj, field, query, bool="match"):
     """Add a query to the existing seach obj"""
     if "field" in query:
@@ -113,7 +124,6 @@ def get_search_query_from_dict(es_index, d_query):
             "type": "match",    # search type (eg: "range", "match", ..etc)
             "field": "keyword", # OPTIONAL: subfield for the search (eg: "keyword", "analyzed", ...etc)
             "bool": "filter",   # OPTIONAL: specify the bool operator (eg: "filter", "must", "should", ..etc)
-            "bool": "filter",   # OPTIONAL: subfield for the search (eg: "keyword", "analyzed", ...etc)
             # Other field depends on the "type" field value. Those fields are exactly those expected by Elasticsearch
              for this type of query. See Elasticsearch documentation.
             # For example, for a "range" search field could be:
@@ -142,6 +152,6 @@ def run_query(es, search_obj):
     :return:                [object]    Elasticsearch-dsl response object
     """
     s = search_obj.using(es)
-    s = s.source(["img_id", "file_name"])
+    s = s.source(["img_id", "file_name", "location"])
     s = s[0:10000]
     return s.execute()

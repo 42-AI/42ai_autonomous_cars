@@ -80,11 +80,14 @@ def upload_to_s3_from_label(l_label, s3_bucket_name, prefix="", overwrite=False)
     return upload_success, already_exist_pic
 
 
-def get_s3_formatted_bucket_path(bucket_name, prefix):
+def get_s3_formatted_bucket_path(bucket_name, key_prefix, file_name=None):
     """
-    Creates a cleaned and well formatted name and path for upload to s3 bucket from the bucket name and key prefix.
+    Creates a cleaned and well formatted name and path for access to s3 bucket from the bucket name and key prefix.
+    If file_name is given, the function will return a file path instead of a key_prefix path.
     :param bucket_name:     [string]        s3 Bucket name
-    :param prefix:          [string]        key prefix (s3 sub-folder)
+    :param key_prefix:      [string]        key prefix (s3 sub-folder)
+    :param file_name:       [string]        OPTIONAL: name of the file. If defined, the function will return a
+                                            path to file (not "/" terminated) and not to a bucket ("/" terminated)
     :return:                [tuple of str]  clean_full_path, clean_buck_name, clean_key_prefix
 
     For example:
@@ -93,13 +96,34 @@ def get_s3_formatted_bucket_path(bucket_name, prefix):
 
     >>> get_s3_formatted_bucket_path("my-bucket/", "")
     ("my-bucket/", "my-bucket", "")
+
+    >>> get_s3_formatted_bucket_path("my-bucket", "key_prefix/", "file.jpg")
+    ("my-bucket/key_prefix/file.jpg", "my-bucket", "key_prefix/file.jpg")
+
+    >>> get_s3_formatted_bucket_path("my-bucket", "", "key_prefix/file.jpg")
+    ("my-bucket/key_prefix/file.jpg", "my-bucket", "key_prefix/file.jpg")
     """
-    raw_dir = bucket_name + "/" + prefix
+    if file_name is None:
+        raw_dir = bucket_name + "/" + key_prefix
+    else:
+        raw_dir = bucket_name + "/" + key_prefix + "/" + file_name
     dir_list_clean = [elm for elm in raw_dir.split("/") if bool(elm)]
-    clean_full_path = "/".join(dir_list_clean) + "/"
-    clean_key_prefix = "/".join(dir_list_clean[1:]) + "/" if len(dir_list_clean) > 1 else ""
+    clean_full_path = "/".join(dir_list_clean)
+    clean_key_prefix = "/".join(dir_list_clean[1:]) if len(dir_list_clean) > 1 else ""
+    if file_name is None:
+        clean_full_path += "/"
+        clean_key_prefix += "/" if clean_key_prefix != "" else ""
     clean_bucket_name = dir_list_clean[0]
     return clean_full_path, clean_bucket_name, clean_key_prefix
+
+
+def split_s3_path(bucket_key):
+    l_bucket_key = [elm for elm in bucket_key.split("/") if bool(elm)]
+    bucket = l_bucket_key[0]
+    file_name = l_bucket_key[-1] if len(l_bucket_key) > 1 else ""
+    key_prefix = "/".join(l_bucket_key[1:-1])
+    key_prefix += "/" if bool(key_prefix) else ""
+    return bucket, key_prefix, file_name
 
 
 def delete_object_s3(s3_resource, bucket, key_prefix, l_object_key):
@@ -111,3 +135,28 @@ def delete_object_s3(s3_resource, bucket, key_prefix, l_object_key):
     for key in l_object_key:
         delete["Objects"].append({"Key": key_prefix + key})
     return s3_bucket.delete_objects(Delete=delete)
+
+
+def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
+    if s3_resource is None:
+        s3 = get_s3_resource()
+    else:
+        s3 = s3_resource
+    bucket = s3.Bucket(bucket)
+    for obj in bucket.objects.filter(Prefix=key_prefix):
+        s3.Object(bucket.name, obj.key).delete()
+
+
+def download_from_s3(picture_id, bucket_key, output_file):
+    """
+    Download file from an s3 bucket and write it to output_file
+    :param picture_id:      [string]    Id of the picture (as stored in s3)
+    :param bucket_key:      [string]    bucket and key concatenated (eg: "my-bucket/key_prefix/img_id")
+    :param output_file:     [string]    Path to the output_file
+    :return:                [object]    Return None if download went OK
+    """
+    s3 = get_s3_resource()
+    if s3 is None:
+        exit(1)
+    bucket, key_prefix, file_name = split_s3_path(f'{bucket_key}/{picture_id}')
+    return s3.meta.client.download_file(bucket, key_prefix + file_name, output_file)

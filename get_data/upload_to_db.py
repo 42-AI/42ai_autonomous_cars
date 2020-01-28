@@ -69,20 +69,23 @@ def get_label_list_from_file(file):
 
 def generate_key_prefix(l_label):
     """
-    Generate the key prefix for a list of label.
+    Generate the key key_prefix for a list of label.
     Return None if one of the following test fail:
         Check that the "event" name is well formated for s3 bucket key.
         Check all label in the list have the same "event" name
-    Return the key_prefix if tests are OK. Key prefix is defined as follow:
+    Return the key_prefix if tests are OK. Key key_prefix is defined as follow:
         "{event_name}/{picture_date}/"
         Note: the date will be the date of the first picture in the label list
     :param l_label:     [list]  list of labels
-    :return:            [str]   key prefix: "{event_name}/{picture_date}/"
+    :return:            [str]   key key_prefix: "{event_name}/{picture_date}/"
     """
     try:
         event = l_label[0]["event"]
         date = datetime.strptime(l_label[0]["timestamp"], "%Y%m%dT%H-%M-%S-%f")
     except KeyError:
+        return None
+    except ValueError as err:
+        print(f'Error: could not parse date because : {err}')
         return None
     for label in l_label:
         is_valid, regex = s3_utils.is_valid_s3_key(label["event"])
@@ -122,20 +125,20 @@ def upload_to_db(label_file, bucket_name, es_host_ip, es_port, es_index, key_pre
                                         {event_name}/{upload_date}/
                                         So the picture will be uploaded to:
                                         "https://s3.amazonaws.com/{my-bucket}/{event_name}/{picture_date}/"
-    :return:                [tuple]     (int) s3 success upload, (int) ES success upload, (int) total nb of upload error
-                                        Return None, None, None on error
+    :return:                [tuple]     (int) s3 success upload, (int) ES success upload, (int) total nb of failed upload
     """
     l_label = get_label_list_from_file(label_file)
+    total_label = len(label_file)
     if l_label is None:
-        return None, None, None
+        return 0, 0, total_label
     print(f'Looking for pictures...')
     l_label, missing_pic = filter_out_missing_pic(l_label)
     if len(l_label) == 0:
-        return 0, 0, len(missing_pic)
+        return 0, 0, total_label
     if key_prefix is None:
         key_prefix = generate_key_prefix(l_label)
         if key_prefix is None:
-            return None, None, None
+            return 0, 0, total_label
     upload_bucket_dir, bucket_name, key_prefix = s3_utils.get_s3_formatted_bucket_path(bucket_name, key_prefix)
     print(f'Uploading to s3...')
     s3_upload_success, already_exist_pic = s3_utils.upload_to_s3_from_label(l_label, bucket_name, key_prefix, overwrite)
