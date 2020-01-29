@@ -1,5 +1,6 @@
 from conf.const import SPEED_NORMAL, SPEED_FAST, DIRECTION_L_M, DIRECTION_C, DIRECTION_L, DIRECTION_R, DIRECTION_R_M
 from conf.const import MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, MAX_SPEED, STOP_SPEED
+from conf.const import RAW_DIR_TO_LABEL_MAPPING
 
 
 def _two_label_speed_mapping(speed):
@@ -32,6 +33,22 @@ def _five_label_direction_mapping(direction):
         return 3
     elif direction == DIRECTION_R_M:
         return 4
+
+
+def _label_direction_mapping(direction):
+    """
+    Return a label value from the direction value as defined by the list RAW_DIR_TO_LABEL_MAPPING. If this list is empty
+    , then linear mapping is applied.
+    :param direction:       [int or float]   direction value (float accepted for linear mapping only)
+    :return:
+    """
+    if len(direction) == 0:
+        raise ValueError("Linear label mapping noy yet implemented")
+    try:
+        return RAW_DIR_TO_LABEL_MAPPING.index(direction)
+    except ValueError as err:
+        err.args = (f'"{direction}" is not a value accepted in the current mapping : {RAW_DIR_TO_LABEL_MAPPING}',)
+        raise
 
 
 def _five_direction_joystick_mapping(joystick):

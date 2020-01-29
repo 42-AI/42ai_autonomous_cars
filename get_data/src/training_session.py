@@ -9,6 +9,7 @@ try:
     from picamera import PiCamera
     from picamera.array import PiRGBArray
 except ImportError:
+    print("WARNING: can\'t import PiCamera package. Running in TEST MODE with fake PiCamera.")
     from test.fake_package.fake_picamera import PiCamera
     from test.fake_package.fake_picamera import PiRGBArray
 

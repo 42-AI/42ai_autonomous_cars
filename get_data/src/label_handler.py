@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from datetime import datetime
 
 from utils import car_mapping as cm
 from conf.path import SESSION_TEMPLATE_NAME, HARDWARE_CONF_FILE
@@ -129,18 +130,20 @@ class Label:
                 "normalized_speed": cm.get_normalized_speed(raw_speed),
                 "normalized_direction": cm.get_normalized_direction(raw_direction),
             },
-            "label": {
-                "label_direction": label_direction,
-                "label_speed": label_speed
-            },
+            "label": [
+                {
+                    "direction": label_direction,
+                    "speed": label_speed,
+                    "nb_of_direction": 5,
+                    "nb_of_speed": 2,
+                    "created_by": "auto",
+                    "created_date": datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
+                }
+            ],
             "timestamp": timestamp
         }
         for key, val in label.items():
             self._template[key] = val
-
-    def _add_normalized_speed_dir(self):
-        self._template["label"]["normalized_speed"] = cm.get_normalized_speed(self._template["label"]["raw_speed"])
-        self._template["label"]["normalized_direction"] = cm.get_normalized_direction(self._template["label"]["raw_direction"])
 
     def get_copy(self):
         return self._template.copy()
@@ -152,6 +155,12 @@ class Label:
             "track": "",
             "track_picture": "",
             "track_type": "",
-            "dataset": [""],
+            "dataset": [
+                {
+                    "name": "",
+                    "comment": "",
+                    "query": None,
+                }
+            ],
             "comment": ""
         }
