@@ -119,7 +119,7 @@ def test_car_mapping_get_raw_speed_from_label_outofrange():
 def test_label_from_speed_valueerror():
     car_mapping = cm.CarMapping()
     val = 111
-    while val in car_mapping.raw_speed_to_label:
+    while val in car_mapping.raw_speed_to_label_mapping:
         val = random.random() * 1000
     with pytest.raises(ValueError):
         raw_speed = car_mapping.get_label_from_raw_speed(val)

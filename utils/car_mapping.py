@@ -26,7 +26,7 @@ class CarMapping:
         self.raw_dir_to_label_mapping = RAW_DIR_TO_LABEL_MAPPING
         self.label_to_raw_dir_mapping = LABEL_TO_RAW_DIR_MAPPING
         self.trigger_to_raw_speed_mapping = TRIGGER_TO_RAW_SPEED_MAPPING
-        self.raw_speed_to_label = RAW_SPEED_TO_LABEL_MAPPING
+        self.raw_speed_to_label_mapping = RAW_SPEED_TO_LABEL_MAPPING
         self.label_to_raw_speed_mapping = LABEL_TO_RAW_SPEED_MAPPING
         self.joystick_linear_mapping = self.trigger_linear_mapping = False
         self.joystick_slope, self.joystick_intercept = self.get_linear_coef((-1, MAX_DIRECTION_LEFT),
@@ -62,12 +62,12 @@ class CarMapping:
         :param speed:           [int or float]  raw speed value (float accepted for joystick_linear_mapping mapping only)
         :return:                [int]           speed label value
         """
-        if len(self.raw_speed_to_label) == 0:
+        if len(self.raw_speed_to_label_mapping) == 0:
             raise ValueError("Linear label mapping not yet implemented")
         try:
-            return self.raw_speed_to_label.index(speed)
+            return self.raw_speed_to_label_mapping.index(speed)
         except ValueError as err:
-            err.args = (f'"{speed}" is not in the speed to label mapping : {self.raw_speed_to_label}',)
+            err.args = (f'"{speed}" is not in the speed to label mapping : {self.raw_speed_to_label_mapping}',)
             raise
 
     def get_raw_speed_from_xbox_trigger(self, trigger):
