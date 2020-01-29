@@ -47,7 +47,6 @@ class Label:
         self._template["raw"] = True
         self._template["upload_date"] = None
         self.set_label()
-        self.add_normalized_speed_dir()
 
     def init_car_setting_from_const(self, cam_resolution=IMAGE_SIZE, cam_framerate=FRAME_RATE,
                                     cam_exposure_mode=EXPOSURE_MODE, cam_position="unknown"):
@@ -124,9 +123,13 @@ class Label:
             "img_id": img_id,
             "file_name": file_name,
             "file_type": file_name.split(".")[-1],
-            "label": {
+            "raw_value": {
                 "raw_direction": raw_direction,
                 "raw_speed": raw_speed,
+                "normalized_speed": cm.get_normalized_speed(raw_speed),
+                "normalized_direction": cm.get_normalized_direction(raw_direction),
+            },
+            "label": {
                 "label_direction": label_direction,
                 "label_speed": label_speed
             },
@@ -135,7 +138,7 @@ class Label:
         for key, val in label.items():
             self._template[key] = val
 
-    def add_normalized_speed_dir(self):
+    def _add_normalized_speed_dir(self):
         self._template["label"]["normalized_speed"] = cm.get_normalized_speed(self._template["label"]["raw_speed"])
         self._template["label"]["normalized_direction"] = cm.get_normalized_direction(self._template["label"]["raw_direction"])
 

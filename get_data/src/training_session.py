@@ -4,13 +4,13 @@ from PIL import Image
 from pathlib import Path
 import json
 
-# noinspection PyUnresolvedReferences
 import Adafruit_PCA9685
-# noinspection PyUnresolvedReferences
-from picamera import PiCamera
-# noinspection PyUnresolvedReferences
-from picamera.array import PiRGBArray
-# noinspection PyUnresolvedReferences
+try:
+    from picamera import PiCamera
+    from picamera.array import PiRGBArray
+except ImportError:
+    from test.fake_package.fake_picamera import PiCamera
+    from test.fake_package.fake_picamera import PiRGBArray
 
 from get_data.src import xbox
 from get_data.src import label_handler
@@ -82,7 +82,6 @@ class TrainingSession:
                                           raw_speed=self.speed,
                                           label_direction=self.label[1],
                                           label_speed=self.label[0])
-                self.meta_label.add_normalized_speed_dir()
                 l_label.append(self.meta_label.get_copy())
                 self.buffer.append((picture_path, im))
                 if show_mode:
