@@ -53,13 +53,17 @@ def test_label_handler_set_label():
     output = "test/resources"
     label = lb.Label(picture_dir=output)
     pic_val = {"img_id": 42, "file_name": "test.jpg", "timestamp": 123456789}
-    label_val = {"raw_speed": 10, "raw_direction": 20, "label_speed": 100, "label_direction": 200}
-    label.set_label(**pic_val, **label_val)
+    raw_val = {"raw_speed": 10, "raw_direction": 20}
+    label_val = {"speed": 100, "direction": 200}
+    label.set_label(**pic_val, **label_val, **raw_val)
     for key, val in pic_val.items():
         assert label[key] == val
         assert label["file_type"] == "jpg"
+    for key, val in raw_val.items():
+        assert label["raw_value"][key] == val
     for key, val in label_val.items():
-        assert label["label"][key] == val
+        assert label["label"][0][key] == val
+    assert label["label"][0]["created_by"] == "auto"
 
 
 def test_label_handler_get_copy():
@@ -68,17 +72,21 @@ def test_label_handler_get_copy():
     l_label = []
     for i in range(10):
         pic_val = {"img_id": i, "file_name": f'file_{i}.png', "timestamp": i / 10}
-        label_val = {"raw_speed": i+10, "raw_direction": i+20, "label_speed": i+100, "label_direction": i+200}
-        label.set_label(**pic_val, **label_val)
+        raw_val = {"raw_speed": i+10, "raw_direction": i+20}
+        label_val = {"speed": i+100, "direction": i+200}
+        label.set_label(**pic_val, **label_val, **raw_val)
         l_label.append(label.get_copy())
     for i, item in enumerate(l_label):
         pic_val = {"img_id": i, "file_name": f'file_{i}.png', "timestamp": i / 10}
-        label_val = {"raw_speed": i+10, "raw_direction": i+20, "label_speed": i+100, "label_direction": i+200}
+        raw_val = {"raw_speed": i+10, "raw_direction": i+20}
+        label_val = {"speed": i+100, "direction": i+200}
         for key, val in pic_val.items():
             assert item[key] == val
             assert item["file_type"] == "png"
+        for key, val in raw_val.items():
+            assert item["raw_value"][key] == val
         for key, val in label_val.items():
-            assert item["label"][key] == val
+            assert item["label"][0][key] == val
 
 
 if __name__ == "__main__":

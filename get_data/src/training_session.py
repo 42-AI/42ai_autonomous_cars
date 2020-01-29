@@ -15,8 +15,8 @@ except ImportError:
 
 from get_data.src import xbox
 from get_data.src import label_handler
-from conf.const import SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, DIRECTION_C, HEAD_DOWN
-from utils import car_mapping
+from conf.const import SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, DIRECTION_C, HEAD_DOWN, STOP_SPEED
+from utils import car_mapping as cm
 
 
 class TrainingSession:
@@ -24,6 +24,7 @@ class TrainingSession:
         self.delay = float(delay)
         self.label = [-1, 2]
         self.buffer = []
+        self.car_mapping = cm.CarMapping()
 
         # set controls
         self.x_cursor = 0
@@ -72,7 +73,7 @@ class TrainingSession:
             image = frame.array
             # control car
             self.controls()
-            if self.label[0] != -1 and time.time() - start > self.delay:
+            if self.speed > STOP_SPEED and time.time() - start > self.delay:
                 im = Image.fromarray(image, 'RGB')
                 t_stamp = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
                 picture_path = Path(self.meta_label.picture_dir) / f'{str(t_stamp)}#s{self.label[0]}_d{self.label[1]}.jpg'
@@ -81,8 +82,8 @@ class TrainingSession:
                                           timestamp=t_stamp,
                                           raw_direction=self.direction,
                                           raw_speed=self.speed,
-                                          label_direction=self.label[1],
-                                          label_speed=self.label[0])
+                                          direction=self.label[1],
+                                          speed=self.label[0])
                 l_label.append(self.meta_label.get_copy())
                 self.buffer.append((picture_path, im))
                 if show_mode:
@@ -108,12 +109,12 @@ class TrainingSession:
     def controls(self):
         # Get speed label
         self.trigger = round(self.joy.rightTrigger(), 2)  # Right trigger position (values 0 to 1.0)
-        self.speed = car_mapping.get_speed_from_xbox_trigger(self.trigger)
-        self.label[0] = car_mapping.get_label_from_speed(self.speed)
+        self.speed = self.car_mapping.get_raw_speed_from_xbox_trigger(self.trigger)
+        self.label[0] = self.car_mapping.get_label_from_raw_speed(self.speed)
         # Get direction labels
         self.x_cursor = round(self.joy.leftX(), 2)  # X-axis of the left stick (values -1.0 to 1.0)
-        self.direction = car_mapping.get_direction_from_xbox_joystick(self.x_cursor)
-        self.label[1] = car_mapping.get_label_from_direction(self.direction)
+        self.direction = self.car_mapping.get_raw_dir_from_xbox_joystick(self.x_cursor)
+        self.label[1] = self.car_mapping.get_label_from_raw_dir(self.direction)
         # Set motor direction and speed
         self.pwm.set_pwm(0, 0, self.direction)
         self.pwm.set_pwm(1, 0, self.speed)

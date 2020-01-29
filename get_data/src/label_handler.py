@@ -4,9 +4,10 @@ from datetime import datetime
 
 from utils import car_mapping as cm
 from conf.path import SESSION_TEMPLATE_NAME, HARDWARE_CONF_FILE
-from conf.const import SPEED_FAST, SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, \
-    DIRECTION_C, DIRECTION_L, DIRECTION_L_M, DIRECTION_R, DIRECTION_R_M, HEAD_DOWN, HEAD_UP, \
-    MAX_SPEED, STOP_SPEED, MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT
+from conf.const import IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, HEAD_DOWN, HEAD_UP,\
+    MAX_SPEED, STOP_SPEED, MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, \
+    JOYSTICK_TO_RAW_DIR_MAPPING, RAW_DIR_TO_LABEL_MAPPING, TRIGGER_TO_RAW_SPEED_MAPPING, RAW_SPEED_TO_LABEL_MAPPING, \
+    LABEL_TO_RAW_DIR_MAPPING, LABEL_TO_RAW_SPEED_MAPPING
 
 
 class Label:
@@ -15,6 +16,7 @@ class Label:
         self._template = {}
         self.picture_dir_key = "location"
         self.picture_dir = picture_dir
+        self.car_mapping = cm.CarMapping()
         self.init_label_template(camera_position, raise_error=raise_error)
 
     def __str__(self):
@@ -63,13 +65,10 @@ class Label:
                 "stop_speed": STOP_SPEED,
                 "max_direction_l": MAX_DIRECTION_LEFT,
                 "max_direction_r": MAX_DIRECTION_RIGHT,
-                "speed_normal": SPEED_NORMAL,
-                "speed_fast": SPEED_FAST,
-                "direction_l_m": DIRECTION_L_M,
-                "direction_l": DIRECTION_L,
-                "direction_c": DIRECTION_C,
-                "direction_r": DIRECTION_R,
-                "direction_r_m": DIRECTION_R_M,
+                "joystick_to_raw_dir_mapping": JOYSTICK_TO_RAW_DIR_MAPPING,
+                "trigger_to_raw_speed_mapping": TRIGGER_TO_RAW_SPEED_MAPPING,
+                "label_to_raw_dir_mapping": LABEL_TO_RAW_DIR_MAPPING,
+                "label_to_raw_speed_mapping": LABEL_TO_RAW_SPEED_MAPPING,
                 "head_up": HEAD_UP,
                 "head_down": HEAD_DOWN
             }
@@ -119,7 +118,7 @@ class Label:
         self._template["hardware_conf"] = hardware_conf
 
     def set_label(self, img_id=None, file_name="", timestamp=None,
-                  raw_direction=MAX_DIRECTION_LEFT, raw_speed=STOP_SPEED, label_direction=None, label_speed=None):
+                  raw_direction=MAX_DIRECTION_LEFT, raw_speed=STOP_SPEED, direction=None, speed=None):
         label = {
             "img_id": img_id,
             "file_name": file_name,
@@ -127,17 +126,19 @@ class Label:
             "raw_value": {
                 "raw_direction": raw_direction,
                 "raw_speed": raw_speed,
-                "normalized_speed": cm.get_normalized_speed(raw_speed),
-                "normalized_direction": cm.get_normalized_direction(raw_direction),
+                "normalized_speed": self.car_mapping.get_normalized_speed(raw_speed),
+                "normalized_direction": self.car_mapping.get_normalized_direction(raw_direction),
             },
             "label": [
                 {
-                    "direction": label_direction,
-                    "speed": label_speed,
-                    "nb_of_direction": 5,
-                    "nb_of_speed": 2,
+                    "direction": direction,
+                    "speed": speed,
                     "created_by": "auto",
-                    "created_date": datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
+                    "created_on_date": datetime.now().strftime("%Y%m%dT%H-%M-%S-%f"),
+                    "raw_dir_to_label_mapping": RAW_DIR_TO_LABEL_MAPPING,
+                    "raw_speed_to_label_mapping": RAW_SPEED_TO_LABEL_MAPPING,
+                    "nb_of_direction": len(RAW_DIR_TO_LABEL_MAPPING),
+                    "nb_of_speed": len(RAW_SPEED_TO_LABEL_MAPPING),
                 }
             ],
             "timestamp": timestamp

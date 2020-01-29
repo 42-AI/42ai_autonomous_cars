@@ -11,9 +11,9 @@ from PIL import Image
 from tensorflow.keras.models import load_model
 
 from utils.pivideostream import PiVideoStream
-from conf.const import SPEED_NORMAL, SPEED_FAST, HEAD_UP, HEAD_DOWN, \
-    DIRECTION_R, DIRECTION_L, DIRECTION_C, DIRECTION_L_M, DIRECTION_R_M
+from conf.const import HEAD_UP, HEAD_DOWN
 from conf.path import OUTPUT_DIRECTORY
+from utils import car_mapping as cm
 
 
 def get_args():
@@ -25,6 +25,10 @@ def get_args():
 
 class RaceOn:
     def __init__(self, model_path):
+        # Load configuration
+        self.car_mapping = cm.CarMapping()
+        self.dir_center_label = round(len(self.car_mapping.label_to_raw_dir_mapping) / 2)
+
         # Racing_status
         self.racing = False
         self.pause = False
@@ -52,27 +56,17 @@ class RaceOn:
 
         print("RaceOn initialized")
 
-    @staticmethod
-    def _get_motor_direction(predicted_labels):
-        if predicted_labels[1] == 0:
-            return DIRECTION_L_M
-        elif predicted_labels[1] == 1:
-            return DIRECTION_L
-        elif predicted_labels[1] == 2:
-            return DIRECTION_C
-        elif predicted_labels[1] == 3:
-            return DIRECTION_R
-        elif predicted_labels[1] == 4:
-            return DIRECTION_R_M
+    def _get_motor_direction(self, predicted_labels):
+        return self.car_mapping.get_raw_dir_from_label(predicted_labels[1])
+
+    def _get_motor_speed(self, predicted_labels):
+        if predicted_labels[1] == self.dir_center_label and predicted_labels[0] > 0:
+            return self.car_mapping.get_raw_speed_from_label(predicted_labels[0])
+        return self.car_mapping.get_raw_speed_from_label(0)
 
     @staticmethod
-    def _get_motor_speed(predicted_labels):
-        if predicted_labels[1] == 2 and predicted_labels[0] == 1:
-            return SPEED_FAST
-        return SPEED_NORMAL
-
-    def _get_motor_head(self, predicted_labels, motor_speed):
-        if motor_speed == self._get_motor_speed(predicted_labels) == SPEED_FAST:
+    def _get_motor_head(predicted_labels):
+        if predicted_labels[0] > 0:
             return HEAD_UP
         return HEAD_DOWN
 
@@ -83,10 +77,11 @@ class RaceOn:
 
         # Get model prediction
         predictions_raw = self.model(image)
-        predicted_labels = [np.argmax(pred, axis=1) for pred in predictions_raw]  # Why ?
+        # predicted_labels = [np.argmax(pred, axis=1) for pred in predictions_raw]  # Why ?
+        predicted_labels = [np.argmax(pred) for pred in predictions_raw]  # Why ? JJ: a essayer pour ne pas recup une list de np.array mais une liste de int
 
         motor_direction = self._get_motor_direction(predicted_labels)
-        motor_head = self._get_motor_head(predicted_labels, motor_speed)
+        motor_head = self._get_motor_head(predicted_labels)
         motor_speed = self._get_motor_speed(predicted_labels)
         return predicted_labels, motor_direction, motor_head, motor_speed
 
@@ -95,8 +90,8 @@ class RaceOn:
             self.sampling = 0
             sample = {
                 "array": self.frame,
-                "direction": predicted_labels[1][0],
-                "speed": 1 if motor_speed == SPEED_FAST else 0
+                "direction": predicted_labels[1],
+                "speed": predicted_labels[0]
             }
             self.buffer.append(sample)
             if self.debug > 1:
@@ -135,7 +130,7 @@ class RaceOn:
         self.nb_pred = 0
         self.sampling = 0
         self.debug = debug
-        motor_speed = SPEED_NORMAL
+        motor_speed = self.car_mapping.get_raw_speed_from_label(0)
 
         while self.racing:
             if not self.pause:
