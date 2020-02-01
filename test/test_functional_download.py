@@ -16,7 +16,7 @@ def test_init():
     es_port_host = cluster_conf.ES_HOST_PORT
     es_index_name = "test_index"
     output_test_folder = Path("output_test_folder")
-    output_test_folder.mkdir()
+    output_test_folder.mkdir(exist_ok=True)
     yield output_test_folder, bucket_name, key_prefix, es_ip_host, es_port_host, es_index_name
     print("--------------- Test completed ----------------")
     print("Deleting test pictures from s3")

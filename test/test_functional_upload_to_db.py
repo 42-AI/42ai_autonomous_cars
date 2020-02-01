@@ -3,6 +3,7 @@ from datetime import datetime
 from conf import cluster_conf
 from get_data.src import s3_utils, upload_to_db as upload
 from get_data.src import es_utils
+from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP
 
 """
 Function test shall be executed in order (from top to bottom)
@@ -134,6 +135,14 @@ def test_generate_key_prefix_different_name():
     l_label = [{"event": event_name, "img_id": 1}, {"event": event_name + "_2", "img_id": 2}]
     key = upload.generate_key_prefix(l_label)
     assert key is None
+
+
+def test_create_index():
+    index = "test_create_index"
+    create_success = es_utils.create_patate_db_index(host_ip=ES_HOST_IP, host_port=ES_HOST_PORT, index_name=index)
+    assert create_success is not None
+    del_success = es_utils.delete_index(index=index, host_ip=ES_HOST_IP, port=ES_HOST_PORT)
+    assert del_success is not None
 
 
 if __name__ == "__main__":

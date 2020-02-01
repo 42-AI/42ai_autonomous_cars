@@ -1,7 +1,6 @@
 import pytest
 
 from get_data.src import es_utils
-from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP
 
 
 @pytest.fixture()
@@ -155,10 +154,3 @@ def test_two_field_bool_search(get_dic_and_package_query):
     }
     query = es_utils.get_search_query_from_dict("", d_query)
     assert query.to_dict() == expected_query
-
-
-def test_create_index():
-    index = "test_create_index"
-    es_utils.create_patate_db_index(host_ip=ES_HOST_IP, host_port=ES_HOST_PORT, index_name=index)
-    es_utils.delete_index(index=index, host_ip=ES_HOST_IP, port=ES_HOST_PORT)
-    assert True

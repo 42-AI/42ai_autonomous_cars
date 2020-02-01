@@ -34,10 +34,11 @@ def create_patate_db_index(host_ip, host_port, index_name):
     """Create an index in ES from the template defined in utils.path. TODO: add alias and opt for write index"""
     es = get_es_session(host_ip, host_port)
     if es is None:
-        return None
+        return es
     with Path(INDEX_TEMPLATE).open(mode='r', encoding='utf-8') as fp:
         index_template = json.load(fp)
     es.indices.create(index_name, body=index_template)
+    return es
 
 
 def _gen_bulk_doc(l_label, index, op_type):
@@ -82,6 +83,8 @@ def upload_to_es(l_label, index, host_ip, port, update=False):
 def delete_index(index, host_ip, port):
     """Delete index from ES cluster"""
     es = get_es_session(host_ip, port)
+    if es is None:
+        return None
     return es.indices.delete(index=index, ignore=[400, 404])
 
 
