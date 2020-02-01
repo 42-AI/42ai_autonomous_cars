@@ -116,19 +116,43 @@ def test_car_mapping_get_raw_speed_from_label_outofrange():
         raw_speed = car_mapping.get_raw_speed_from_label(i)
 
 
-def test_label_from_speed_valueerror():
-    car_mapping = cm.CarMapping()
-    val = 111
-    while val in car_mapping.raw_speed_to_label_mapping:
-        val = random.random() * 1000
-    with pytest.raises(ValueError):
-        raw_speed = car_mapping.get_label_from_raw_speed(val)
+def test_get_closest_item_index_min():
+    mylist = [1, 4, 6, 7, 9, 10, 23]
+    val = 0
+    assert 0 == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)
 
 
-def test_label_from_dir_valueerror():
-    car_mapping = cm.CarMapping()
-    val = 111
-    while val in car_mapping.raw_dir_to_label_mapping:
-        val = random.random() * 1000
-    with pytest.raises(ValueError):
-        raw_dir = car_mapping.get_label_from_raw_dir(val)
+def test_get_closest_item_index_max():
+    mylist = [1, 4, 6, 7, 9, 10, 23]
+    val = 24
+    assert len(mylist) == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)
+
+
+def test_get_closest_item_index_mid():
+    mylist = [1, 2, 3, 7, 11, 15, 23]
+    val = 6
+    assert 3 == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)
+
+
+def test_get_closest_item_index_same_dist():
+    mylist = [1, 2, 3, 7, 11, 17, 23]
+    val = 20
+    assert 5 == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)
+
+
+def test_get_closest_item_index_eq():
+    mylist = [1, 2, 3, 7, 11, 15, 23]
+    val = 2
+    assert 1 == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)
+
+
+def test_get_closest_item_index_eq_min():
+    mylist = [1, 2, 3, 7, 11, 15, 23]
+    val = 1
+    assert 0 == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)
+
+
+def test_get_closest_item_index_eq_max():
+    mylist = [1, 2, 3, 7, 11, 15, 23]
+    val = 23
+    assert len(mylist) == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)

@@ -1,3 +1,5 @@
+import bisect
+
 from conf.const import MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, MAX_SPEED, STOP_SPEED
 from conf.const import RAW_DIR_TO_LABEL_MAPPING, JOYSTICK_TO_RAW_DIR_MAPPING, LABEL_TO_RAW_DIR_MAPPING
 from conf.const import TRIGGER_TO_RAW_SPEED_MAPPING, RAW_SPEED_TO_LABEL_MAPPING, LABEL_TO_RAW_SPEED_MAPPING
@@ -21,6 +23,25 @@ class CarMapping:
         intercept = p1[1] - slope * p1[0]
         return slope, intercept
 
+    @staticmethod
+    def get_closest_value_index_in_sorted_list(value, list_):
+        """
+        Assumes 'list_' is sorted. Returns closest item index to 'value'.
+
+        If two numbers are equally close, return the smallest index.
+        """
+        if value <= list_[0]:
+            return 0
+        if value >= list_[-1]:
+            return len(list_)
+        pos = bisect.bisect_left(list_, value)
+        before = list_[pos - 1]
+        after = list_[pos]
+        if after - value < value - before:
+            return pos
+        else:
+            return pos - 1
+
     def __init__(self):
         self.joystick_to_raw_dir_mapping = JOYSTICK_TO_RAW_DIR_MAPPING
         self.raw_dir_to_label_mapping = RAW_DIR_TO_LABEL_MAPPING
@@ -42,43 +63,21 @@ class CarMapping:
         if len(self.trigger_to_raw_speed_mapping) == 0:
             self.trigger_linear_mapping = True
 
-    def get_label_from_raw_dir(self, direction, error_label=None):
+    def get_label_from_raw_dir(self, direction):
         """
         Return the direction label associated to the raw direction value based on the defined mapping.
         :param direction:       [int or float]  raw direction value (float accepted for joystick_linear_mapping mapping only)
-        :param error_label:     [int]           Label value if raw direction has no associated label in the mapping.
-                                                If None, an error will be raised upon undefined raw direction value.
         :return:                [int]           direction label value
         """
-        if len(self.raw_dir_to_label_mapping) == 0:
-            raise ValueError("Linear label mapping not yet implemented")
-        try:
-            return self.raw_dir_to_label_mapping.index(direction)
-        except ValueError as err:
-            if error_label is None:
-                err.args = (f'"{direction}" is not in the direction to label mapping : {self.raw_dir_to_label_mapping}',)
-                raise
-            else:
-                return error_label
+        return CarMapping.get_closest_value_index_in_sorted_list(direction, self.raw_dir_to_label_mapping)
 
-    def get_label_from_raw_speed(self, speed, error_label=None):
+    def get_label_from_raw_speed(self, speed):
         """
         Return the speed label associated to the raw speed value based on the defined mapping.
         :param speed:           [int or float]  raw speed value (float accepted for joystick_linear_mapping mapping only)
-        :param error_label:     [int]           Label value if raw speed has no associated label in the mapping.
-                                                If None, an error will be raised upon undefined raw speed value.
         :return:                [int]           speed label value
         """
-        if len(self.raw_speed_to_label_mapping) == 0:
-            raise ValueError("Linear label mapping not yet implemented")
-        try:
-            return self.raw_speed_to_label_mapping.index(speed)
-        except ValueError as err:
-            if error_label is None:
-                err.args = (f'"{speed}" is not in the speed to label mapping : {self.raw_speed_to_label_mapping}',)
-                raise
-            else:
-                return error_label
+        return CarMapping.get_closest_value_index_in_sorted_list(speed, self.raw_speed_to_label_mapping)
 
     def get_raw_speed_from_xbox_trigger(self, trigger):
         """
