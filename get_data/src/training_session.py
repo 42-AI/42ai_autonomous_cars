@@ -112,11 +112,11 @@ class TrainingSession:
         # Get speed label
         self.trigger = round(self.joy.rightTrigger(), 2)  # Right trigger position (values 0 to 1.0)
         self.speed = self.car_mapping.get_raw_speed_from_xbox_trigger(self.trigger)
-        self.label[0] = self.car_mapping.get_label_from_raw_speed(self.speed)
+        self.label[0] = self.car_mapping.get_label_from_raw_speed(self.speed, error_label=-1)
         # Get direction labels
         self.x_cursor = round(self.joy.leftX(), 2)  # X-axis of the left stick (values -1.0 to 1.0)
         self.direction = self.car_mapping.get_raw_dir_from_xbox_joystick(self.x_cursor)
-        self.label[1] = self.car_mapping.get_label_from_raw_dir(self.direction)
+        self.label[1] = self.car_mapping.get_label_from_raw_dir(self.direction, error_label=-1)
         # Set motor direction and speed
         self.pwm.set_pwm(0, 0, self.direction)
         self.pwm.set_pwm(1, 0, self.speed)
