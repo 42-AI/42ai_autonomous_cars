@@ -84,8 +84,8 @@ class TrainingSession:
                                           timestamp=t_stamp,
                                           raw_direction=self.direction,
                                           raw_speed=self.speed,
-                                          direction=self.label[1],
-                                          speed=self.label[0])
+                                          label_direction=self.label[1],
+                                          label_speed=self.label[0])
                 l_label.append(self.meta_label.get_copy())
                 self.buffer.append((picture_path, im))
                 if show_mode:

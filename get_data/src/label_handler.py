@@ -118,7 +118,7 @@ class Label:
         self._template["hardware_conf"] = hardware_conf
 
     def set_label(self, img_id=None, file_name="", timestamp=None,
-                  raw_direction=MAX_DIRECTION_LEFT, raw_speed=STOP_SPEED, direction=None, speed=None):
+                  raw_direction=MAX_DIRECTION_LEFT, raw_speed=STOP_SPEED, label_direction=None, label_speed=None):
         label = {
             "img_id": img_id,
             "file_name": file_name,
@@ -131,8 +131,8 @@ class Label:
             },
             "label": [
                 {
-                    "direction": direction,
-                    "speed": speed,
+                    "label_direction": label_direction,
+                    "label_speed": label_speed,
                     "created_by": "auto",
                     "created_on_date": datetime.now().strftime("%Y%m%dT%H-%M-%S-%f"),
                     "raw_dir_to_label_mapping": RAW_DIR_TO_LABEL_MAPPING,
