@@ -71,12 +71,16 @@ class CarMapping:
         """
         return CarMapping.get_closest_value_index_in_sorted_list(direction, self.raw_dir_to_label_mapping)
 
-    def get_label_from_raw_speed(self, speed):
+    def get_label_from_raw_speed(self, speed, stop_speed_label=None):
         """
         Return the speed label associated to the raw speed value based on the defined mapping.
         :param speed:           [int or float]  raw speed value (float accepted for joystick_linear_mapping mapping only)
+        :param stop_speed_label:[int]           Label value if speed == STOP_SPEED.
+                                                If None, will return 0 when speed == STOP_SPEED.
         :return:                [int]           speed label value
         """
+        if stop_speed_label is not None and speed >= STOP_SPEED:
+            return stop_speed_label
         return CarMapping.get_closest_value_index_in_sorted_list(speed, self.raw_speed_to_label_mapping)
 
     def get_raw_speed_from_xbox_trigger(self, trigger):
