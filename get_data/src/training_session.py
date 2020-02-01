@@ -34,7 +34,7 @@ class TrainingSession:
         self.pwm.set_pwm_freq(pwm_freq)
 
         # Init speed direction
-        self.speed = STOP_SPEED
+        self.speed = self.car_mapping.label_to_raw_speed_mapping[0]
         self.direction = (MAX_DIRECTION_RIGHT + MAX_DIRECTION_LEFT) / 2
         self.head = HEAD_DOWN
 
