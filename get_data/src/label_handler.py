@@ -12,11 +12,11 @@ from conf.const import IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, HEAD_DOWN, HEAD_UP
 
 class Label:
 
-    def __init__(self, picture_dir=None, camera_position="unknown", raise_error=True):
+    def __init__(self, picture_dir=None, camera_position="unknown", car_mapping=None, raise_error=True):
         self._template = {}
         self.picture_dir_key = "location"
         self.picture_dir = picture_dir
-        self.car_mapping = cm.CarMapping()
+        self.car_mapping = cm.CarMapping() if car_mapping is None else car_mapping
         self.init_label_template(camera_position, raise_error=raise_error)
 
     def __str__(self):
@@ -65,10 +65,10 @@ class Label:
                 "stop_speed": STOP_SPEED,
                 "max_direction_l": MAX_DIRECTION_LEFT,
                 "max_direction_r": MAX_DIRECTION_RIGHT,
-                "joystick_to_raw_dir_mapping": JOYSTICK_TO_RAW_DIR_MAPPING,
-                "trigger_to_raw_speed_mapping": TRIGGER_TO_RAW_SPEED_MAPPING,
-                "label_to_raw_dir_mapping": LABEL_TO_RAW_DIR_MAPPING,
-                "label_to_raw_speed_mapping": LABEL_TO_RAW_SPEED_MAPPING,
+                "joystick_to_raw_dir_mapping": self.car_mapping.joystick_to_raw_dir_mapping,
+                "trigger_to_raw_speed_mapping": self.car_mapping.trigger_to_raw_speed_mapping,
+                "label_to_raw_dir_mapping": self.car_mapping.label_to_raw_dir_mapping,
+                "label_to_raw_speed_mapping": self.car_mapping.label_to_raw_speed_mapping,
                 "head_up": HEAD_UP,
                 "head_down": HEAD_DOWN
             }

@@ -15,7 +15,8 @@ except ImportError:
 
 from get_data.src import xbox
 from get_data.src import label_handler
-from conf.const import SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, DIRECTION_C, HEAD_DOWN, STOP_SPEED
+from conf.const import IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, HEAD_DOWN, STOP_SPEED, \
+    MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT
 from utils import car_mapping as cm
 
 
@@ -33,8 +34,8 @@ class TrainingSession:
         self.pwm.set_pwm_freq(pwm_freq)
 
         # Init speed direction
-        self.speed = SPEED_NORMAL
-        self.direction = DIRECTION_C
+        self.speed = STOP_SPEED
+        self.direction = (MAX_DIRECTION_RIGHT + MAX_DIRECTION_LEFT) / 2
         self.head = HEAD_DOWN
 
         # Set head down
@@ -52,7 +53,8 @@ class TrainingSession:
         self.joy = xbox.Joystick()
 
         # Init Label
-        self.meta_label = label_handler.Label(picture_dir=output_dir, camera_position=self.head)
+        self.meta_label = label_handler.Label(picture_dir=output_dir, camera_position=self.head,
+                                              car_mapping=self.car_mapping)
 
     def save_and_clear_buffer(self):
         print(f'Saving picture to "{self.meta_label.picture_dir}" ...', end=" ", flush=True)
