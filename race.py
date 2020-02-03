@@ -193,6 +193,9 @@ class RaceOn:
                 pic.save(img["picture_file"])
             print('{} pictures saved.'.format(i + 1))
             output_label = Path(self.meta_label.picture_dir) / "labels.json"
+            if output_label.is_file():
+                with output_label.open(mode='r', encoding='utf-8') as fp:
+                    self.l_label += json.load(fp)
             with output_label.open(mode='w', encoding='utf-8') as fp:
                 json.dump(self.l_label, fp, indent=4)
             self.buffer.clear()

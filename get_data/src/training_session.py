@@ -106,6 +106,9 @@ class TrainingSession:
                 self.save_and_clear_buffer()
                 print("Stop")
                 output_label = Path(self.meta_label.picture_dir) / "labels.json"
+                if output_label.is_file():
+                    with output_label.open(mode='r', encoding='utf-8') as fp:
+                        l_label += json.load(fp)
                 with output_label.open(mode='w', encoding='utf-8') as fp:
                     json.dump(l_label, fp, indent=4)
                 return
