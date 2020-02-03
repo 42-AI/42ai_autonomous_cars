@@ -1,0 +1,14 @@
+{
+    "event": "test2",
+    "track": "none",
+    "track_picture": "job",
+    "track_type": "round",
+    "dataset": [
+        {
+            "name": "",
+            "comment": "",
+            "query": null
+        }
+    ],
+    "comment": "this is for test"
+}
