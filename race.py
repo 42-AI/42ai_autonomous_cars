@@ -4,6 +4,9 @@ import numpy as np
 from queue import Queue
 from threading import Thread
 import time
+from datetime import datetime
+from pathlib import Path
+import json
 
 import Adafruit_PCA9685
 # noinspection PyUnresolvedReferences
@@ -12,14 +15,18 @@ from tensorflow.keras.models import load_model
 
 from utils.pivideostream import PiVideoStream
 from conf.const import HEAD_UP, HEAD_DOWN
-from conf.path import OUTPUT_DIRECTORY
+from conf.path import DEFAULT_OUTPUT_DIRECTORY
 from utils import car_mapping as cm
+from get_data.src import init_picture_folder as init
+from get_data.src import label_handler as lh
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("model_path", type=str,
                         help="Provide the model path.\n")
+    parser.add_argument("-o", "--output_dir", type=str, default=DEFAULT_OUTPUT_DIRECTORY,
+                        help=f"Directory where to save pictures. Default is '{DEFAULT_OUTPUT_DIRECTORY}''")
     return parser.parse_args()
 
 
@@ -28,6 +35,10 @@ class RaceOn:
         # Load configuration
         self.car_mapping = cm.CarMapping()
         self.dir_center_label = round(len(self.car_mapping.label_to_raw_dir_mapping) / 2)
+
+        # Init label for debug mode
+        self.meta_label = None
+        self.l_label = []
 
         # Racing_status
         self.racing = False
@@ -88,10 +99,21 @@ class RaceOn:
     def _check_debug_mode(self, predicted_labels, motor_direction, motor_head, motor_speed):
         if self.debug > 0 and self.sampling > 1:
             self.sampling = 0
+            t_stamp = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
+            picture_path = Path(self.meta_label.picture_dir) / f'{str(t_stamp)}#s{predicted_labels[0]}' \
+                                                               f'_d{predicted_labels[1]}.jpg'
+            self.meta_label.set_label(img_id=t_stamp,
+                                      file_name=picture_path.name,
+                                      timestamp=t_stamp,
+                                      raw_direction=motor_direction,
+                                      raw_speed=motor_speed,
+                                      label_direction=predicted_labels[1],
+                                      label_speed=predicted_labels[0])
+            self.meta_label["camera"]["camera_position"] = motor_head
+            self.l_label.append(self.meta_label.get_copy())
             sample = {
                 "array": self.frame,
-                "direction": predicted_labels[1],
-                "speed": predicted_labels[0]
+                "picutre_file": picture_path.as_posix()
             }
             self.buffer.append(sample)
             if self.debug > 1:
@@ -123,7 +145,7 @@ class RaceOn:
                 print("Already on the go.")
             self.pause = False
 
-    def race(self, debug=0, buff_size=100, queue_input=None):
+    def race(self, debug=0, buff_size=100, queue_input=None, picture_dir=None):
         self.buffer = deque(maxlen=buff_size)
         self.start_time = time.time()
         self.racing = True
@@ -131,6 +153,8 @@ class RaceOn:
         self.sampling = 0
         self.debug = debug
         motor_speed = self.car_mapping.get_raw_speed_from_label(0)
+        if debug > 0:
+            self.meta_label = lh.Label(picture_dir=picture_dir)
 
         while self.racing:
             if not self.pause:
@@ -162,13 +186,15 @@ class RaceOn:
 
     def _write_and_clear_buffer(self):
         if self.buffer is not None and len(self.buffer) > 0:
-            print('Saving buffer pictures to : "{}"'.format(OUTPUT_DIRECTORY))
+            print(f'Saving buffer pictures to : "{self.meta_label.picture_dir}"')
             i = 0
             for i, img in enumerate(self.buffer):
-                pic_file = '{}_image{}_{}_{}.jpg'.format(self.start_time, i, img["speed"], img["direction"])
                 pic = Image.fromarray(img["array"], 'RGB')
-                pic.save("{}{}".format(OUTPUT_DIRECTORY, pic_file))
+                pic.save(img["picture_file"])
             print('{} pictures saved.'.format(i + 1))
+            output_label = Path(self.meta_label.picture_dir) / "labels.json"
+            with output_label.open(mode='w', encoding='utf-8') as fp:
+                json.dump(self.l_label, fp, indent=4)
             self.buffer.clear()
 
 
@@ -211,6 +237,7 @@ if __name__ == '__main__':
                 run_threads(input_thread, race_thread)
                 break
             elif user_input[:6] == "debug=":
+                init.init_picture_folder(options.output_dir)
                 debug_lvl = int(user_input.split("=")[1])
                 if debug_lvl not in debug_mode_list:
                     print("'{}' is not a valid debug mode. Please choose between:{}".format(debug_lvl, debug_mode_list))
