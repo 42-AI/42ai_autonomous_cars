@@ -1,6 +1,6 @@
 {
     "event": "event_name",
-    "track": "none",
+    "track": "",
     "track_picture": "",
     "track_type": "single lane",
     "dataset": [
