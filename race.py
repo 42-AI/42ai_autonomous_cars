@@ -113,7 +113,7 @@ class RaceOn:
             self.l_label.append(self.meta_label.get_copy())
             sample = {
                 "array": self.frame,
-                "picutre_file": picture_path.as_posix()
+                "picture_file": picture_path.as_posix()
             }
             self.buffer.append(sample)
             if self.debug > 1:
