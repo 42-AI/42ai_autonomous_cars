@@ -109,7 +109,7 @@ class RaceOn:
                                       raw_speed=motor_speed,
                                       label_direction=predicted_labels[1],
                                       label_speed=predicted_labels[0])
-            self.meta_label["camera"]["camera_position"] = motor_head
+            self.meta_label["car_setting"]["camera"]["camera_position"] = motor_head
             self.l_label.append(self.meta_label.get_copy())
             sample = {
                 "array": self.frame,
@@ -247,7 +247,8 @@ if __name__ == '__main__':
                 else:
                     print("Race is on in Debug mode level {}".format(debug_lvl))
                     input_thread = Thread(target=get_input_queue, args=(q,))
-                    race_thread = Thread(target=race_on.race, kwargs={'debug': debug_lvl, 'queue_input': q})
+                    race_thread = Thread(target=race_on.race, kwargs={'debug': debug_lvl, 'queue_input': q,
+                                                                      'picture_dir': options.output_dir})
                     run_threads(input_thread, race_thread)
                     break
             elif user_input == "q":
