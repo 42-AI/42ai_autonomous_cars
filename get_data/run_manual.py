@@ -26,7 +26,10 @@ def get_args(description):
 
 
 def run_manual():
-    """Run the car in manual mode (control with xbox pad), record pictures and create associated labels."""
+    """
+    Run the car in manual mode (control with xbox pad), record pictures and create associated labels. You can use a
+    non-existing directory for automatic creation of the picture directory along with its session template.
+    """
     args = get_args(str(run_manual.__doc__))
     if args.session_template:
         print(f'Session template:\n{json.dumps(lh.Label().get_default_session_template(), indent=4)}')

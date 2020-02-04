@@ -10,9 +10,9 @@ try:
     from picamera.array import PiRGBArray
 except ModuleNotFoundError:
     pass
-    print("WARNING: can\'t import PiCamera package. Running in TEST MODE with fake PiCamera.")
-    from test.fake_package.fake_picamera import PiCamera
-    from test.fake_package.fake_picamera import PiRGBArray
+    # print("WARNING: can\'t import PiCamera package. Running in TEST MODE with fake PiCamera.")
+    # from test.fake_package.fake_picamera import PiCamera
+    # from test.fake_package.fake_picamera import PiRGBArray
 
 from get_data.src import xbox
 from get_data.src import label_handler
