@@ -53,17 +53,21 @@ def _user_edit_template(template):
 
 
 def init_picture_folder(picture_dir):
-    if not Path(picture_dir, SESSION_TEMPLATE_NAME).is_file():
+    template_file = Path(picture_dir) / SESSION_TEMPLATE_NAME
+    if not template_file.is_file():
         picture_dir = Path(picture_dir)
         if not picture_dir.is_dir():
             picture_dir.mkdir(parents=True)
             print(f'Output folder "{picture_dir}" created.')
         template = _get_cached_session_template()
         template = _user_edit_template(template)
-        template_file = picture_dir / SESSION_TEMPLATE_NAME
         with template_file.open(mode='w', encoding='utf-8') as fp:
             json.dump(template, fp, indent=4)
         print(f'Session template file created: "{template_file}"')
         cached_file = Path(CACHE_DIR)/SESSION_TEMPLATE_NAME
         with cached_file.open(mode='w', encoding='utf-8') as fp:
             json.dump(template, fp, indent=4)
+    else:
+        with template_file.open(mode='r', encoding='utf-8') as fp:
+            template = json.load(fp)
+        print(f'Session template file found:\n{json.dumps(template, indent=4)}')

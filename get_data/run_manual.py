@@ -31,8 +31,8 @@ def run_manual():
     if args.session_template:
         print(f'Session template:\n{json.dumps(lh.Label().get_default_session_template(), indent=4)}')
         exit()
-    init.init_picture_folder(picture_dir=args.output_dir)
-    session = ts.TrainingSession(args.delay, output_dir=args.output_dir)
+    init.init_picture_folder(picture_dir=args.picture_dir)
+    session = ts.TrainingSession(args.delay, output_dir=args.picture_dir)
 
     print("Are you ready to drive?")
     starting_prompt = """Press 'go' + enter to start.
