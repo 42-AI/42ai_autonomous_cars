@@ -45,7 +45,7 @@ def _user_edit_template(template):
         if action == "i":
             for key, val in template.items():
                 print(f'"{key}":{val},')
-                new = input("Type in new value (Press enter to keep current value):\n")
+                new = input(f'Type in new "{key}" value (Press enter to keep current value):\n')
                 if new != "":
                     template[key] = new
             action = None
