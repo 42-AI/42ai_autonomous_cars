@@ -88,8 +88,7 @@ class RaceOn:
 
         # Get model prediction
         predictions_raw = self.model(image)
-        # predicted_labels = [np.argmax(pred, axis=1) for pred in predictions_raw]  # Why ?
-        predicted_labels = [np.argmax(pred) for pred in predictions_raw]  # Why ? JJ: a essayer pour ne pas recup une list de np.array mais une liste de int
+        predicted_labels = [int(np.argmax(pred)) for pred in predictions_raw]
 
         motor_direction = self._get_motor_direction(predicted_labels)
         motor_head = self._get_motor_head(predicted_labels)
