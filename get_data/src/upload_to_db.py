@@ -95,7 +95,7 @@ def generate_key_prefix(l_label):
         if label["event"] != event:
             print(f'Key bucket can\'t be generated because event name is not unique. Got {event} and {label["event"]}.')
             return None
-    return f'{event}/{date.year}{date.month}{date.day}/'
+    return f'{event}/{date.strftime("%Y%m%d")}/'
 
 
 def upload_to_db(label_file, bucket_name, es_host_ip, es_port, es_index, key_prefix=None, overwrite=False):
