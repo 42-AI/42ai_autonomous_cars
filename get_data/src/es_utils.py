@@ -153,14 +153,18 @@ def get_search_query_from_dict(es_index, d_query):
     return s
 
 
-def run_query(es, search_obj):
+def run_query(es, search_obj, source_filter=None):
     """
     Run the query defined by the 'search_obj' on the Elasticsearch cluster defined by 'es'.
     :param es:              [object]    Elasticsearch session
     :param search_obj:      [object]    Elasticsearch-dsl search object
+    :param source_filter:   [list]      Filter the field to be returned by Elasticsearch.
+                                        Only the field given in source_filter will be returned.
+                                        If None (default), all the _source field is returned
     :return:                [object]    Elasticsearch-dsl response object
     """
     s = search_obj.using(es)
-    s = s.source(["img_id", "file_name", "location"])
+    if source_filter is not None:
+        s = s.source(source_filter)
     s = s[0:10000]
     return s.execute()
