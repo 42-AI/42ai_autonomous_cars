@@ -16,7 +16,10 @@
               "frame_rate" : {
                 "type" : "short"
               },
-              "resolution" : {
+              "resolution-horizontal" : {
+                "type" : "short"
+              },
+              "resolution-vertical" : {
                 "type" : "short"
               }
             }
@@ -70,11 +73,22 @@
         "type" : "text"
       },
       "dataset" : {
-        "type" : "text",
-        "fields" : {
-          "keyword" : {
+        "properties": {
+          "name": {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "comment": {
+            "type" : "text"
+          },
+          "query": {
             "type" : "keyword",
-            "ignore_above" : 256
+            "ignore_above" : 8191
           }
         }
       },

@@ -1,0 +1,84 @@
+{
+    "location": null,
+    "car_setting": {
+        "camera": {
+            "resolution-horizontal": 160,
+            "resolution-vertical": 96,
+            "frame_rate": 32,
+            "exposure_mode": "off",
+            "camera_position": "unknown"
+        },
+        "constant": {
+            "max_speed": 307,
+            "stop_speed": 322,
+            "max_direction_l": 1,
+            "max_direction_r": 651,
+            "joystick_to_raw_dir_mapping": [],
+            "trigger_to_raw_speed_mapping": [],
+            "label_to_raw_dir_mapping": [
+                250,
+                290,
+                327,
+                364,
+                400
+            ],
+            "label_to_raw_speed_mapping": [
+                316,
+                311
+            ],
+            "head_up": 150,
+            "head_down": 120
+        }
+    },
+    "hardware_conf": {
+        "car": "patate",
+        "version": 1,
+        "computer": "Raspberry_Pi2",
+        "camera": "Picam"
+    },
+    "event": "",
+    "track": "",
+    "track_picture": "",
+    "track_type": "",
+    "dataset": [
+        {
+            "name": "",
+            "comment": "",
+            "query": null
+        }
+    ],
+    "comment": "",
+    "raw": true,
+    "upload_date": null,
+    "img_id": null,
+    "file_name": "",
+    "file_type": "",
+    "raw_value": {
+        "raw_direction": 1,
+        "raw_speed": 322,
+        "normalized_speed": 0.0,
+        "normalized_direction": -1.0
+    },
+    "label": [
+        {
+            "label_direction": null,
+            "label_speed": null,
+            "created_by": "auto",
+            "created_on_date": "20200205T10-53-16-573793",
+            "raw_dir_to_label_mapping": [
+                250,
+                290,
+                327,
+                364,
+                400
+            ],
+            "raw_speed_to_label_mapping": [
+                316,
+                311
+            ],
+            "nb_of_direction": 5,
+            "nb_of_speed": 2
+        }
+    ],
+    "timestamp": null
+}

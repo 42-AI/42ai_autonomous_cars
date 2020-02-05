@@ -54,7 +54,8 @@ class Label:
                                     cam_exposure_mode=EXPOSURE_MODE, cam_position="unknown"):
         car_setting = {
             "camera": {
-                "resolution": cam_resolution,
+                "resolution-horizontal": cam_resolution[0],
+                "resolution-vertical": cam_resolution[1],
                 "frame_rate": cam_framerate,
                 "exposure_mode": cam_exposure_mode,
                 "camera_position": cam_position
