@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from get_data.src import s3_utils
+from get_data.src import upload_to_db as upload
 
 
 def test_is_valid_s3_key_simple():
@@ -96,3 +99,27 @@ def test_get_s3_formatted_bucket_path_double_key_and_filename():
 def test_get_s3_formatted_bucket_path_double_nokey_with_filename():
     res = s3_utils.get_s3_formatted_bucket_path("my-bucket", "", "key_prefix/file.jpg")
     assert res == ("my-bucket/key_prefix/file.jpg", "my-bucket", "key_prefix/file.jpg")
+
+
+def test_generate_key_prefix_ok():
+    date_str = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
+    date = datetime.now()
+    event_name = "event_test"
+    d_label = {1: {"event": event_name, "img_id": 1, "timestamp": date_str},
+               2: {"event": event_name, "img_id": 2, "timestamp": date_str}}
+    key = upload.generate_key_prefix(d_label)
+    assert key == f'{event_name}/{date.strftime("%Y%m%d")}/'
+
+
+def test_generate_key_prefix_invalid_name():
+    event_name = "event test"
+    d_label = {1: {"event": event_name, "img_id": 1}, 2: {"event": event_name, "img_id": 2}}
+    key = upload.generate_key_prefix(d_label)
+    assert key is None
+
+
+def test_generate_key_prefix_different_name():
+    event_name = "event_test"
+    d_label = {1: {"event": event_name, "img_id": 1}, 2: {"event": event_name, "img_id": 2}}
+    key = upload.generate_key_prefix(d_label)
+    assert key is None

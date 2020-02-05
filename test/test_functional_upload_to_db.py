@@ -1,8 +1,10 @@
 from datetime import datetime
 
 from conf import cluster_conf
-from get_data.src import s3_utils, upload_to_db as upload
+from get_data.src import upload_to_db as upload
+from get_data.src import s3_utils
 from get_data.src import es_utils
+from get_data.src import utils_fct
 from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP
 
 """
@@ -87,8 +89,8 @@ def test_delete_object_in_s3():
     label_file = "test/resources/labels.json"
     bucket_name = cluster_conf.BUCKET_NAME
     key_prefix = ""
-    l_label = upload.get_label_list_from_file(label_file)
-    id_list = [label["img_id"] for label in l_label]
+    d_label = utils_fct.get_label_dict_from_file(label_file)
+    id_list = [img_id for img_id, _ in d_label.items()]
     s3_resource = s3_utils.get_s3_resource()
     ret = s3_utils.delete_object_s3(s3_resource, bucket_name, key_prefix, id_list)
     assert ret["ResponseMetadata"]["HTTPStatusCode"] == 200
@@ -98,8 +100,8 @@ def test_delete_object_in_s3_key_prefix():
     label_file = "test/resources/labels.json"
     bucket_name = cluster_conf.BUCKET_NAME
     key_prefix = "/weird/path//"
-    l_label = upload.get_label_list_from_file(label_file)
-    id_list = [label["img_id"] for label in l_label]
+    d_label = utils_fct.get_label_dict_from_file(label_file)
+    id_list = [img_id for img_id, _ in d_label.items()]
     s3_resource = s3_utils.get_s3_resource()
     ret = s3_utils.delete_object_s3(s3_resource, bucket_name, key_prefix, id_list)
     assert ret["ResponseMetadata"]["HTTPStatusCode"] == 200
@@ -111,30 +113,6 @@ def test_delete_index_es():
     es_index_name = "test_index"
     ret = es_utils.delete_index(es_index_name, es_ip_host, es_port_host)
     assert "acknowledged" in ret and ret["acknowledged"] is True
-
-
-def test_generate_key_prefix_ok():
-    date_str = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
-    date = datetime.now()
-    event_name = "event_test"
-    l_label = [{"event": event_name, "img_id": 1, "timestamp": date_str},
-               {"event": event_name, "img_id": 2, "timestamp": date_str}]
-    key = upload.generate_key_prefix(l_label)
-    assert key == f'{event_name}/{date.year}{date.month}{date.day}/'
-
-
-def test_generate_key_prefix_invalid_name():
-    event_name = "event test"
-    l_label = [{"event": event_name, "img_id": 1}, {"event": event_name, "img_id": 2}]
-    key = upload.generate_key_prefix(l_label)
-    assert key is None
-
-
-def test_generate_key_prefix_different_name():
-    event_name = "event_test"
-    l_label = [{"event": event_name, "img_id": 1}, {"event": event_name + "_2", "img_id": 2}]
-    key = upload.generate_key_prefix(l_label)
-    assert key is None
 
 
 def test_create_index():

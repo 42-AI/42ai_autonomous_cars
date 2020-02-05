@@ -29,7 +29,7 @@ def upload_data():
     """
     Upload date picture and label to S3 and ES from a label file (json format). The label file can contain one or
     a list of label.
-    To see a label template, use the show_label_template.py function.
+    To see a label template, use the write_label_template.py function.
     You will need credential for the upload. Access keys shall be defined in the following environment variables:
     export PATATE_S3_KEY_ID="your_access_key_id"
     export PATATE_S3_KEY="your_secret_key_code"

@@ -5,6 +5,7 @@ from datetime import datetime
 
 from get_data.src import es_utils
 from get_data.src import s3_utils
+from get_data.src import utils_fct
 from conf.cluster_conf import ES_INDEX, ES_HOST_IP, ES_HOST_PORT
 
 
@@ -74,10 +75,6 @@ def find_picture_in_db(json_file, output=None, es_index=ES_INDEX, verbose=1):
     return d_match_pic
 
 
-def get_label_file_name(label_file_name):
-    return label_file_name.parent / f'{label_file_name.stem}_{datetime.now().strftime("%Y%m%dT%H-%M-%f")}.json'
-
-
 def search_and_download(query_json, picture_dir, label_file_name="labels.json", es_index=ES_INDEX, force=False, verbose=1):
     """
     Search picture in the database according to a query_json file describing the query and download the picture
@@ -90,11 +87,14 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
     :param es_index:        [string]        Name of the index
     :param force:           [int]           If True, will NOT prompt user for validation before download.
     :param verbose:         [int]           Verbosity level
-    :return:                [list of dict]  List of downloaded pictures as dictionary as follow:
+    :return:                [dict]          Dictionary of downloaded pictures as follow:
                                             {
-                                                "img_id": id,
-                                                "file_name": "pic_file_name.jpg",
-                                                "location": "s3_bucket_path"
+                                                img_id: {
+                                                    "img_id": id,
+                                                    "file_name": "pic_file_name.jpg",
+                                                    "location": "s3_bucket_path"
+                                                },
+                                                ...
                                             }
                             [None]          Return None on error.
     """
@@ -104,7 +104,7 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
         picture_dir.mkdir(parents=True)
         print(f'Output folder "{picture_dir}" created.')
     elif label_file_name.is_file():
-        label_file_name = get_label_file_name(label_file_name)
+        label_file_name = utils_fct.get_label_file_name(label_file_name)
     print(f'Searching for picture in "{es_index}" index')
     d_matching_label = find_picture_in_db(json_file=query_json, es_index=es_index, verbose=verbose,
                                           output=label_file_name)

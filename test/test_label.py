@@ -54,7 +54,7 @@ def test_label_handler_set_label():
     label = lb.Label(picture_dir=output)
     pic_val = {"img_id": 42, "file_name": "test.jpg", "timestamp": 123456789}
     raw_val = {"raw_speed": 10, "raw_direction": 20}
-    label_val = {"speed": 100, "direction": 200}
+    label_val = {"label_speed": 100, "label_direction": 200}
     label.set_label(**pic_val, **label_val, **raw_val)
     for key, val in pic_val.items():
         assert label[key] == val
@@ -73,13 +73,13 @@ def test_label_handler_get_copy():
     for i in range(10):
         pic_val = {"img_id": i, "file_name": f'file_{i}.png', "timestamp": i / 10}
         raw_val = {"raw_speed": i+10, "raw_direction": i+20}
-        label_val = {"speed": i+100, "direction": i+200}
+        label_val = {"label_speed": i+100, "label_direction": i+200}
         label.set_label(**pic_val, **label_val, **raw_val)
         l_label.append(label.get_copy())
     for i, item in enumerate(l_label):
         pic_val = {"img_id": i, "file_name": f'file_{i}.png', "timestamp": i / 10}
         raw_val = {"raw_speed": i+10, "raw_direction": i+20}
-        label_val = {"speed": i+100, "direction": i+200}
+        label_val = {"label_speed": i+100, "label_direction": i+200}
         for key, val in pic_val.items():
             assert item[key] == val
             assert item["file_type"] == "png"

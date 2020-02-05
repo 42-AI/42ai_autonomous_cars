@@ -19,6 +19,7 @@ from get_data.src import label_handler
 from conf.const import IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, HEAD_DOWN, STOP_SPEED, \
     MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, STOP_SPEED_LABEL
 from utils import car_mapping as cm
+from get_data.src import utils_fct
 
 
 class TrainingSession:
@@ -70,7 +71,7 @@ class TrainingSession:
         # Loop over camera frames
         start = time.time()
         i = 0
-        l_label = []
+        l_label = {}
         for frame in self.camera.capture_continuous(self.rawCapture, format="rgb", use_video_port=True):
             # convert img as Array
             image = frame.array
@@ -87,7 +88,7 @@ class TrainingSession:
                                           raw_speed=self.speed,
                                           label_direction=self.label[1],
                                           label_speed=self.label[0])
-                l_label.append(self.meta_label.get_copy())
+                l_label[t_stamp] = self.meta_label.get_copy()
                 self.buffer.append((picture_path, im))
                 if show_mode:
                     print(f'{i}: speed:x={self.trigger}|l={self.label[0]}|'
@@ -107,10 +108,10 @@ class TrainingSession:
                 print("Stop")
                 output_label = Path(self.meta_label.picture_dir) / "labels.json"
                 if output_label.is_file():
-                    with output_label.open(mode='r', encoding='utf-8') as fp:
-                        l_label += json.load(fp)
+                    output_label = utils_fct.get_label_file_name(output_label)
                 with output_label.open(mode='w', encoding='utf-8') as fp:
                     json.dump(l_label, fp, indent=4)
+                print(f'Labels saved to "{output_label}"')
                 return
 
     def controls(self):

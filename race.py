@@ -19,6 +19,7 @@ from conf.path import DEFAULT_OUTPUT_DIRECTORY
 from utils import car_mapping as cm
 from get_data.src import init_picture_folder as init
 from get_data.src import label_handler as lh
+from get_data.src import utils_fct
 
 
 def get_args():
@@ -38,7 +39,7 @@ class RaceOn:
 
         # Init label for debug mode
         self.meta_label = None
-        self.l_label = []
+        self.l_label = {}
 
         # Racing_status
         self.racing = False
@@ -109,7 +110,7 @@ class RaceOn:
                                       label_direction=predicted_labels[1],
                                       label_speed=predicted_labels[0])
             self.meta_label["car_setting"]["camera"]["camera_position"] = motor_head
-            self.l_label.append(self.meta_label.get_copy())
+            self.l_label[t_stamp] = self.meta_label.get_copy()
             sample = {
                 "array": self.frame,
                 "picture_file": picture_path.as_posix()
@@ -190,13 +191,13 @@ class RaceOn:
             for i, img in enumerate(self.buffer):
                 pic = Image.fromarray(img["array"], 'RGB')
                 pic.save(img["picture_file"])
-            print('{} pictures saved.'.format(i + 1))
+            print(f'{i + 1} pictures saved.')
             output_label = Path(self.meta_label.picture_dir) / "labels.json"
             if output_label.is_file():
-                with output_label.open(mode='r', encoding='utf-8') as fp:
-                    self.l_label += json.load(fp)
+                output_label = utils_fct.get_label_file_name(output_label)
             with output_label.open(mode='w', encoding='utf-8') as fp:
                 json.dump(self.l_label, fp, indent=4)
+            print(f'Labels saved to "{output_label}"')
             self.buffer.clear()
 
 

@@ -46,9 +46,9 @@ def create_es_index(host_ip, host_port, index_name, alias=None, is_write_index=F
     return es
 
 
-def _gen_bulk_doc(l_label, index, op_type):
+def _gen_bulk_doc(d_label, index, op_type):
     """Yield well formatted document for bulk upload to ES"""
-    for label in tqdm(l_label):
+    for img_id, label in tqdm(d_label.items()):
         yield {
             "_index": index,
             "_type": "_doc",
@@ -58,14 +58,19 @@ def _gen_bulk_doc(l_label, index, op_type):
         }
 
 
-def upload_to_es(l_label, index, host_ip, port, update=False):
+def upload_to_es(d_label, index, host_ip, port, update=False):
     """
-    Upload all label in l_label to Elasticsearch cluster.
+    Upload all label in d_label to Elasticsearch cluster.
     Note that credential to access the cluster is retrieved from env variable (see variable name in the code)
-    :param l_label:             [list]      List of labels. Each label shall contains the following keys:
-                                            "file_name": the name of the picture file
-                                            "location": path to the picture directory
-                                            "img_id": id that will be used to index the picture (shall be unique)
+    :param d_label:             [dict]      Dict of label with the following format (at least those 3 keys are required):
+                                            {
+                                                img_id: {
+                                                    "img_id": "id",
+                                                    "file_name": "pic_file_name.jpg",
+                                                    "location": "s3_bucket_path"
+                                                },
+                                                ...
+                                            }
     :param index:               [string]    Name of the index to use for indexing labels
     :param host_ip:             [string]    Public ip of the Elasticsearch host server
     :param port:                [int]       Port open for Elasticsearch on host server (typically 9200)
@@ -74,9 +79,9 @@ def upload_to_es(l_label, index, host_ip, port, update=False):
     """
     es = get_es_session(host_ip, port)
     if es is None:
-        return [label["img_id"] for label in l_label]
+        return [img_id for img_id, _ in d_label]
     op_type = "index" if update else "create"
-    success, errors = helpers.bulk(es, _gen_bulk_doc(l_label, index, op_type), request_timeout=60, raise_on_error=False)
+    success, errors = helpers.bulk(es, _gen_bulk_doc(d_label, index, op_type), request_timeout=60, raise_on_error=False)
     failed_doc_id = []
     for error in errors:
         for error_type in error:
