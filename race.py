@@ -11,6 +11,7 @@ import json
 import Adafruit_PCA9685
 # noinspection PyUnresolvedReferences
 from PIL import Image
+import tensorflow as tf
 from tensorflow.keras.models import load_model
 
 from utils.pivideostream import PiVideoStream
@@ -82,13 +83,17 @@ class RaceOn:
             return HEAD_UP
         return HEAD_DOWN
 
+    @tf.function
+    def _graph_predict(self, image):
+        return self.model(image)
+
     def _get_predictions(self, motor_speed):
         # Grab the self.frame from the threaded video stream
         self.frame = self.video_stream.read()
-        image = np.array([self.frame]) / 255.0  # [jj] Do we need to create a new array ? img = self.frame / 255. ?
+        image = tf.convert_to_tensor(np.array([self.frame]) / 255.0)  # [jj] Do we need to create a new array ? img = self.frame / 255. ?
 
         # Get model prediction
-        predictions_raw = self.model(image)
+        predictions_raw = self._graph_predict(image)
         predicted_labels = [int(np.argmax(pred)) for pred in predictions_raw]
 
         motor_direction = self._get_motor_direction(predicted_labels)
