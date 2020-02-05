@@ -109,6 +109,7 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
     d_matching_label = find_picture_in_db(json_file=query_json, es_index=es_index, verbose=verbose,
                                           output=label_file_name)
     if d_matching_label is None or len(d_matching_label) == 0:
+        print(f'No matching picture found.')
         return None
     d_missing_pic = get_missing_picture(picture_dir, d_matching_label)
     print(f'{len(d_matching_label)} picture(s) found matching the query')
