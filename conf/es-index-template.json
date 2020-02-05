@@ -1,4 +1,10 @@
 {
+  "settings" : {
+    "index" : {
+      "number_of_shards" : "1",
+      "number_of_replicas" : "0"
+    }
+  },
   "mappings" : {
     "dynamic": "strict",
     "properties" : {
@@ -146,6 +152,7 @@
         }
       },
       "label" : {
+        "type": "nested",
         "properties" : {
           "label_direction" : {
             "type" : "byte"

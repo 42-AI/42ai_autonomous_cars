@@ -139,7 +139,7 @@ def test_generate_key_prefix_different_name():
 
 def test_create_index():
     index = "test_create_index"
-    create_success = es_utils.create_patate_db_index(host_ip=ES_HOST_IP, host_port=ES_HOST_PORT, index_name=index)
+    create_success = es_utils.create_es_index(host_ip=ES_HOST_IP, host_port=ES_HOST_PORT, index_name=index)
     assert create_success is not None
     del_success = es_utils.delete_index(index=index, host_ip=ES_HOST_IP, port=ES_HOST_PORT)
     assert del_success is not None

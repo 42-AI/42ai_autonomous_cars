@@ -30,14 +30,19 @@ def get_es_session(host_ip, port):
     return es
 
 
-def create_patate_db_index(host_ip, host_port, index_name):
-    """Create an index in ES from the template defined in utils.path. TODO: add alias and opt for write index"""
+def create_es_index(host_ip, host_port, index_name, alias=None, is_write_index=False, current_write_index=None):
+    """Create an index in ES from the template defined in utils.path."""
     es = get_es_session(host_ip, host_port)
     if es is None:
         return es
     with Path(INDEX_TEMPLATE).open(mode='r', encoding='utf-8') as fp:
         index_template = json.load(fp)
     es.indices.create(index_name, body=index_template)
+    if alias is not None:
+        is_write_index_false = {"is_write_index": "false"} if is_write_index is True else None
+        es.indices.put_alias(index=current_write_index, name=alias, body=is_write_index_false)
+        is_write_index_true = {"is_write_index": "true"} if is_write_index is True else None
+        es.indices.put_alias(index=index_name, name=alias, body=is_write_index_true)
     return es
 
 
