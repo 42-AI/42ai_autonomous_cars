@@ -21,7 +21,7 @@ def test_upload_to_db():
     es_index_name = "test_index"
     s3_success, es_success, fail = upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
                                         key_prefix=key_prefix, overwrite=False)
-    assert (s3_success, es_success, fail) == (5, 5, 1)
+    assert (s3_success, es_success, fail) == (3, 3, 1)
 
 
 def test_upload_to_db_overwrite():
@@ -33,7 +33,7 @@ def test_upload_to_db_overwrite():
     es_index_name = "test_index"
     s3_success, es_success, fail = upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
                                         key_prefix=key_prefix, overwrite=True)
-    assert (s3_success, es_success, fail) == (5, 5, 1)
+    assert (s3_success, es_success, fail) == (3, 3, 1)
 
 
 def test_upload_to_db_s3_KO_es_OK():
@@ -46,7 +46,7 @@ def test_upload_to_db_s3_KO_es_OK():
     key_prefix = ""
     s3_success, es_success, fail = upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
                                                        key_prefix=key_prefix, overwrite=False)
-    assert (s3_success, es_success, fail) == (0, 5, 6)
+    assert (s3_success, es_success, fail) == (0, 3, 4)
 
 
 def test_upload_to_db_cant_overwrite():
@@ -58,7 +58,7 @@ def test_upload_to_db_cant_overwrite():
     es_index_name = "test_index"
     s3_success, es_success, fail = upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
                                         key_prefix=key_prefix, overwrite=False)
-    assert (s3_success, es_success, fail) == (0, 0, 11)
+    assert (s3_success, es_success, fail) == (0, 0, 7)
 
 
 def test_upload_to_db_key_prefix():
@@ -70,7 +70,7 @@ def test_upload_to_db_key_prefix():
     es_index_name = "test_index"
     s3_success, es_success, fail = upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
                                         key_prefix=key_prefix, overwrite=False)
-    assert (s3_success, es_success, fail) == (5, 0, 6)
+    assert (s3_success, es_success, fail) == (3, 0, 4)
 
 
 def test_upload_to_db_single_label():

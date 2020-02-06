@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 
 from utils import car_mapping as cm
+from get_data.src import utils_fct
 from conf.path import SESSION_TEMPLATE_NAME, HARDWARE_CONF_FILE
 from conf.const import IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, HEAD_DOWN, HEAD_UP,\
     MAX_SPEED, STOP_SPEED, MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, \
@@ -46,7 +47,7 @@ class Label:
         self.init_car_setting_from_const(cam_position=camera_position)
         self.init_hardware_conf_from_file(raise_error=raise_error)
         self.init_session_template_from_file(directory=self.picture_dir, raise_error=raise_error)
-        self._template["raw"] = True
+        self._template["raw_picture"] = True
         self._template["upload_date"] = None
         self.set_label()
 
@@ -129,22 +130,21 @@ class Label:
                 "normalized_speed": self.car_mapping.get_normalized_speed(raw_speed),
                 "normalized_direction": self.car_mapping.get_normalized_direction(raw_direction),
             },
-            "label": [
-                {
-                    "label_direction": label_direction,
-                    "label_speed": label_speed,
-                    "created_by": "auto",
-                    "created_on_date": datetime.now().strftime("%Y%m%dT%H-%M-%S-%f"),
-                    "raw_dir_to_label_mapping": RAW_DIR_TO_LABEL_MAPPING,
-                    "raw_speed_to_label_mapping": RAW_SPEED_TO_LABEL_MAPPING,
-                    "nb_of_direction": len(RAW_DIR_TO_LABEL_MAPPING),
-                    "nb_of_speed": len(RAW_SPEED_TO_LABEL_MAPPING),
-                }
-            ],
-            "timestamp": timestamp
+            "label": {
+                "label_direction": label_direction,
+                "label_speed": label_speed,
+                "created_by": "auto",
+                "created_on_date": datetime.now().strftime("%Y%m%dT%H-%M-%S-%f"),
+                "raw_dir_to_label_mapping": RAW_DIR_TO_LABEL_MAPPING,
+                "raw_speed_to_label_mapping": RAW_SPEED_TO_LABEL_MAPPING,
+                "nb_of_direction": len(RAW_DIR_TO_LABEL_MAPPING),
+                "nb_of_speed": len(RAW_SPEED_TO_LABEL_MAPPING),
+            },
+            "timestamp": timestamp,
         }
         for key, val in label.items():
             self._template[key] = val
+        self._template["label_fingerprint"] = utils_fct.get_label_finger_print(self._template)
 
     def get_copy(self):
         return self._template.copy()

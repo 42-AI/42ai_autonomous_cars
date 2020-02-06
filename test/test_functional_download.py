@@ -55,7 +55,7 @@ def test_download_full_pipeline(test_init):
         "event": {
             "type": "match",
             "field": "",
-            "query": "sample_test"
+            "query": "demo_session"
         }
     }
     search_json = "tmp_search_test.json"
@@ -64,5 +64,5 @@ def test_download_full_pipeline(test_init):
     time.sleep(1)
     l_dl_picture = get_from_db.search_and_download(search_json, output_test_folder, es_index=es_index_name, force=True)
     Path(search_json).unlink()
-    assert len(l_dl_picture) == 5
+    assert len(l_dl_picture) == 3
 

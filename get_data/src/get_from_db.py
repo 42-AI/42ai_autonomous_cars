@@ -64,9 +64,16 @@ def find_picture_in_db(json_file, output=None, es_index=ES_INDEX, verbose=1):
             print(f'{search_obj.to_dict()}')
         print(f'Query return successfully: {response.success()}')
     if response.hits.total.relation != "eq":
-        print(f'WARNING: you hit the maximum number of result limits: the picture list might not be complete.')
-    # list_of_pic = [{"img_id": pic.img_id, "file_name": pic.file_name, "location": pic.location} for pic in response]
-    d_match_pic = dict([(hit["_source"]["img_id"], hit["_source"]) for hit in response.to_dict()["hits"]["hits"]])
+        print(f'WARNING --> you hit the maximum number of result limits: the picture list might not be complete.')
+    d_match_pic = {}
+    for hit in response.to_dict()["hits"]["hits"]:
+        img_id = hit["_source"]["img_id"]
+        if img_id in d_match_pic:
+            fingerprint_1 = hit["_source"]["label_fingerprint"]
+            fingerprint_2 = d_match_pic[img_id]["label_fingerprint"]
+            print(f'WARNING --> Your search return multiple label for a single picture: Labels "{fingerprint_1}" '
+                  f'and "{fingerprint_2}" point to the same picture: "{img_id}". Only one label will be saved.')
+        d_match_pic[img_id] = hit["_source"]
     if output is not None and len(d_match_pic) > 0:
         with Path(output).open(mode='w', encoding='utf-8') as fp:
             json.dump(d_match_pic, fp, indent=4)
@@ -108,9 +115,11 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
     print(f'Searching for picture in "{es_index}" index')
     d_matching_label = find_picture_in_db(json_file=query_json, es_index=es_index, verbose=verbose,
                                           output=label_file_name)
-    if d_matching_label is None or len(d_matching_label) == 0:
-        print(f'No matching picture found.')
+    if d_matching_label is None:
         return None
+    if len(d_matching_label) == 0:
+        print(f'No matching picture found.')
+        return {}
     d_missing_pic = get_missing_picture(picture_dir, d_matching_label)
     print(f'{len(d_matching_label)} picture(s) found matching the query')
     print(f'{len(d_missing_pic)} picture(s) missing in "{picture_dir}"')

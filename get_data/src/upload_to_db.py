@@ -103,6 +103,7 @@ def upload_to_db(label_file, bucket_name, es_host_ip, es_port, es_index, key_pre
         "img_id": "xxx",
         "file_name": "file-name.jpg",
         "location": "/path/to/picture/dir/",
+        "label_fingerprint": "c072a1b9a16b633d6b3004c3edab7553",
         "event": "event_name"
       }
     ]
@@ -113,8 +114,9 @@ def upload_to_db(label_file, bucket_name, es_host_ip, es_port, es_index, key_pre
     :param es_host_ip:      [string]    Public ip of the Elasticsearch host server
     :param es_port:         [int]       Port open for Elasticsearch on host server (typically 9200)
     :param es_index:        [string]    Name of the index to use
-    :param overwrite:       [bool]      If True, new picture/label will overwrite existing ones in s3/ES with same img_id
-                                        If False (default), only non existing img_id picture will be uploaded
+    :param overwrite:       [bool]      If True, new picture will overwrite existing ones in S3 with same img_id and new
+                                        label will overwrite existing one in ES with same label_fingerprint
+                                        If False (default), only non existing picture and label will be uploaded
     :param key_prefix:      [string]    If None, default key is used. Default key is as follow:
                                         {event_name}/{upload_date}/
                                         So the picture will be uploaded to:
@@ -140,7 +142,7 @@ def upload_to_db(label_file, bucket_name, es_host_ip, es_port, es_index, key_pre
     utils_fct.edit_label(d_label, "upload_date", datetime.now().strftime("%Y%m%dT%H-%M-%S-%f"))
     print(f'Uploading to Elasticsearch cluster...')
     failed_es_upload = es_utils.upload_to_es(
-        d_label=d_label, index=es_index, host_ip=es_host_ip, port=es_port, update=overwrite)
+        d_label=d_label, index=es_index, host_ip=es_host_ip, port=es_port, overwrite=overwrite)
     es_success = len(d_label) - len(failed_es_upload)
     print_upload_synthesis(upload_bucket_dir, es_index,
                            es_success, failed_es_upload, len(s3_upload_success), missing_pic, already_exist_pic)

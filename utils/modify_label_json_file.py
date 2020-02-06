@@ -3,6 +3,14 @@ import argparse
 from pathlib import Path
 import re
 
+import sys
+import os
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(CURRENT_DIR)
+sys.path.append(PARENT_DIR)
+
+from get_data.src import utils_fct
+
 
 def substitute_in_dictionary(dictionary, match_regex, substitute, field_list, count=0, deep=False):
     if deep is True:
@@ -15,7 +23,7 @@ def substitute_in_dictionary(dictionary, match_regex, substitute, field_list, co
     return count
 
 
-if __name__ == "__main__":
+def substitute_matching_char():
     """ Substitute matching char in a json with a specified char. """
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=str, help="Path to the json file to be modified")
@@ -42,3 +50,20 @@ if __name__ == "__main__":
     with Path(args.file).open(mode='w', encoding='utf-8') as fp:
         json.dump(l_label, fp, indent=4)
 
+
+def custom_change_field(json_file):
+    with Path(json_file).open(mode='r', encoding='utf-8') as fp:
+        d_label = json.load(fp)
+    for img_id, label in d_label.items():
+        label["label"] = label["label"][0]
+        label["label_fingerprint"] = utils_fct.get_label_finger_print(label)
+        label["raw_picture"] = label["raw"]
+        label.pop("raw")
+        label["location"] = "../tmp"
+    with Path(json_file).open(mode='w', encoding='utf-8') as fp:
+        json.dump(d_label, fp, indent=4)
+
+
+if __name__ == "__main__":
+    # substitute_matching_char()
+    custom_change_field("../../tmp/labels_20200206T13-25-652988.json")

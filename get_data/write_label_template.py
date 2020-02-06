@@ -9,12 +9,12 @@ sys.path.append(PARENT_DIR)
 from get_data.src import label_handler
 
 
-def show_label_template():
+def write_label_template():
     """
     Show a template of a picture's label as defined in the label_handler class. Use this function to check the current
     state of the label template.  
     """
-    parser = argparse.ArgumentParser(description=str(show_label_template.__doc__),
+    parser = argparse.ArgumentParser(description=str(write_label_template.__doc__),
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-o", "--output_file", type=str, default=None, help="Save the template to a file")
     args = parser.parse_args()
@@ -27,4 +27,4 @@ def show_label_template():
 
 
 if __name__ == "__main__":
-    show_label_template()
+    write_label_template()

@@ -151,8 +151,11 @@
           }
         }
       },
+      "label_fingerprint": {
+        "type": "keyword",
+        "ignore_above": 256
+      },
       "label" : {
-        "type": "nested",
         "properties" : {
           "label_direction" : {
             "type" : "byte"
@@ -161,7 +164,8 @@
             "type" : "byte"
           },
           "created_by": {
-            "type": "keyword"
+            "type": "keyword",
+            "ignore_above": 256
           },
           "created_on_date": {
             "type" : "date",
@@ -185,7 +189,7 @@
         "type" : "keyword",
         "ignore_above" : 256
       },
-      "raw" : {
+      "raw_picture" : {
         "type" : "boolean"
       },
       "timestamp" : {
