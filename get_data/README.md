@@ -21,7 +21,7 @@ of element in ES.
 (eg: 20201231T15-45-55-123456)
 - Labels stored in ES contains a "img_id" field with the id of the picture it refers to.
 - Each labels stored in ES has a unique id called `label_fingerprint`. This id is a hash of the following fields: `["img_id", 
-"label_direction", "label_speed", "nb_dir", "nb_speed"]`. This `label_fingerprint` shall be unique. 
+"label_direction", "label_speed", "nb_dir", "nb_speed"]`. This `label_fingerprint` shall be unique among the labels in the DB. 
 If two labels have exactly the same value on those 5 fields, they will have the same hash, and hence, they will be
  considered duplicate and indexation will be refused.
 - When searching and downloading pictures, only the missing picture on the local drive are downloaded and a 
