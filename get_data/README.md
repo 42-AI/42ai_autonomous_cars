@@ -25,7 +25,7 @@ of element in ES.
 If two labels have exactly the same value on those 5 fields, they will have the same hash, and hence, they will be
  considered duplicate and indexation will be refused.
 - When searching and downloading pictures, only the missing picture on the local drive are downloaded and a 
-"labels.json" file is created and contains all the labels of the pictures matching the search (including picture already
+"labels.json" file is created. It contains all the labels of the pictures matching the search (including picture already
  on local drive and not downloaded) 
 - This "labels.json" file contains several pictures' label in a dictionary where the key is the img_id. For example:  
   ```
