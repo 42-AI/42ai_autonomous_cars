@@ -1,19 +1,47 @@
 # HOW TO GET DATA
 
 This file describes how to get data:
-1. Record pictures and create labels
-2. Upload pictures and labels to the database
-3. Re labelize manually the pictures
-4. Search and download pictures from the database
-5. BONUS TRACK - A small description of the database architecture
+1. How the database works
+2. Record pictures and create labels
+3. Upload pictures and labels to the database
+4. Re labelize manually the pictures
+5. Search and download pictures from the database
+6. BONUS TRACK - A small description of the database architecture
 
 
-## 1. How to record picture and create label
+## 1. How the database works
+
+The database is made of two parts: AWS S3 bucket to store the pictures ; Elasticsearch cluster to store the labels.  
+
+How does it works:  
+- Each picture saved in S3 can have one or more associated labels in ES (for instance a same picture can have a label 
+with 5 directions and another label with 3 directions. Hence the number of element dans S3 is less or equal to the nb
+of element in ES
+- Labels stored in ES contains a "img_id" field with the id of the picture. This id shall be unique.
+- Labels stored in ES contains a "label_fingerprint" field which is a hash of the following fields: "img_id", 
+"label_direction", "label_speed", "nb_dir", "nb_speed". This hash shall be unique. If two labels have the same hash,
+ they are considered duplicate and indexation will be refused.
+- When searching and downloading pictures, only the missing picture on the local drive are downloaded and a 
+"labels.json" file is created and contains all the labels of the pictures matching the search (including picture already
+ on local drive and not downloaded) 
+- This "labels.json" file contains several pictures' label in the following format:  
+  ```
+  {
+    "img_id_1": {...},
+    "img_id_2": {...},
+    ...
+  }
+  ```
+- This "labels.json" file is 'disposable'. Every time one wants to train a model, he shall request the ES database to 
+get this file listing all the picture required for the training he wished to run.
+
+
+## 2. How to record picture and create label
 
 The script `run_manual.py` is used to run the car in manual mode (control with xbox pad). Picture will be recorded
 during the run and for each recorded picture, a label is automatically created.  
 Usage:
-3. Check that the hardware_conf.json file describes well the car. The content of this file will be added to the label of
+1. Check that the hardware_conf.json file describes well the car. The content of this file will be added to the label of
    of each picture.  
    The location of this file is defined in the `path.py` file.
    Example of hardware conf file:
@@ -25,7 +53,7 @@ Usage:
      "camera": "Picam_v2"
    }
    ```
-4. Run the car with `run_manual.py` to collect data. Run `run_manual.py -h` for the usage.   
+2. Run the car with `run_manual.py` to collect data. Run `run_manual.py -h` for the usage.   
   
    If the output folder you provide to the script does not exist or has no session_template.json file,
    it will be created automatically.
@@ -55,10 +83,11 @@ Example of info specific to each picture
      }
      "transformation": [],
      "upload_date": "",
+     "label_fingerprint": "c072a1b9a16b633d6b3004c3edab7553"
    }
    ```
    All the field are automatically filled by the script.
-5. Then you might want to re labelized the picture and upload them to the database
+3. Then you might want to re labelized the picture and upload them to the database
 
 ### Label Template
 
@@ -66,7 +95,7 @@ To check the actual state of the label format, you can print a template to a jso
 `write_label_template.py` (use `--help` for usage)
 
 
-## 2. How to upload pictures and labels to the database 
+## 3. How to upload pictures and labels to the database 
 
 Use the function `upload_to_db` to read labels from a file, upload picture to s3 and labels to ES cluster.  
 See usage with `-h` option.
@@ -83,11 +112,11 @@ export ES_USER_PWD="your_es_password"
 **MAKE SURE TO NEVER UPLOAD YOUR CREDENTIALS TO GITHUB OR OTHER PUBLIC REPO**
 
 
-## 3. How to re lablize pictures manually
+## 4. How to re lablize pictures manually
 
 TO DO
 
-## 4. How to search and download pictures from the database
+## 5. How to search and download pictures from the database
 
 Use the function `search_and_download.py`. It will look for picture in the database matching your query, look if 
 pictures are already in the local picture directory, and if not, it will download the missing picture.  
@@ -103,7 +132,7 @@ NOTE: At the moment, there is a limitation in the number of picture that will be
 Only the first 10 000 pictures found will be returned.
 
 
-## 5. BONUS TRACK - Database architecture
+## 6. BONUS TRACK - Database architecture
 The database is made of two parts: the picture are stored in AWS S3 file storage service, associated labels are stored
 in the Elasticsearch cluster.
 The labels contain the path to the picture (ie: url of the picture)
