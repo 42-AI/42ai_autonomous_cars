@@ -27,7 +27,7 @@ If two labels have exactly the same value on those 5 fields, they will have the 
 - When searching and downloading pictures, only the missing picture on the local drive are downloaded and a 
 "labels.json" file is created. It contains all the labels of the pictures matching the search (including picture already
  on local drive and not downloaded) 
-- This "labels.json" file contains several pictures' label in a dictionary where the key is the img_id. For example:  
+- This "labels.json" file contains several pictures' label in a dictionary. For example:  
   ```
   {
     "20201231T15-45-55-123456": {...},
