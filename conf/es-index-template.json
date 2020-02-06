@@ -151,6 +151,10 @@
           }
         }
       },
+      "label_fingerprint": {
+        "type": "keyword",
+        "ignore_above": 256
+      },
       "label" : {
         "properties" : {
           "label_direction" : {
@@ -160,7 +164,8 @@
             "type" : "byte"
           },
           "created_by": {
-            "type": "keyword"
+            "type": "keyword",
+            "ignore_above": 256
           },
           "created_on_date": {
             "type" : "date",

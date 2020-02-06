@@ -53,12 +53,12 @@ def _gen_bulk_doc(d_label, index, op_type):
             "_index": index,
             "_type": "_doc",
             "_op_type": op_type,
-            "_id": label["img_id"],
+            "_id": label["label_fingerprint"],
             "_source": label
         }
 
 
-def upload_to_es(d_label, index, host_ip, port, update=False):
+def upload_to_es(d_label, index, host_ip, port, overwrite=False):
     """
     Upload all label in d_label to Elasticsearch cluster.
     Note that credential to access the cluster is retrieved from env variable (see variable name in the code)
@@ -67,20 +67,21 @@ def upload_to_es(d_label, index, host_ip, port, update=False):
                                                 img_id: {
                                                     "img_id": "id",
                                                     "file_name": "pic_file_name.jpg",
-                                                    "location": "s3_bucket_path"
+                                                    "location": "s3_bucket_path",
+                                                    "label_fingerprint": "c072a1b9a16b633d6b3004c3edab7553"
                                                 },
                                                 ...
                                             }
     :param index:               [string]    Name of the index to use for indexing labels
     :param host_ip:             [string]    Public ip of the Elasticsearch host server
     :param port:                [int]       Port open for Elasticsearch on host server (typically 9200)
-    :param update:              [bool]      If True, existing document with same img_id will be overwritten by new ones
+    :param overwrite:           [bool]      If True, existing doc with same fingerprint will be overwritten by new ones
     :return:                    [list]      list of failed to upload picture id
     """
     es = get_es_session(host_ip, port)
     if es is None:
         return [img_id for img_id, _ in d_label]
-    op_type = "index" if update else "create"
+    op_type = "index" if overwrite else "create"
     success, errors = helpers.bulk(es, _gen_bulk_doc(d_label, index, op_type), request_timeout=60, raise_on_error=False)
     failed_doc_id = []
     for error in errors:

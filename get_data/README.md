@@ -63,7 +63,7 @@ Example of info specific to each picture
 ### Label Template
 
 To check the actual state of the label format, you can print a template to a json file using the 
-`show_label_template.py` (use `--help` for usage)
+`write_label_template.py` (use `--help` for usage)
 
 
 ## 2. How to upload pictures and labels to the database 

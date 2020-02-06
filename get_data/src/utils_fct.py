@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 import json
+import hashlib
 
 
 def get_label_file_name(label_file_name):
@@ -22,3 +23,12 @@ def edit_label(d_label, field, value):
     """Set one field of all labels in d_label to a value."""
     for img_id, label in d_label.items():
         label[field] = value
+
+
+def get_label_finger_print(label):
+    id_str = str(label["img_id"]) + \
+             str(label["label"]["label_direction"]) + \
+             str(label["label"]["label_speed"]) + \
+             str(label["label"]["nb_of_direction"]) + \
+             str(label["label"]["nb_of_speed"])
+    return hashlib.md5(id_str.encode('utf-8')).hexdigest()
