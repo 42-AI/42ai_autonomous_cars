@@ -4,9 +4,9 @@ import json
 import hashlib
 
 
-def get_label_file_name(label_file_name):
+def get_label_file_name(label_file):
     """Generate a unique label file name based on now timestamp."""
-    return label_file_name.parent / f'{label_file_name.stem}_{datetime.now().strftime("%Y%m%dT%H-%M-%f")}.json'
+    return Path(label_file).parent / f'{label_file.stem}_{datetime.now().strftime("%Y%m%dT%H-%M-%f")}{label_file.suffix}'
 
 
 def get_label_dict_from_file(file):
@@ -27,6 +27,7 @@ def edit_label(d_label, field, value):
 
 def get_label_finger_print(label):
     id_str = str(label["img_id"]) + \
+             str(label["label"]["created_by"]) + \
              str(label["label"]["label_direction"]) + \
              str(label["label"]["label_speed"]) + \
              str(label["label"]["nb_of_direction"]) + \
