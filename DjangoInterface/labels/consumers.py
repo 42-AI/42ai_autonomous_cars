@@ -8,47 +8,38 @@ class LabelsConsumer(WebsocketConsumer):
     def connect(self):
         self.accept()
         self.user = self.scope["user"]
-
+        # load or create data dict
+        self.data = {}
+        data_path = os.path.join("media", self.user.username, "labels.json")
+        if os.path.exists(data_path):
+            with open(data_path) as f:
+                self.data = f.read()
+        
     def disconnect(self, close_code):
         pass
 
     def receive(self, text_data):
         err = None
-        new_name = None
         text_data_json = json.loads(text_data)
-        old = text_data_json['old']
+        img = text_data_json['img']
         label = text_data_json['label']
-        #rename
+        label_kind = text_data_json['label_kind']
+        #retag
         if label != 'null':
-            old_file = Photo.objects.filter(owner=self.user, file=old)
-            if len(old_file) == 1:
-                old_name = old_file[0].file.name
-                new_name = label + '_' + old_name.split('/')[-1].split('_')[-1]
-                new_name = 'media/' + self.user.username + '/' + new_name
-                test_query = Photo.objects.filter(owner=self.user, file=new_name)
-                if new_name != old_name:
-                    if len(test_query) == 0:
-                        old_file.title = new_name
-                        old_file[0].file.name = new_name
-                        old_file[0].save()
-                        try:
-                            os.rename(old_name, new_name)
-                        except Exception as e:
-                            err = str(e)
-                    else:
-                        err = "This file already exists with the label you provided, \nconsider about removing it..."
-            elif len(old_file) > 1:
-                err = "This file is duplicated, \nconsider about removing it..."
-            self.send(text_data=json.dumps({'old': old, 'new': new_name, 'label': label, 'count': None, 'err': err}))
+            img_file = Photo.objects.filter(owner=self.user, file=img)
+            # TODO process label
+            self.send(text_data=json.dumps({'count': None, 'err': err}))
         #delete
         else:
             photos_list = []
-            elem_list = Photo.objects.filter(owner=self.user, file=old)
+            elem_list = Photo.objects.filter(owner=self.user, file=img)
             for elem in elem_list:
                 elem.delete()
                 try:
-                    os.remove(elem.file.name);
+                    os.remove(elem.file.name)
                 except Exception as e:
                     err = str(e)
+                    print(err)
                 photos_list = Photo.objects.filter(owner=self.user)
-            self.send(text_data=json.dumps({'old': old, 'new': new_name, 'label': label, 'count': len(photos_list), 'err': err}))
+                #TODO remove label
+            self.send(text_data=json.dumps({'count': len(photos_list), 'err': err}))

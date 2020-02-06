@@ -60,7 +60,7 @@
 			   style="display: none;"
 			   data-url="{% url 'labels' %}"
 			   data-form-data='{"csrfmiddlewaretoken": "{{ csrf_token }}"}'>
-
+		{# Do NOT REFACTOR THESE LINES !! #}
 		{# DISPLAY THE UPLOADED PHOTOS #}
 			{% for photo in photos %}
 				{% if photo.file.name == sel %}
@@ -81,10 +81,22 @@
 		<button onclick="save()"><img src="{% static 'img/save.png' %}" alt="Save"></button>
 	</div>
 	<div id="h_actions">
+		<div id=select_switch>
+			<p>Direction</p>
+				<label class="switch">
+					<input id="label_switch" type="checkbox">
+					<span class="slider round"></span>
+				</label>
+			<p>Speed</p>
+		</div>
 		<button onclick="zoom()"><img id="zoom_pic" src="{% static 'img/zoom-out.png' %}" alt="zoom-out"></button>
 		<button id="crop_but" onclick="crop_all()"><img id="crop_pic" src="{% static 'img/crop-nok.png' %}" alt="Crop"></button>
 	</div>
 </div>
+<div id=label_prev_div>
+	<textarea id=label_prev></textarea>
+</div>
+
 <script>
 	var None = null;
 	
@@ -122,29 +134,28 @@
 			a.style.margin = "5px 5px 5px 5px";
 			var k = i + 1;
 			a.addEventListener('click', function(event)
-									{											
-												if (a.selected==false)
-												{
-													var img_list = document.getElementById('gallery').querySelectorAll('a'), j;
-													for (j = 0; j < img_list.length; ++j)
-													{
-														img_list[j].selected = false;
-														img_list[j].style.outline="";
-													}
-													a.style.outline="4px solid red";
-													a.selected=true;
-													document.getElementById("cur").innerHTML = k.toString() + " / ";
-												}
-												else
-												{
-													a.style.outline="";
-													a.selected=false;
-													document.getElementById('pic_div').innerHTML = "";
-													document.getElementById("cur").innerHTML = "0 / ";
-												}
-												
-											}
-									)
+			{											
+				if (a.selected==false)
+				{
+					var img_list = document.getElementById('gallery').querySelectorAll('a'), j;
+					for (j = 0; j < img_list.length; ++j)
+					{
+						img_list[j].selected = false;
+						img_list[j].style.outline="";
+					}
+					a.style.outline="4px solid red";
+					a.selected=true;
+					document.getElementById("cur").innerHTML = k.toString() + " / ";
+				}
+				else
+				{
+					a.style.outline="";
+					a.selected=false;
+					document.getElementById('pic_div').innerHTML = "";
+					document.getElementById("cur").innerHTML = "0 / ";
+				}
+				
+			})
 		}());
 	}
 	
@@ -222,7 +233,7 @@
 		
 		var img = document.createElement("IMG");
 		img.src = url;
-		img.alt = url;
+		img.alt = alt;
 		img.id = "image_elem";
 		
 		document.getElementById("W_inp").value = img.width;
@@ -264,18 +275,6 @@
 			document.getElementById("W_inp").disabled = true;
 			document.getElementById("H_inp").disabled = true;
 		}
-		
-		var label = document.createElement("h2");
-		label.id = "pic_p";
-		var alt_tab = alt.split("/");
-		var i = 0;
-		while (alt_tab[i].search("_") == -1 && i < alt_tab.length)
-		{
-			i++;
-		}
-		cleaned_label = alt_tab[i].split("_")[0];
-		label.innerHTML = "Label : " + cleaned_label;
-		el.appendChild(label);
 		var j = 0;
 		var img_list = document.getElementById('gallery').querySelectorAll('a');
 		while (img_list[j] && img_list[j].selected == false)
@@ -345,11 +344,16 @@
 				document.getElementById("gallery").scrollTo(0, selected_elem.offsetTop - H/2);
 			}
 		}
-		else if (document.getElementById("pic_div").childElementCount!=0)
+		else if (img_list[j] && document.getElementById("pic_div").childElementCount!=0)
 		{
 			if (isAlpha(e.key) || isNum(e.key))
 			{
-				rename(e.key, img_list[j].firstChild.alt);
+				var label_kind = "dir";
+				if (document.getElementById("label_switch").checked)
+				{
+					label_kind = "speed";
+				}
+				retag(e.key, label_kind, img_list[j].firstChild.alt);
 			}
 			else if (e.key == "Delete")
 			{
@@ -391,30 +395,11 @@
 	
 	labelsSocket.onmessage = function(e) {
 		var data = JSON.parse(e.data);
-		var old = data['old'];
-		var new_name = data['new'];
-		var label = data['label'];
 		var err = data['err'];
 		var count = data['count'];
 		if (err)
 		{
 			window.alert(err);
-		}
-		else if (label)
-		{
-			var  j = 0;
-			var img_list = document.getElementById('gallery').querySelectorAll('a');
-			while (img_list[j] && img_list[j].firstChild.alt != old)
-			{
-				j++;
-			}
-			if (j < img_list.length)
-			{
-				img_list[j].firstChild.setAttribute("src", "/" + new_name);
-				img_list[j].firstChild.setAttribute("alt", new_name);
-				img_list[j].setAttribute("onclick", "show_pic('/" + new_name + "', '" + new_name + "')");
-				//document.getElementById("pic_p").innerHTML = "Label : " + label;
-			}
 		}
 		if (count)
 		{
@@ -422,16 +407,17 @@
 		}
 	}
 
-	function rename(label, old)
+	function retag(label, label_kind, img)
 	{
 		labelsSocket.send(JSON.stringify({
-				'old': old,
+				'img': img,
 				'label': label,
+				'label_kind': label_kind
 			}));
 		
 		var  j = 0;
 		var img_list = document.getElementById('gallery').querySelectorAll('a');
-		while (img_list[j] && img_list[j].firstChild.alt != old)
+		while (img_list[j] && img_list[j].firstChild.alt != img)
 		{
 			j++;
 		}
@@ -468,8 +454,9 @@
 					if (img_list[i].selected==true)
 					{
 						labelsSocket.send(JSON.stringify({
-							'old': img_list[i].firstChild.alt,
+							'img': img_list[i].firstChild.alt,
 							'label': "null",
+							'label_kind': "null"
 							}));
 						img_list[i].parentNode.removeChild(img_list[i]);
 						document.getElementById('pic_div').innerHTML = "";
