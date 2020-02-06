@@ -16,22 +16,27 @@ The database is made of two parts: AWS S3 bucket to store the pictures ; Elastic
 How does it works:  
 - Each picture saved in S3 can have one or more associated labels in ES (for instance a same picture can have a label 
 with 5 directions and another label with 3 directions. Hence the number of element dans S3 is less or equal to the nb
-of element in ES
-- Labels stored in ES contains a "img_id" field with the id of the picture. This id shall be unique.
-- Labels stored in ES contains a "label_fingerprint" field which is a hash of the following fields: "img_id", 
-"label_direction", "label_speed", "nb_dir", "nb_speed". This hash shall be unique. If two labels have the same hash,
- they are considered duplicate and indexation will be refused.
+of element in ES.
+- Each picture in S3 has a unique id called `img_id` which is the timestamp of the picture
+(eg: 20201231T15-45-55-123456)
+- Labels stored in ES contains a "img_id" field with the id of the picture it refers to.
+- Each labels stored in ES has a unique id called `label_fingerprint`. This id is a hash of the following fields: `["img_id", 
+"label_direction", "label_speed", "nb_dir", "nb_speed"]`. This `label_fingerprint` shall be unique. 
+If two labels have exactly the same value on those 5 fields, they will have the same hash, and hence, they will be
+ considered duplicate and indexation will be refused.
 - When searching and downloading pictures, only the missing picture on the local drive are downloaded and a 
 "labels.json" file is created and contains all the labels of the pictures matching the search (including picture already
  on local drive and not downloaded) 
-- This "labels.json" file contains several pictures' label in the following format:  
+- This "labels.json" file contains several pictures' label in a dictionary where the key is the img_id. For example:  
   ```
   {
-    "img_id_1": {...},
-    "img_id_2": {...},
+    "20201231T15-45-55-123456": {...},
+    "20201231T15-45-56-456789": {...},
     ...
   }
   ```
+  The key is the `img_id` and the value is the label associated to this picture. If the search returns several labels 
+  for a same `img_id`, only one label will be kept and a message is printed to warn the user.
 - This "labels.json" file is 'disposable'. Every time one wants to train a model, he shall request the ES database to 
 get this file listing all the picture required for the training he wished to run.
 
