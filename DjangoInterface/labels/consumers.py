@@ -22,24 +22,42 @@ class LabelsConsumer(WebsocketConsumer):
         err = None
         text_data_json = json.loads(text_data)
         img = text_data_json['img']
+        img_name = img.split("/")[-1]
+        if img_name not in self.data:
+            self.data[img_name] = {}
         label = text_data_json['label']
         label_kind = text_data_json['label_kind']
+        delete = text_data_json['delete']
         #retag
         if label != 'null':
-            img_file = Photo.objects.filter(owner=self.user, file=img)
-            # TODO process label
-            self.send(text_data=json.dumps({'count': None, 'err': err}))
+            self.retag(img, img_name, err)
         #delete
+        elif delete == 'true':
+            self.delete(img, img_name, err)
         else:
-            photos_list = []
-            elem_list = Photo.objects.filter(owner=self.user, file=img)
-            for elem in elem_list:
-                elem.delete()
-                try:
-                    os.remove(elem.file.name)
-                except Exception as e:
-                    err = str(e)
-                    print(err)
-                photos_list = Photo.objects.filter(owner=self.user)
-                #TODO remove label
-            self.send(text_data=json.dumps({'count': len(photos_list), 'err': err}))
+            self.send(text_data=json.dumps({'full_label': self.data[img_name], 
+                                            'count': None, 
+                                            'err': err}))
+    
+    def retag(self, img, img_name, err):
+        img_file = Photo.objects.filter(owner=self.user, file=img)
+        # TODO process label
+        self.send(text_data=json.dumps({'full_label': self.data[img_name], 
+                                        'count': None, 
+                                        'err': err}))
+
+    def delete(self, img, img_name, err):
+        photos_list = []
+        elem_list = Photo.objects.filter(owner=self.user, file=img)
+        for elem in elem_list:
+            elem.delete()
+            try:
+                os.remove(elem.file.name)
+            except Exception as e:
+                err = str(e)
+                print(err)
+            photos_list = Photo.objects.filter(owner=self.user)
+            #TODO remove label
+        self.send(text_data=json.dumps({'full_label': self.data[img_name], 
+                                        'count': len(photos_list), 
+                                        'err': err}))
