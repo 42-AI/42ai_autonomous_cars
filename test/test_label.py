@@ -62,8 +62,8 @@ def test_label_handler_set_label():
     for key, val in raw_val.items():
         assert label["raw_value"][key] == val
     for key, val in label_val.items():
-        assert label["label"][0][key] == val
-    assert label["label"][0]["created_by"] == "auto"
+        assert label["label"][key] == val
+    assert label["label"]["created_by"] == "auto"
 
 
 def test_label_handler_get_copy():
@@ -86,7 +86,7 @@ def test_label_handler_get_copy():
         for key, val in raw_val.items():
             assert item["raw_value"][key] == val
         for key, val in label_val.items():
-            assert item["label"][0][key] == val
+            assert item["label"][key] == val
 
 
 if __name__ == "__main__":

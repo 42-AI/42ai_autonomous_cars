@@ -1,46 +1,85 @@
 {
- "1517255696" : {
-   "img_id": "1517255696",
-   "file_name": "0_0_1517255696.923487.jpg",
-   "location": "test/resources",
-   "raw": "true",
-   "transformation": [],
-   "color": "rgb",
-   "timestamp": "20150101T12-10-30-000000",
-   "upload_date": "20150101T12-10-30-000000",
-   "event": "sample_test",
-   "track" : "iron-car-012018",
-   "track_type": "double lane dash",
-   "resolution": {
-     "horizontal": 512,
-     "vertical": 214
-   },
-   "hardware": {
-     "car": "patate",
-     "version": 1,
-     "computer": "Raspberry_Pi2",
-     "camera": "Picam_v2"
-   },
-   "label": {
-     "direction": 0,
-     "speed": 0,
-     "raw_direction": 260,
-     "raw_speed": 315
-   },
-   "const": {
-     "direction": {
-       "-0.8": 250,
-       "-0.1": 290,
-       "0.1": 327,
-       "0.8": 364,
-       "1": 400
-     },
-     "speed": {
-       "normal": 316,
-       "fast": 311
-     }
-   },
-   "dataset": ["D1", "D2"],
-   "comment": "whatever you want to say about this picture"
- }
+  "20200204T15-23-19-881268": {
+    "location": "test/resources",
+    "car_setting": {
+      "camera": {
+        "resolution-horizontal": 160,
+        "resolution-vertical": 96,
+        "frame_rate": 32,
+        "exposure_mode": "off",
+        "camera_position": 120
+      },
+      "constant": {
+        "max_speed": 307,
+        "stop_speed": 322,
+        "max_direction_l": 1,
+        "max_direction_r": 651,
+        "joystick_to_raw_dir_mapping": [],
+        "trigger_to_raw_speed_mapping": [],
+        "label_to_raw_dir_mapping": [
+          250,
+          290,
+          327,
+          364,
+          400
+        ],
+        "label_to_raw_speed_mapping": [
+          316,
+          311
+        ],
+        "head_up": 150,
+        "head_down": 120
+      }
+    },
+    "hardware_conf": {
+      "car": "patate",
+      "version": 1,
+      "computer": "Raspberry_Pi2",
+      "camera": "Picam"
+    },
+    "event": "demo_session",
+    "track": "",
+    "track_picture": "",
+    "track_type": "single lane",
+    "dataset": [
+      {
+        "name": "",
+        "comment": "",
+        "query": null
+      }
+    ],
+    "comment": "this is the demo",
+    "raw_picture": true,
+    "upload_date": "20200205T12-40-42-306536",
+    "img_id": "20200204T15-23-19-881268",
+    "file_name": "20200204T15-23-19-881268#s2_d2.jpg",
+    "file_type": "jpg",
+    "raw_value": {
+      "raw_direction": 326,
+      "raw_speed": 317,
+      "normalized_speed": 0.33,
+      "normalized_direction": 0.0
+    },
+    "label": {
+      "label_direction": 2,
+      "label_speed": 2,
+      "created_by": "auto",
+      "created_on_date": "20200204T15-23-19-881825",
+      "raw_dir_to_label_mapping": [
+        250,
+        290,
+        327,
+        364,
+        400
+      ],
+      "raw_speed_to_label_mapping": [
+        316,
+        311
+      ],
+      "nb_of_direction": 5,
+      "nb_of_speed": 2
+    },
+    "timestamp": "20200204T15-23-19-881268",
+    "label_fingerprint": "e170fca7848a59a815d2288802cc2832"
+  }
 }

@@ -1,146 +1,334 @@
 {
-  "1517255696": {
-    "img_id": "1517255696",
-    "file_name": "0_0_1517255696.923487.jpg",
-    "location": "test/resources",
-    "raw": "true",
-    "augmentation": [],
-    "color": "rgb",
-    "picture_date": "31/01/2018",
-    "upload_date": "31/01/2019",
-    "event": "sample_test",
-    "track" : "iron-car-012018",
-    "track_type": "double lane dash",
-    "resolution": {
-      "horizontal": 512,
-      "vertical": 214
+    "20200204T15-23-08-574348": {
+        "location": "test/resources",
+        "car_setting": {
+            "camera": {
+                "resolution-horizontal": 160,
+                "resolution-vertical": 96,
+                "frame_rate": 32,
+                "exposure_mode": "off",
+                "camera_position": 120
+            },
+            "constant": {
+                "max_speed": 307,
+                "stop_speed": 322,
+                "max_direction_l": 1,
+                "max_direction_r": 651,
+                "joystick_to_raw_dir_mapping": [],
+                "trigger_to_raw_speed_mapping": [],
+                "label_to_raw_dir_mapping": [
+                    250,
+                    290,
+                    327,
+                    364,
+                    400
+                ],
+                "label_to_raw_speed_mapping": [
+                    316,
+                    311
+                ],
+                "head_up": 150,
+                "head_down": 120
+            }
+        },
+        "hardware_conf": {
+            "car": "patate",
+            "version": 1,
+            "computer": "Raspberry_Pi2",
+            "camera": "Picam"
+        },
+        "event": "demo_session",
+        "track": "",
+        "track_picture": "",
+        "track_type": "single lane",
+        "dataset": [
+            {
+                "name": "",
+                "comment": "",
+                "query": null
+            }
+        ],
+        "comment": "this is the demo",
+        "raw_picture": true,
+        "upload_date": "20200205T12-40-42-306536",
+        "img_id": "20200204T15-23-08-574348",
+        "file_name": "20200204T15-23-08-574348#s0_d2.jpg",
+        "file_type": "jpg",
+        "raw_value": {
+            "raw_direction": 326,
+            "raw_speed": 307,
+            "normalized_speed": 1.0,
+            "normalized_direction": 0.0
+        },
+        "label": {
+            "label_direction": 2,
+            "label_speed": 0,
+            "created_by": "auto",
+            "created_on_date": "20200204T15-23-08-574932",
+            "raw_dir_to_label_mapping": [
+                250,
+                290,
+                327,
+                364,
+                400
+            ],
+            "raw_speed_to_label_mapping": [
+                316,
+                311
+            ],
+            "nb_of_direction": 5,
+            "nb_of_speed": 2
+        },
+        "timestamp": "20200204T15-23-08-574348",
+        "label_fingerprint": "ff4c8a7882ae8d4d9a2d139ff420a62b"
     },
-    "patate_version": 1,
-    "label": {
-      "direction": 0,
-      "speed": 0
+    "20200204T15-23-08-695024": {
+        "location": "test/resources",
+        "car_setting": {
+            "camera": {
+                "resolution-horizontal": 160,
+                "resolution-vertical": 96,
+                "frame_rate": 32,
+                "exposure_mode": "off",
+                "camera_position": 120
+            },
+            "constant": {
+                "max_speed": 307,
+                "stop_speed": 322,
+                "max_direction_l": 1,
+                "max_direction_r": 651,
+                "joystick_to_raw_dir_mapping": [],
+                "trigger_to_raw_speed_mapping": [],
+                "label_to_raw_dir_mapping": [
+                    250,
+                    290,
+                    327,
+                    364,
+                    400
+                ],
+                "label_to_raw_speed_mapping": [
+                    316,
+                    311
+                ],
+                "head_up": 150,
+                "head_down": 120
+            }
+        },
+        "hardware_conf": {
+            "car": "patate",
+            "version": 1,
+            "computer": "Raspberry_Pi2",
+            "camera": "Picam"
+        },
+        "event": "demo_session",
+        "track": "",
+        "track_picture": "",
+        "track_type": "single lane",
+        "dataset": [
+            {
+                "name": "",
+                "comment": "",
+                "query": null
+            }
+        ],
+        "comment": "this is the demo",
+        "raw_picture": true,
+        "upload_date": "20200205T12-40-42-306536",
+        "img_id": "20200204T15-23-08-695024",
+        "file_name": "20200204T15-23-08-695024#s0_d2.jpg",
+        "file_type": "jpg",
+        "raw_value": {
+            "raw_direction": 326,
+            "raw_speed": 307,
+            "normalized_speed": 1.0,
+            "normalized_direction": 0.0
+        },
+        "label": {
+            "label_direction": 2,
+            "label_speed": 0,
+            "created_by": "auto",
+            "created_on_date": "20200204T15-23-08-695607",
+            "raw_dir_to_label_mapping": [
+                250,
+                290,
+                327,
+                364,
+                400
+            ],
+            "raw_speed_to_label_mapping": [
+                316,
+                311
+            ],
+            "nb_of_direction": 5,
+            "nb_of_speed": 2
+        },
+        "timestamp": "20200204T15-23-08-695024",
+        "label_fingerprint": "beae513889776ada9ac0e8ee800f65c1"
     },
-    "dataset": ["D1", "D2"],
-    "comment": "whatever you want to say about this picutre"
-  },
-  "r1537607726": {
-    "img_id": "r1537607726",
-    "file_name": "0_1_r1537607726.37.jpg",
-    "location": "test/resources",
-    "raw": "false",
-    "augmentation": ["reverse"],
-    "color": "rgb",
-    "picture_date": "31/01/2018",
-    "upload_date": "31/01/2019",
-    "event": "sample_test",
-    "track" : "iron-car-012018",
-    "track_type": "double lane yellow dash",
-    "resolution": {
-      "horizontal": 512,
-      "vertical": 214
+    "20200204T15-23-19-881268": {
+        "location": "test/resources",
+        "car_setting": {
+            "camera": {
+                "resolution-horizontal": 160,
+                "resolution-vertical": 96,
+                "frame_rate": 32,
+                "exposure_mode": "off",
+                "camera_position": 120
+            },
+            "constant": {
+                "max_speed": 307,
+                "stop_speed": 322,
+                "max_direction_l": 1,
+                "max_direction_r": 651,
+                "joystick_to_raw_dir_mapping": [],
+                "trigger_to_raw_speed_mapping": [],
+                "label_to_raw_dir_mapping": [
+                    250,
+                    290,
+                    327,
+                    364,
+                    400
+                ],
+                "label_to_raw_speed_mapping": [
+                    316,
+                    311
+                ],
+                "head_up": 150,
+                "head_down": 120
+            }
+        },
+        "hardware_conf": {
+            "car": "patate",
+            "version": 1,
+            "computer": "Raspberry_Pi2",
+            "camera": "Picam"
+        },
+        "event": "demo_session",
+        "track": "",
+        "track_picture": "",
+        "track_type": "single lane",
+        "dataset": [
+            {
+                "name": "",
+                "comment": "",
+                "query": null
+            }
+        ],
+        "comment": "this is the demo",
+        "raw_picture": true,
+        "upload_date": "20200205T12-40-42-306536",
+        "img_id": "20200204T15-23-19-881268",
+        "file_name": "20200204T15-23-19-881268#s2_d2.jpg",
+        "file_type": "jpg",
+        "raw_value": {
+            "raw_direction": 326,
+            "raw_speed": 317,
+            "normalized_speed": 0.33,
+            "normalized_direction": 0.0
+        },
+        "label": {
+            "label_direction": 2,
+            "label_speed": 2,
+            "created_by": "auto",
+            "created_on_date": "20200204T15-23-19-881825",
+            "raw_dir_to_label_mapping": [
+                250,
+                290,
+                327,
+                364,
+                400
+            ],
+            "raw_speed_to_label_mapping": [
+                316,
+                311
+            ],
+            "nb_of_direction": 5,
+            "nb_of_speed": 2
+        },
+        "timestamp": "20200204T15-23-19-881268",
+        "label_fingerprint": "e170fca7848a59a815d2288802cc2832"
     },
-    "patate_version": 1,
-    "label": {
-      "direction": 1,
-      "speed": 2
-    },
-    "dataset": ["D1", "D2"],
-    "comment": "whatever you want to say about this picutre"
-  },
-  "1517255705": {
-    "img_id": "1517255705",
-    "file_name": "0_2_1517255705.4247274.jpg",
-    "location": "test/resources",
-    "raw": "true",
-    "augmentation": [],
-    "color": "rgb",
-    "picture_date": "31/01/2018",
-    "upload_date": "31/01/2019",
-    "event": "sample_test",
-    "track" : "iron-car-012018",
-    "track_type": "double lane dash",
-    "resolution": {
-      "horizontal": 512,
-      "vertical": 214
-    },
-    "patate_version": 1,
-    "label": {
-      "direction": 1,
-      "speed": 2
-    },
-    "dataset": ["D1", "D2"],
-    "comment": "whatever you want to say about this picture"
-  },
-  "1537441219": {
-    "img_id": "1537441219",
-    "file_name": "0_3_1537441219.79.jpg",
-    "location": "test/resources",
-    "raw": "true",
-    "augmentation": [],
-    "color": "rgb",
-    "picture_date": "31/01/2018",
-    "upload_date": "31/01/2019",
-    "event": "sample_test",
-    "track" : "iron-car-012018",
-    "track_type": "double lane dash",
-    "resolution": {
-      "horizontal": 512,
-      "vertical": 214
-    },
-    "patate_version": 1,
-    "label": {
-      "direction": 1,
-      "speed": 2
-    },
-    "dataset": ["D1", "D2"],
-    "comment": "whatever you want to say about this picture"
-  },
-  "1537607500": {
-    "img_id": "1537607500",
-    "file_name": "0_4_1537607500.68.jpg",
-    "location": "test/resources",
-    "raw": "false",
-    "augmentation": ["reverse", "blur"],
-    "color": "rgb",
-    "picture_date": "30/10/2019",
-    "upload_date": "31/01/2019",
-    "event": "sample_test",
-    "track" : "DIY-012019",
-    "track_type": "single_lane",
-    "resolution": {
-      "horizontal": 512,
-      "vertical": 214
-    },
-    "patate_version": 1,
-    "label": {
-      "direction": 1,
-      "speed": 2
-    },
-    "dataset": ["D1", "D2"],
-    "comment": "whatever you want to say about this picture"
-  },
-  "1537607575": {
-    "img_id": "1537607575",
-    "file_name": "0_4_1537607575.68.jpg",
-    "location": "test/resources",
-    "raw": "false",
-    "augmentation": ["reverse", "blur"],
-    "color": "rgb",
-    "picture_date": "30/10/2019",
-    "upload_date": "31/01/2019",
-    "event": "sample_test",
-    "track" : "DIY-012019",
-    "track_type": "single_lane",
-    "resolution": {
-      "horizontal": 512,
-      "vertical": 214
-    },
-    "patate_version": 1,
-    "label": {
-      "direction": 1,
-      "speed": 2
-    },
-    "dataset": ["D1", "D2"],
-    "comment": "test missing picture"
-  }
+    "20200204T15-23-19-111111": {
+        "location": "test/resources",
+        "car_setting": {
+            "camera": {
+                "resolution-horizontal": 160,
+                "resolution-vertical": 96,
+                "frame_rate": 32,
+                "exposure_mode": "off",
+                "camera_position": 120
+            },
+            "constant": {
+                "max_speed": 307,
+                "stop_speed": 322,
+                "max_direction_l": 1,
+                "max_direction_r": 651,
+                "joystick_to_raw_dir_mapping": [],
+                "trigger_to_raw_speed_mapping": [],
+                "label_to_raw_dir_mapping": [
+                    250,
+                    290,
+                    327,
+                    364,
+                    400
+                ],
+                "label_to_raw_speed_mapping": [
+                    316,
+                    311
+                ],
+                "head_up": 150,
+                "head_down": 120
+            }
+        },
+        "hardware_conf": {
+            "car": "patate",
+            "version": 1,
+            "computer": "Raspberry_Pi2",
+            "camera": "Picam"
+        },
+        "event": "demo_session",
+        "track": "",
+        "track_picture": "",
+        "track_type": "single lane",
+        "dataset": [
+            {
+                "name": "",
+                "comment": "",
+                "query": null
+            }
+        ],
+        "comment": "this is the demo",
+        "raw_picture": true,
+        "upload_date": "20200205T12-40-42-306536",
+        "img_id": "20200204T15-23-19-111111",
+        "file_name": "20200204T15-23-19-111111#s2_d2.jpg",
+        "file_type": "jpg",
+        "raw_value": {
+            "raw_direction": 326,
+            "raw_speed": 317,
+            "normalized_speed": 0.33,
+            "normalized_direction": 0.0
+        },
+        "label": {
+            "label_direction": 2,
+            "label_speed": 2,
+            "created_by": "auto",
+            "created_on_date": "20200204T15-23-19-881825",
+            "raw_dir_to_label_mapping": [
+                250,
+                290,
+                327,
+                364,
+                400
+            ],
+            "raw_speed_to_label_mapping": [
+                316,
+                311
+            ],
+            "nb_of_direction": 5,
+            "nb_of_speed": 2
+        },
+        "timestamp": "20200204T15-23-19-881268",
+        "label_fingerprint": "e170fca7848a59a815d2288802111111"
+    }
 }
