@@ -98,6 +98,40 @@
 </div>
 
 <script>
+
+	var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+	var labelsSocket = new WebSocket(
+		ws_scheme + '://' + window.location.host +
+		'/ws/labels');
+
+	// Listen for connection errors
+	labelsSocket.onerror = function (e) {      
+		console.log("labels Socket Error "); 
+	}
+	
+	labelsSocket.onclose = function(e) {
+		console.error('Labels socket closed unexpectedly');
+	};
+	
+	labelsSocket.onmessage = function(e) {
+		var data = JSON.parse(e.data);
+		var err = data['err'];
+		var count = data['count'];
+		var full_label = data['full_label'];
+		if (err)
+		{
+			window.alert(err);
+		}
+		if (count)
+		{
+			document.getElementById("count_h1").innerHTML = count + ' pics';
+		}
+		if (full_label) 
+		{
+			document.getElementById("label_prev").innerHTML = JSON.stringify(full_label, null, 2);
+		}
+	}
+
 	var None = null;
 	
 	//Set Sizes
@@ -115,114 +149,17 @@
 	document.getElementById("gallery").style.width = W.toString()+'px';
 	document.getElementById("gallery").style.height = H.toString()+'px';
 	
-	//set Selection event
-	var a_list = document.getElementById('gallery').querySelectorAll('a'), i;
-	for (i = 0; i < a_list.length; ++i)
-	{
-		(function() 
-		{
-			var a = a_list[i];
-			if (a.style.outline == "")
-			{
-				a.selected = false;
-			}
-			else
-			{
-				document.getElementById("gallery").scrollTo(0, a.offsetTop - H/2);
-				show_pic(a.firstChild.src, a.firstChild.alt);
-			}
-			a.style.margin = "5px 5px 5px 5px";
-			var k = i + 1;
-			a.addEventListener('click', function(event)
-			{											
-				if (a.selected==false)
-				{
-					var img_list = document.getElementById('gallery').querySelectorAll('a'), j;
-					for (j = 0; j < img_list.length; ++j)
-					{
-						img_list[j].selected = false;
-						img_list[j].style.outline="";
-					}
-					a.style.outline="4px solid red";
-					a.selected=true;
-					document.getElementById("cur").innerHTML = k.toString() + " / ";
-				}
-				else
-				{
-					a.style.outline="";
-					a.selected=false;
-					document.getElementById('pic_div').innerHTML = "";
-					document.getElementById("cur").innerHTML = "0 / ";
-				}
-				
-			})
-		}());
-	}
-	
-	var cropping = null;
-	function crop(c)
-	{
-		delete c.w;
-		delete c.h;
-		cropping = c;
-	};
-	
-	function crop_all()
-	{
-		if (document.getElementById("pic_div").innerHTML != "" && document.getElementById("zoom_pic").alt == "zoom-in")
-		{
-			if (size_changed > 0)
-			{
-				if (size_changed == 2)
-				{
-					message = "Image is too large, \n";
-				}
-				else
-				{
-					message = "";
-				}
-				if (window.confirm(message + "Resize all pictures with selected size ?"))
-				{
-					post_to_url('resize/' + String(Math.floor(document.getElementById("W_inp").value)) + "_" + String(Math.floor(document.getElementById("H_inp").value)));
-				}
-			}
-			else if (cropping != null && window.confirm("Crop all pictures with selected borders ?"))
-			{
-				post_to_url('crop/' + JSON.stringify(cropping));
-			}
-			else
-			{
-				window.alert("No Data to Crop/Resize...");
-			}
-		}
-	}
-	
-	function zoom()
-	{
-		if (document.getElementById("pic_div").innerHTML != "")
-		{
-			if (document.getElementById("zoom_pic").alt == "zoom-in")
-			{
-				document.getElementById("zoom_pic").src = "{% static 'img/zoom-out.png' %}";
-				document.getElementById("zoom_pic").alt = "zoom-out";
-				show_pic(document.getElementById("image_elem").src, document.getElementById("image_elem").alt);
-				document.getElementById("crop_pic").src = "{% static 'img/crop-nok.png' %}";
-				document.getElementById("crop_but").disabled = true;
-			}
-			else
-			{
-				document.getElementById("zoom_pic").src = "{% static 'img/zoom-in.png' %}";
-				document.getElementById("zoom_pic").alt = "zoom-in";
-				show_pic(document.getElementById("image_elem").src, document.getElementById("image_elem").alt);
-				document.getElementById("crop_pic").src = "{% static 'img/crop.png' %}";
-				document.getElementById("crop_but").disabled = false;
-			}
-		}
-	}
-	
 	var size_changed = 0
 	function show_pic(url, alt)
 	{
+
+		labelsSocket.send(JSON.stringify({
+				'img': alt,
+				'label': 'null',
+				'label_kind': 'null',
+				'delete': 'false'
+			}));
+
 		size_changed = 0;
 		var el = document.getElementById('pic_div');
 
@@ -281,8 +218,50 @@
 		{
 			j++;
 		}
-		document.getElementById("cur").innerHTML = (j + 1).toString() + ' / ';
-		
+		document.getElementById("cur").innerHTML = (j + 1).toString() + ' / ';	
+	}
+
+	//set Selection event
+	var a_list = document.getElementById('gallery').querySelectorAll('a'), i;
+	for (i = 0; i < a_list.length; ++i)
+	{
+		(function() 
+		{
+			var a = a_list[i];
+			if (a.style.outline == "")
+			{
+				a.selected = false;
+			}
+			else
+			{
+				document.getElementById("gallery").scrollTo(0, a.offsetTop - H/2);
+				show_pic(a.firstChild.src, a.firstChild.alt);
+			}
+			a.style.margin = "5px 5px 5px 5px";
+			var k = i + 1;
+			a.addEventListener('click', function(event)
+			{											
+				if (a.selected==false)
+				{
+					var img_list = document.getElementById('gallery').querySelectorAll('a'), j;
+					for (j = 0; j < img_list.length; ++j)
+					{
+						img_list[j].selected = false;
+						img_list[j].style.outline="";
+					}
+					a.style.outline="4px solid red";
+					a.selected=true;
+					document.getElementById("cur").innerHTML = k.toString() + " / ";
+				}
+				else
+				{
+					a.style.outline="";
+					a.selected=false;
+					document.getElementById('pic_div').innerHTML = "";
+					document.getElementById("cur").innerHTML = "0 / ";
+				}
+			})
+		}());
 	}
 	
 	window.addEventListener('keydown',this.keyHandler,false);
@@ -379,31 +358,64 @@
 		}
 	}
 
-	var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-	var labelsSocket = new WebSocket(
-		ws_scheme + '://' + window.location.host +
-		'/ws/labels');
-
-	// Listen for connection errors
-	labelsSocket.onerror = function (e) {      
-		console.log("labels Socket Error "); 
-	}
-	
-	labelsSocket.onclose = function(e) {
-		console.error('Labels socket closed unexpectedly');
+	var cropping = null;
+	function crop(c)
+	{
+		delete c.w;
+		delete c.h;
+		cropping = c;
 	};
 	
-	labelsSocket.onmessage = function(e) {
-		var data = JSON.parse(e.data);
-		var err = data['err'];
-		var count = data['count'];
-		if (err)
+	function crop_all()
+	{
+		if (document.getElementById("pic_div").innerHTML != "" && document.getElementById("zoom_pic").alt == "zoom-in")
 		{
-			window.alert(err);
+			if (size_changed > 0)
+			{
+				if (size_changed == 2)
+				{
+					message = "Image is too large, \n";
+				}
+				else
+				{
+					message = "";
+				}
+				if (window.confirm(message + "Resize all pictures with selected size ?"))
+				{
+					post_to_url('resize/' + String(Math.floor(document.getElementById("W_inp").value)) + "_" + String(Math.floor(document.getElementById("H_inp").value)));
+				}
+			}
+			else if (cropping != null && window.confirm("Crop all pictures with selected borders ?"))
+			{
+				post_to_url('crop/' + JSON.stringify(cropping));
+			}
+			else
+			{
+				window.alert("No Data to Crop/Resize...");
+			}
 		}
-		if (count)
+	}
+	
+	function zoom()
+	{
+		if (document.getElementById("pic_div").innerHTML != "")
 		{
-			document.getElementById("count_h1").innerHTML = count + ' pics';
+			if (document.getElementById("zoom_pic").alt == "zoom-in")
+			{
+				document.getElementById("zoom_pic").src = "{% static 'img/zoom-out.png' %}";
+				document.getElementById("zoom_pic").alt = "zoom-out";
+				show_pic(document.getElementById("image_elem").src, document.getElementById("image_elem").alt);
+				document.getElementById("crop_pic").src = "{% static 'img/crop-nok.png' %}";
+				document.getElementById("crop_but").disabled = true;
+			}
+			else
+			{
+				document.getElementById("zoom_pic").src = "{% static 'img/zoom-in.png' %}";
+				document.getElementById("zoom_pic").alt = "zoom-in";
+				show_pic(document.getElementById("image_elem").src, document.getElementById("image_elem").alt);
+				document.getElementById("crop_pic").src = "{% static 'img/crop.png' %}";
+				document.getElementById("crop_but").disabled = false;
+			}
 		}
 	}
 
@@ -412,7 +424,8 @@
 		labelsSocket.send(JSON.stringify({
 				'img': img,
 				'label': label,
-				'label_kind': label_kind
+				'label_kind': label_kind,
+				'delete': 'false'
 			}));
 		
 		var  j = 0;
@@ -456,7 +469,8 @@
 						labelsSocket.send(JSON.stringify({
 							'img': img_list[i].firstChild.alt,
 							'label': "null",
-							'label_kind': "null"
+							'label_kind': "null",
+							'delete': 'true'
 							}));
 						img_list[i].parentNode.removeChild(img_list[i]);
 						document.getElementById('pic_div').innerHTML = "";
