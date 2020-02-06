@@ -152,7 +152,6 @@
         }
       },
       "label" : {
-        "type": "nested",
         "properties" : {
           "label_direction" : {
             "type" : "byte"
@@ -185,7 +184,7 @@
         "type" : "keyword",
         "ignore_above" : 256
       },
-      "raw" : {
+      "raw_picture" : {
         "type" : "boolean"
       },
       "timestamp" : {
