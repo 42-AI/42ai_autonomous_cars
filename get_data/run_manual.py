@@ -1,8 +1,15 @@
 import argparse
 import json
 
-from get_data.utils import training_session as ts
-from get_data.utils import label_handler as lh
+import sys
+import os
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(CURRENT_DIR)
+sys.path.append(PARENT_DIR)
+
+from get_data.src import training_session as ts
+from get_data.src import label_handler as lh
+from get_data.src import init_picture_folder as init
 
 
 def get_args(description):
@@ -11,20 +18,24 @@ def get_args(description):
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-s", "--session_template", action="store_true",
                        help="Print the expected session template json to be placed in the 'picture_dir'")
-    group.add_argument("-o", "--output_dir", type=str,
+    group.add_argument("-o", "--picture_dir", type=str,
                        help="Path to the output directory where the picture shall be saved")
     parser.add_argument("-d", "--delay", type=float, default=0.1,
                         help="Provide the delay (in sec) between 2 capture of images.\n")
     return parser.parse_args()
 
 
-def collect_data():
-    """Run the car in manual mode (control with xbox pad), record pictures and create associated labels."""
-    args = get_args(str(collect_data.__doc__))
+def run_manual():
+    """
+    Run the car in manual mode (control with xbox pad), record pictures and create associated labels. You can use a
+    non-existing directory for automatic creation of the picture directory along with its session template.
+    """
+    args = get_args(str(run_manual.__doc__))
     if args.session_template:
         print(f'Session template:\n{json.dumps(lh.Label().get_default_session_template(), indent=4)}')
         exit()
-    session = ts.TrainingSession(args.delay, output_dir=args.output_dir)
+    init.init_picture_folder(picture_dir=args.picture_dir)
+    session = ts.TrainingSession(args.delay, output_dir=args.picture_dir)
 
     print("Are you ready to drive?")
     starting_prompt = """Press 'go' + enter to start.
@@ -58,4 +69,4 @@ def collect_data():
 
 
 if __name__ == "__main__":
-    collect_data()
+    run_manual()

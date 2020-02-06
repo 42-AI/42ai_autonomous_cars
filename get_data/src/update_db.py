@@ -1,7 +1,7 @@
 
-from get_data.utils import s3_utils
-from get_data.utils import es_utils
-from get_data.cluster_param import ES_INDEX, ES_HOST_PORT, ES_HOST_IP
+from get_data.src import s3_utils
+from get_data.src import es_utils
+from conf.cluster_conf import ES_INDEX, ES_HOST_PORT, ES_HOST_IP
 
 
 def delete_picture(picture_id, bucket_path):

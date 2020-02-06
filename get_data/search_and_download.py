@@ -1,7 +1,11 @@
 import argparse
+import sys
+import os
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.dirname(CURRENT_DIR)
+sys.path.append(PARENT_DIR)
 
-from get_data import get_from_db
-
+from get_data.src import get_from_db
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Search picture in the database according to a query json file and "

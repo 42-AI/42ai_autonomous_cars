@@ -1,6 +1,6 @@
 import pytest
 
-from get_data.utils import es_utils
+from get_data.src import es_utils
 
 
 @pytest.fixture()

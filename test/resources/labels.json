@@ -1,8 +1,8 @@
-[
-  {
+{
+  "1517255696": {
     "img_id": "1517255696",
     "file_name": "0_0_1517255696.923487.jpg",
-    "location": "get_data/sample",
+    "location": "test/resources",
     "raw": "true",
     "augmentation": [],
     "color": "rgb",
@@ -23,10 +23,10 @@
     "dataset": ["D1", "D2"],
     "comment": "whatever you want to say about this picutre"
   },
-  {
+  "r1537607726": {
     "img_id": "r1537607726",
     "file_name": "0_1_r1537607726.37.jpg",
-    "location": "get_data/sample",
+    "location": "test/resources",
     "raw": "false",
     "augmentation": ["reverse"],
     "color": "rgb",
@@ -47,10 +47,10 @@
     "dataset": ["D1", "D2"],
     "comment": "whatever you want to say about this picutre"
   },
-  {
+  "1517255705": {
     "img_id": "1517255705",
     "file_name": "0_2_1517255705.4247274.jpg",
-    "location": "get_data/sample",
+    "location": "test/resources",
     "raw": "true",
     "augmentation": [],
     "color": "rgb",
@@ -71,10 +71,10 @@
     "dataset": ["D1", "D2"],
     "comment": "whatever you want to say about this picture"
   },
-  {
+  "1537441219": {
     "img_id": "1537441219",
     "file_name": "0_3_1537441219.79.jpg",
-    "location": "get_data/sample",
+    "location": "test/resources",
     "raw": "true",
     "augmentation": [],
     "color": "rgb",
@@ -95,10 +95,10 @@
     "dataset": ["D1", "D2"],
     "comment": "whatever you want to say about this picture"
   },
-  {
+  "1537607500": {
     "img_id": "1537607500",
     "file_name": "0_4_1537607500.68.jpg",
-    "location": "get_data/sample",
+    "location": "test/resources",
     "raw": "false",
     "augmentation": ["reverse", "blur"],
     "color": "rgb",
@@ -119,10 +119,10 @@
     "dataset": ["D1", "D2"],
     "comment": "whatever you want to say about this picture"
   },
-  {
+  "1537607575": {
     "img_id": "1537607575",
     "file_name": "0_4_1537607575.68.jpg",
-    "location": "get_data/sample",
+    "location": "test/resources",
     "raw": "false",
     "augmentation": ["reverse", "blur"],
     "color": "rgb",
@@ -143,4 +143,4 @@
     "dataset": ["D1", "D2"],
     "comment": "test missing picture"
   }
-]
+}

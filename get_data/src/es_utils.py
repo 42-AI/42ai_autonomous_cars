@@ -6,13 +6,14 @@ from tqdm import tqdm
 import json
 from pathlib import Path
 
-from utils.path import INDEX_TEMPLATE
+from conf.path import INDEX_TEMPLATE
+from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY
 
 
 def get_es_session(host_ip, port):
     try:
-        user = os.environ["ES_USER_ID"]
-        pwd = os.environ["ES_USER_PWD"]
+        user = os.environ[ENV_VAR_FOR_ES_USER_ID]
+        pwd = os.environ[ENV_VAR_FOR_ES_USER_KEY]
     except KeyError:
         print("  --> Warning: Elasticsearch user and/or password not found. Trying connection without authentication")
         user = ""
@@ -29,19 +30,25 @@ def get_es_session(host_ip, port):
     return es
 
 
-def create_patate_db_index(host_ip, host_port, index_name):
-    """Create an index in ES from the template defined in utils.path"""
+def create_es_index(host_ip, host_port, index_name, alias=None, is_write_index=False, current_write_index=None):
+    """Create an index in ES from the template defined in utils.path."""
     es = get_es_session(host_ip, host_port)
     if es is None:
-        return None
+        return es
     with Path(INDEX_TEMPLATE).open(mode='r', encoding='utf-8') as fp:
         index_template = json.load(fp)
     es.indices.create(index_name, body=index_template)
+    if alias is not None:
+        is_write_index_false = {"is_write_index": "false"} if is_write_index is True else None
+        es.indices.put_alias(index=current_write_index, name=alias, body=is_write_index_false)
+        is_write_index_true = {"is_write_index": "true"} if is_write_index is True else None
+        es.indices.put_alias(index=index_name, name=alias, body=is_write_index_true)
+    return es
 
 
-def _gen_bulk_doc(l_label, index, op_type):
+def _gen_bulk_doc(d_label, index, op_type):
     """Yield well formatted document for bulk upload to ES"""
-    for label in tqdm(l_label):
+    for img_id, label in tqdm(d_label.items()):
         yield {
             "_index": index,
             "_type": "_doc",
@@ -51,14 +58,19 @@ def _gen_bulk_doc(l_label, index, op_type):
         }
 
 
-def upload_to_es(l_label, index, host_ip, port, update=False):
+def upload_to_es(d_label, index, host_ip, port, update=False):
     """
-    Upload all label in l_label to Elasticsearch cluster.
+    Upload all label in d_label to Elasticsearch cluster.
     Note that credential to access the cluster is retrieved from env variable (see variable name in the code)
-    :param l_label:             [list]      List of labels. Each label shall contains the following keys:
-                                            "file_name": the name of the picture file
-                                            "location": path to the picture directory
-                                            "img_id": id that will be used to index the picture (shall be unique)
+    :param d_label:             [dict]      Dict of label with the following format (at least those 3 keys are required):
+                                            {
+                                                img_id: {
+                                                    "img_id": "id",
+                                                    "file_name": "pic_file_name.jpg",
+                                                    "location": "s3_bucket_path"
+                                                },
+                                                ...
+                                            }
     :param index:               [string]    Name of the index to use for indexing labels
     :param host_ip:             [string]    Public ip of the Elasticsearch host server
     :param port:                [int]       Port open for Elasticsearch on host server (typically 9200)
@@ -67,9 +79,9 @@ def upload_to_es(l_label, index, host_ip, port, update=False):
     """
     es = get_es_session(host_ip, port)
     if es is None:
-        return [label["img_id"] for label in l_label]
+        return [img_id for img_id, _ in d_label]
     op_type = "index" if update else "create"
-    success, errors = helpers.bulk(es, _gen_bulk_doc(l_label, index, op_type), request_timeout=60, raise_on_error=False)
+    success, errors = helpers.bulk(es, _gen_bulk_doc(d_label, index, op_type), request_timeout=60, raise_on_error=False)
     failed_doc_id = []
     for error in errors:
         for error_type in error:
@@ -81,6 +93,8 @@ def upload_to_es(l_label, index, host_ip, port, update=False):
 def delete_index(index, host_ip, port):
     """Delete index from ES cluster"""
     es = get_es_session(host_ip, port)
+    if es is None:
+        return None
     return es.indices.delete(index=index, ignore=[400, 404])
 
 
@@ -144,14 +158,18 @@ def get_search_query_from_dict(es_index, d_query):
     return s
 
 
-def run_query(es, search_obj):
+def run_query(es, search_obj, source_filter=None):
     """
     Run the query defined by the 'search_obj' on the Elasticsearch cluster defined by 'es'.
     :param es:              [object]    Elasticsearch session
     :param search_obj:      [object]    Elasticsearch-dsl search object
+    :param source_filter:   [list]      Filter the field to be returned by Elasticsearch.
+                                        Only the field given in source_filter will be returned.
+                                        If None (default), all the _source field is returned
     :return:                [object]    Elasticsearch-dsl response object
     """
     s = search_obj.using(es)
-    s = s.source(["img_id", "file_name", "location"])
+    if source_filter is not None:
+        s = s.source(source_filter)
     s = s[0:10000]
     return s.execute()

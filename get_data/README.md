@@ -10,23 +10,9 @@ This file describes how to get data:
 
 ## 1. How to record picture and create label
 
-The script `collect_data.py` is used to run the car in manual mode (control with xbox pad). Picture will be recorded
+The script `run_manual.py` is used to run the car in manual mode (control with xbox pad). Picture will be recorded
 during the run and for each recorded picture, a label is automatically created.  
 Usage:
-1. Create a directory where you want to store the pictures for this session. For instance /user/workdir/session  
-2. In this directory create a session_template.json file. This template will be used to pre-fill every pictures' label. 
-To get the expected session_template run `collect_data.py --session_template` or `-s`.  
-Example of a session_template.json file:
-   ```
-   {
-     "event": "session_14012020",
-     "track" : "piste1",
-     "track_type": "single lane",
-     "dataset": ["D1"],
-     "comment": "night session"
-   }
-   ```
-   - For details about each of those fields see ...(label explanation file to do!)
 3. Check that the hardware_conf.json file describes well the car. The content of this file will be added to the label of
    of each picture.  
    The location of this file is defined in the `path.py` file.
@@ -39,8 +25,12 @@ Example of a session_template.json file:
      "camera": "Picam_v2"
    }
    ```
-4. Run the car with `collect_data.py` to collect data. Run `collect_data.py -h` for the usage. 
-This script will record the pictures and create the label for each pictures. All the labels will be saved in a single 
+4. Run the car with `run_manual.py` to collect data. Run `run_manual.py -h` for the usage.   
+  
+   If the output folder you provide to the script does not exist or has no session_template.json file,
+   it will be created automatically.
+     
+   This script will record the pictures and create the label for each pictures. All the labels will be saved in a single 
 file. Each labels will contains the session_template.json data and the hardware_conf data plus information specific 
 to each pictures.  
 Example of info specific to each picture
@@ -73,7 +63,7 @@ Example of info specific to each picture
 ### Label Template
 
 To check the actual state of the label format, you can print a template to a json file using the 
-`write_label_template.py` (use `--help` for usage)
+`show_label_template.py` (use `--help` for usage)
 
 
 ## 2. How to upload pictures and labels to the database 

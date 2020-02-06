@@ -10,7 +10,7 @@ import time
 # noinspection PyUnresolvedReferences
 import Adafruit_PCA9685
 
-from utils.const import HEAD_DOWN, HEAD_UP
+from conf.const import HEAD_DOWN, HEAD_UP
 from utils.pivideostream import PiVideoStream
 
 

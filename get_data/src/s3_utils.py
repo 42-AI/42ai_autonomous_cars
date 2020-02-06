@@ -5,6 +5,8 @@ import boto3
 from botocore import exceptions as boto3_exceptions
 from tqdm import tqdm
 
+from conf.cluster_conf import ENV_VAR_FOR_AWS_USER_ID, ENV_VAR_FOR_AWS_USER_KEY
+
 
 def is_valid_s3_key(name):
     if "valid" not in is_valid_s3_key.__dict__:  # check if it is the first call to this function
@@ -22,14 +24,12 @@ def generate_valid_s3_key_from_str(name):
 
 
 def get_s3_resource():
-    env_var_name_key_id = "PATATE_S3_KEY_ID"
-    env_var_name_key = "PATATE_S3_KEY"
     try:
-        access_key_id = os.environ[env_var_name_key_id]
-        access_key = os.environ[env_var_name_key]
+        access_key_id = os.environ[ENV_VAR_FOR_AWS_USER_ID]
+        access_key = os.environ[ENV_VAR_FOR_AWS_USER_KEY]
         s3 = boto3.resource("s3", aws_access_key_id=access_key_id, aws_secret_access_key=access_key)
     except KeyError:
-        print(f'Environment variable {env_var_name_key} or {env_var_name_key_id} not found. '
+        print(f'Environment variable {ENV_VAR_FOR_AWS_USER_ID} or {ENV_VAR_FOR_AWS_USER_KEY} not found. '
               f'Can\'t connect to S3 without credential.')
         return None
     except boto3_exceptions as err:
@@ -47,11 +47,11 @@ def file_exist_in_bucket(s3, bucket, key):
     return True
 
 
-def upload_to_s3_from_label(l_label, s3_bucket_name, prefix="", overwrite=False):
+def upload_to_s3_from_label(d_label, s3_bucket_name, prefix="", overwrite=False):
     """
     Upload picture to s3 bucket.
     Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
-    :param l_label:             [list]      List of labels. Each label shall contains the following keys:
+    :param d_label:             [dict]      Dictionary of labels. Each label shall contains the following keys:
                                             "file_name": the name of the picture file
                                             "location": path to the picture directory
                                             "img_id": id that will be used to index the picture (shall be unique)
@@ -66,9 +66,8 @@ def upload_to_s3_from_label(l_label, s3_bucket_name, prefix="", overwrite=False)
     already_exist_pic = []
     upload_success = []
     log = ""
-    for label in tqdm(l_label):
+    for pic_id, label in tqdm(d_label.items()):
         picture = Path(label["location"]) / label["file_name"]
-        pic_id = label["img_id"]
         key = prefix + pic_id
         if not overwrite and file_exist_in_bucket(s3, s3_bucket_name, key):
             log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'

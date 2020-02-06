@@ -4,18 +4,22 @@ from PIL import Image
 from pathlib import Path
 import json
 
-# noinspection PyUnresolvedReferences
 import Adafruit_PCA9685
-# noinspection PyUnresolvedReferences
-from picamera import PiCamera
-# noinspection PyUnresolvedReferences
-from picamera.array import PiRGBArray
-# noinspection PyUnresolvedReferences
+try:
+    from picamera import PiCamera
+    from picamera.array import PiRGBArray
+except ModuleNotFoundError:
+    pass
+    # print("WARNING: can\'t import PiCamera package. Running in TEST MODE with fake PiCamera.")
+    # from test.fake_package.fake_picamera import PiCamera
+    # from test.fake_package.fake_picamera import PiRGBArray
 
-from get_data.utils import xbox
-from get_data.utils import label_handler
-from utils.const import SPEED_NORMAL, IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, DIRECTION_C, HEAD_DOWN
-from utils import car_mapping
+from get_data.src import xbox
+from get_data.src import label_handler
+from conf.const import IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, HEAD_DOWN, STOP_SPEED, \
+    MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, STOP_SPEED_LABEL
+from utils import car_mapping as cm
+from get_data.src import utils_fct
 
 
 class TrainingSession:
@@ -23,6 +27,7 @@ class TrainingSession:
         self.delay = float(delay)
         self.label = [-1, 2]
         self.buffer = []
+        self.car_mapping = cm.CarMapping()
 
         # set controls
         self.x_cursor = 0
@@ -31,8 +36,8 @@ class TrainingSession:
         self.pwm.set_pwm_freq(pwm_freq)
 
         # Init speed direction
-        self.speed = SPEED_NORMAL
-        self.direction = DIRECTION_C
+        self.speed = self.car_mapping.label_to_raw_speed_mapping[0]
+        self.direction = (MAX_DIRECTION_RIGHT + MAX_DIRECTION_LEFT) / 2
         self.head = HEAD_DOWN
 
         # Set head down
@@ -50,7 +55,8 @@ class TrainingSession:
         self.joy = xbox.Joystick()
 
         # Init Label
-        self.meta_label = label_handler.Label(picture_dir=output_dir, camera_position=self.head)
+        self.meta_label = label_handler.Label(picture_dir=output_dir, camera_position=self.head,
+                                              car_mapping=self.car_mapping)
 
     def save_and_clear_buffer(self):
         print(f'Saving picture to "{self.meta_label.picture_dir}" ...', end=" ", flush=True)
@@ -65,13 +71,13 @@ class TrainingSession:
         # Loop over camera frames
         start = time.time()
         i = 0
-        l_label = []
+        l_label = {}
         for frame in self.camera.capture_continuous(self.rawCapture, format="rgb", use_video_port=True):
             # convert img as Array
             image = frame.array
             # control car
             self.controls()
-            if self.label[0] != -1 and time.time() - start > self.delay:
+            if self.label[0] != STOP_SPEED_LABEL and time.time() - start > self.delay:
                 im = Image.fromarray(image, 'RGB')
                 t_stamp = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
                 picture_path = Path(self.meta_label.picture_dir) / f'{str(t_stamp)}#s{self.label[0]}_d{self.label[1]}.jpg'
@@ -82,13 +88,13 @@ class TrainingSession:
                                           raw_speed=self.speed,
                                           label_direction=self.label[1],
                                           label_speed=self.label[0])
-                self.meta_label.add_normalized_speed_dir()
-                l_label.append(self.meta_label.get_copy())
+                l_label[t_stamp] = self.meta_label.get_copy()
                 self.buffer.append((picture_path, im))
                 if show_mode:
-                    print(f'{i}: speed:x={self.trigger}|l={self.label[0]}|n={self.meta_label["label"]["normalized_speed"]}'
-                          f' ; dir:x={self.x_cursor}|l={self.label[1]}|n={self.meta_label["label"]["normalized_direction"]}'
-                          f' ; pic_path:"{picture_path}"')
+                    print(f'{i}: speed:x={self.trigger}|l={self.label[0]}|'
+                          f'n={self.meta_label["raw_value"]["normalized_speed"]} ; dir:x={self.x_cursor}|'
+                          f'l={self.label[1]}|n={self.meta_label["raw_value"]["normalized_direction"]} ; '
+                          f'pic_path:"{picture_path}"')
                 i += 1
                 start = time.time()
                 if len(self.buffer) > max_buff_size:
@@ -101,19 +107,22 @@ class TrainingSession:
                 self.save_and_clear_buffer()
                 print("Stop")
                 output_label = Path(self.meta_label.picture_dir) / "labels.json"
+                if output_label.is_file():
+                    output_label = utils_fct.get_label_file_name(output_label)
                 with output_label.open(mode='w', encoding='utf-8') as fp:
                     json.dump(l_label, fp, indent=4)
+                print(f'Labels saved to "{output_label}"')
                 return
 
     def controls(self):
         # Get speed label
         self.trigger = round(self.joy.rightTrigger(), 2)  # Right trigger position (values 0 to 1.0)
-        self.speed = car_mapping.get_speed_from_xbox_trigger(self.trigger)
-        self.label[0] = car_mapping.get_label_from_speed(self.speed)
+        self.speed = self.car_mapping.get_raw_speed_from_xbox_trigger(self.trigger)
+        self.label[0] = self.car_mapping.get_label_from_raw_speed(self.speed, stop_speed_label=STOP_SPEED_LABEL)
         # Get direction labels
         self.x_cursor = round(self.joy.leftX(), 2)  # X-axis of the left stick (values -1.0 to 1.0)
-        self.direction = car_mapping.get_direction_from_xbox_joystick(self.x_cursor)
-        self.label[1] = car_mapping.get_label_from_direction(self.direction)
+        self.direction = self.car_mapping.get_raw_dir_from_xbox_joystick(self.x_cursor)
+        self.label[1] = self.car_mapping.get_label_from_raw_dir(self.direction)
         # Set motor direction and speed
         self.pwm.set_pwm(0, 0, self.direction)
         self.pwm.set_pwm(1, 0, self.speed)
