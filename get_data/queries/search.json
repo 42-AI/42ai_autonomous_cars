@@ -1,0 +1,9 @@
+{
+     "upload_date": {
+        "type": "range",
+        "bool": "filter",
+        "field": "",
+        "gte": "20191030",
+        "lte": "20201230"
+    }
+}
