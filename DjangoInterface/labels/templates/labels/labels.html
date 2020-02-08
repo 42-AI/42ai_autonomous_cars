@@ -56,7 +56,7 @@
 <div id="content_div">	
 	<div id="gallery">
 		{# FILE INPUT TO BE USED BY THE PLUG-IN #}
-		<input id="fileupload" type="file" accept=".jpeg,.jpg,.png" name="file" multiple
+		<input id="fileupload" type="file" accept=".jpeg,.jpg,.png,.json" name="file" multiple
 			   style="display: none;"
 			   data-url="{% url 'labels' %}"
 			   data-form-data='{"csrfmiddlewaretoken": "{{ csrf_token }}"}'>
@@ -158,7 +158,6 @@
 		labelsSocket.send(JSON.stringify({
 				'img': alt,
 				'label': 'null',
-				'label_kind': 'null',
 				'delete': 'false'
 			}));
 
@@ -220,7 +219,7 @@
 		{
 			j++;
 		}
-		document.getElementById("cur").innerHTML = (j + 1).toString() + ' / ';	
+		document.getElementById("cur").innerHTML = (j + 1).toString() + ' / ';
 	}
 
 	//set Selection event

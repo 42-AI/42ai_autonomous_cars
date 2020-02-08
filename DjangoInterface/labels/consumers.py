@@ -11,15 +11,18 @@ class LabelsConsumer(WebsocketConsumer):
         # load or create data dict
         self.data = {}
         self.data_path = os.path.join("media", self.user.username, "labels.json")
-        if os.path.exists(self.data_path):
-            with open(self.data_path) as f:
-                self.data = json.loads(f.read())
         
     def disconnect(self, close_code):
         pass
 
+    def get_labels(self):
+        if os.path.exists(self.data_path):
+            with open(self.data_path) as f:
+                self.data = json.loads(f.read())
+
     def receive(self, text_data):
         err = None
+        self.get_labels()
         text_data_json = json.loads(text_data)
         img = text_data_json['img']
         img_name = img.split("/")[-1].split(".")[0]
@@ -39,6 +42,7 @@ class LabelsConsumer(WebsocketConsumer):
                                             'err': err}))
     
     def retag(self, img, img_name, label, err):
+        # edit tag
         self.data[img_name] = label
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)
@@ -47,6 +51,10 @@ class LabelsConsumer(WebsocketConsumer):
                                         'err': err}))
 
     def delete(self, img, img_name, err):
+        # remove tag
+        self.data[img_name]["to_delete"] = True
+        with open(self.data_path, "w") as f:
+            json.dump(self.data, f)
         photos_list = []
         elem_list = Photo.objects.filter(owner=self.user, file=img)
         for elem in elem_list:
@@ -57,7 +65,6 @@ class LabelsConsumer(WebsocketConsumer):
                 err = str(e)
                 print(err)
             photos_list = Photo.objects.filter(owner=self.user)
-            #TODO remove label
-        self.send(text_data=json.dumps({'full_label': self.data[img_name], 
+        self.send(text_data=json.dumps({'full_label': None, 
                                         'count': len(photos_list), 
                                         'err': err}))
