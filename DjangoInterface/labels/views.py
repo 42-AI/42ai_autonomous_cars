@@ -13,7 +13,7 @@ from .models import Photo
 class uploadView(View):
     
     def get(self, request):
-        photos_list = Photo.objects.filter(owner=self.request.user).exclude(file__endswith=".json").order_by('file')
+        photos_list = Photo.objects.filter(owner=self.request.user).order_by('file')
         return render(self.request, 'labels/labels.html', {'photos': photos_list})
 
     def post(self, request):
@@ -23,10 +23,7 @@ class uploadView(View):
             photo.owner = self.request.user
             photo.file.name = photo.owner.username + '/' + photo.file.name
             photo.save()
-            if photo.file.name.endswith(".json"):
-                data = {'is_valid': False}
-            else:
-                data = {'is_valid': True, 'name': photo.file.name, 'url': photo.file.url}
+            data = {'is_valid': True, 'name': photo.file.name, 'url': photo.file.url}
         else:
             data = {'is_valid': False}
         return JsonResponse(data)
