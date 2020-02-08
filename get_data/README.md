@@ -128,7 +128,7 @@ pictures are already in the local picture directory, and if not, it will downloa
 A picture is missing if the "file_name", as stored in the db, can't be found in picture directory.
 See usage with `-h` option for details.
 
-A json file sample can be found in `get_data/sample/search_json`.
+A json file sample can be found in `get_data/queries/search_json`.
 
 For details on how this json works, see the docstring of the get_search_query_from_dict function in es_utils.  
 For details on the ES query works, look at the doc: https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html
