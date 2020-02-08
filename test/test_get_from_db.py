@@ -6,11 +6,11 @@ from get_data.src import get_from_db
 @pytest.fixture()
 def list_of_existing_pic():
     return {
-        "1517255696": {"img_id": "20200204T15-23-19-881268", "file_name": "20200204T15-23-19-881268#s2_d2.jpg",
+        "1517255696": {"img_id": "20200204T15-23-19-881268", "file_name": "20200204T15-23-19-881268.jpg",
                        "location": "s3bucket/key/"},
-        "1517255705": {"img_id": "20200204T15-23-08-574348", "file_name": "20200204T15-23-08-574348#s0_d2.jpg",
+        "1517255705": {"img_id": "20200204T15-23-08-574348", "file_name": "20200204T15-23-08-574348.jpg",
                        "location": "s3bucket/key/"},
-        "1537441219": {"img_id": "20200204T15-23-08-695024", "file_name": "20200204T15-23-08-695024#s0_d2.jpg",
+        "1537441219": {"img_id": "20200204T15-23-08-695024", "file_name": "20200204T15-23-08-695024.jpg",
                        "location": "s3bucket/key/"}
     }
 

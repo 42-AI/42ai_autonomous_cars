@@ -55,15 +55,11 @@ def custom_change_field(json_file):
     with Path(json_file).open(mode='r', encoding='utf-8') as fp:
         d_label = json.load(fp)
     for img_id, label in d_label.items():
-        label["label"] = label["label"][0]
-        label["label_fingerprint"] = utils_fct.get_label_finger_print(label)
-        label["raw_picture"] = label["raw"]
-        label.pop("raw")
-        label["location"] = "../tmp"
+        label["file_name"] = Path(label["file_name"]).stem.split("#")[0] + Path(label["file_name"]).suffix
     with Path(json_file).open(mode='w', encoding='utf-8') as fp:
         json.dump(d_label, fp, indent=4)
 
 
 if __name__ == "__main__":
     # substitute_matching_char()
-    custom_change_field("../../tmp/labels_20200206T13-25-652988.json")
+    custom_change_field("../test/resources/labels.json")
