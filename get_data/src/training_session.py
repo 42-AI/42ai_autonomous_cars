@@ -80,7 +80,7 @@ class TrainingSession:
             if self.label[0] != STOP_SPEED_LABEL and time.time() - start > self.delay:
                 im = Image.fromarray(image, 'RGB')
                 t_stamp = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
-                picture_path = Path(self.meta_label.picture_dir) / f'{str(t_stamp)}#s{self.label[0]}_d{self.label[1]}.jpg'
+                picture_path = Path(self.meta_label.picture_dir) / f'{str(t_stamp)}.jpg'
                 self.meta_label.set_label(img_id=t_stamp,
                                           file_name=picture_path.name,
                                           timestamp=t_stamp,
