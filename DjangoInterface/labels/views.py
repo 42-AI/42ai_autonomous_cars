@@ -65,7 +65,7 @@ def delete_all(request):
         photos_list = Photo.objects.filter(owner=request.user)
         for item in photos_list:
             try:
-                os.remove(item.file.name);
+                os.remove(item.file.name)
             except:
                 pass
         photos_list.delete()

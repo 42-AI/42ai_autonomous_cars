@@ -10,10 +10,10 @@ class LabelsConsumer(WebsocketConsumer):
         self.user = self.scope["user"]
         # load or create data dict
         self.data = {}
-        data_path = os.path.join("media", self.user.username, "labels.json")
-        if os.path.exists(data_path):
-            with open(data_path) as f:
-                self.data = f.read()
+        self.data_path = os.path.join("media", self.user.username, "labels.json")
+        if os.path.exists(self.data_path):
+            with open(self.data_path) as f:
+                self.data = json.loads(f.read())
         
     def disconnect(self, close_code):
         pass
@@ -22,15 +22,14 @@ class LabelsConsumer(WebsocketConsumer):
         err = None
         text_data_json = json.loads(text_data)
         img = text_data_json['img']
-        img_name = img.split("/")[-1]
+        img_name = img.split("/")[-1].split(".")[0]
         if img_name not in self.data:
             self.data[img_name] = {}
         label = text_data_json['label']
-        label_kind = text_data_json['label_kind']
         delete = text_data_json['delete']
         #retag
         if label != 'null':
-            self.retag(img, img_name, err)
+            self.retag(img, img_name, label, err)
         #delete
         elif delete == 'true':
             self.delete(img, img_name, err)
@@ -39,9 +38,10 @@ class LabelsConsumer(WebsocketConsumer):
                                             'count': None, 
                                             'err': err}))
     
-    def retag(self, img, img_name, err):
-        img_file = Photo.objects.filter(owner=self.user, file=img)
-        # TODO process label
+    def retag(self, img, img_name, label, err):
+        self.data[img_name] = label
+        with open(self.data_path, "w") as f:
+            json.dump(self.data, f)
         self.send(text_data=json.dumps({'full_label': self.data[img_name], 
                                         'count': None, 
                                         'err': err}))
