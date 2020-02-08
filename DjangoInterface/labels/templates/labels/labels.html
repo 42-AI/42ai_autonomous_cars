@@ -128,7 +128,9 @@
 		}
 		if (full_label) 
 		{
-			document.getElementById("label_prev").innerHTML = JSON.stringify(full_label, null, 2);
+			var label = JSON.stringify(full_label, null, 2);
+			document.getElementById("label_prev").innerHTML = label;
+			document.getElementById("label_prev").rows = label.split(/\r\n|\r|\n/).length;
 		}
 	}
 
@@ -425,10 +427,19 @@
 
 	function retag(label, label_kind, img)
 	{
+		var full_label = JSON.parse(document.getElementById("label_prev").innerHTML);
+		if (label_kind == "dir")
+		{
+			full_label["label"]["label_direction"] = label;
+		}
+		else
+		{
+			full_label["label"]["label_speed"] = label;
+		}
+
 		labelsSocket.send(JSON.stringify({
 				'img': img,
-				'label': label,
-				'label_kind': label_kind,
+				'label': full_label,
 				'delete': 'false'
 			}));
 		
@@ -473,7 +484,6 @@
 						labelsSocket.send(JSON.stringify({
 							'img': img_list[i].firstChild.alt,
 							'label': "null",
-							'label_kind': "null",
 							'delete': 'true'
 							}));
 						img_list[i].parentNode.removeChild(img_list[i]);
