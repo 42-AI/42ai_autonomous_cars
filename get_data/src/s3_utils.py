@@ -141,7 +141,7 @@ def delete_object_s3(bucket, key_prefix, l_object_key, s3_resource=None):
 
 def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
     if key_prefix == "" or key_prefix is None:
-        print(f'Can\'t delete all the bucket, to dangerous... Please specify a key_prefix')
+        print(f'Can\'t delete all the bucket, too dangerous... Please specify a key_prefix')
         return False
     if s3_resource is None:
         s3 = get_s3_resource()
