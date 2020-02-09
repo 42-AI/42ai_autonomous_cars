@@ -22,7 +22,7 @@ def get_args(description):
 def create_index():
     """Create a new index and set alias to the index defined in cluster_conf file and set the
     new index as the write index for this alias."""
-    CURRENT_WRITE_INDEX = "patate-db-200206"
+    CURRENT_WRITE_INDEX = "patate-db-200209"
     args = get_args(create_index.__doc__)
     es_utils.create_es_index(host_ip=ES_HOST_IP,
                              host_port=ES_HOST_PORT,

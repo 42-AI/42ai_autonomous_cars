@@ -55,16 +55,18 @@ def _ask_user_dataset_details(dataset):
         ok = "no"
         name = input("Type in the name of the dataset: ")
         comment = input("Type in some comment about this dataset:\n")
-        date = None
-        while date is None:
-            date = input(f'Created on: {dataset["created_on"]}. Press enter to validate or type in a new value.\n')
-            if date != "":
+        date = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
+        date_user = None
+        while date_user is None:
+            date_user = input(f'Created on: {date}. Press enter to validate or type in a new value.\n')
+            if date_user != "":
                 try:
-                    datetime.strptime(date, "%Y%m%dT%H-%M-%S-%f")
+                    datetime.strptime(date_user, "%Y%m%dT%H-%M-%S-%f")
+                    date = date_user
                 except ValueError as err:
-                    date = None
+                    date_user = None
                     print(err)
-        dataset["created_on"] = date if date != "" else dataset["created_on"]
+        dataset["created_on_date"] = date
         dataset["name"] = name
         dataset["comment"] = comment
         print(f'Dataset is :\n{dataset}')
@@ -88,6 +90,7 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
     :return                             [bool]
     """
     d_label = utils_fct.get_label_dict_from_file(label_json_file)
+    print(f'{len(d_label)} picture(s) loaded')
     if d_label is None or len(d_label) == 0:
         print(f'Input file "{label_json_file}" is empty.')
         return False
@@ -96,7 +99,6 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
             dataset = {"query": json.load(fp)}
     else:
         dataset = {"query": None}
-    dataset["created_on"] = datetime.now().strftime("%Y%ym%dT%H-%M-%S-%f")
     dataset = _ask_user_dataset_details(dataset)
     es_utils.update_doc_in_index(d_label, "dataset", dataset, es_index, es_host_ip, es_host_port)
     if overwrite_input_file:
