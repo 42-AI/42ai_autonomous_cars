@@ -1,6 +1,7 @@
 import elasticsearch_dsl as esdsl
 import json
 from pathlib import Path
+from datetime import datetime
 
 from get_data.src import s3_utils
 from get_data.src import es_utils
@@ -54,6 +55,16 @@ def _ask_user_dataset_details(dataset):
         ok = "no"
         name = input("Type in the name of the dataset: ")
         comment = input("Type in some comment about this dataset:\n")
+        date = None
+        while date is None:
+            date = input(f'Created on: {dataset["created_on"]}. Press enter to validate or type in a new value.\n')
+            if date != "":
+                try:
+                    datetime.strptime(date, "%Y%m%dT%H-%M-%S-%f")
+                except ValueError as err:
+                    date = None
+                    print(err)
+        dataset["created_on"] = date if date != "" else dataset["created_on"]
         dataset["name"] = name
         dataset["comment"] = comment
         print(f'Dataset is :\n{dataset}')
@@ -85,6 +96,7 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
             dataset = {"query": json.load(fp)}
     else:
         dataset = {"query": None}
+    dataset["created_on"] = datetime.now().strftime("%Y%ym%dT%H-%M-%S-%f")
     dataset = _ask_user_dataset_details(dataset)
     es_utils.update_doc_in_index(d_label, "dataset", dataset, es_index, es_host_ip, es_host_port)
     if overwrite_input_file:

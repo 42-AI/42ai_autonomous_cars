@@ -85,6 +85,9 @@ def _gen_bulk_doc_update_append_field(d_label, index, update_field, new_dataset)
 
 def update_doc_in_index(d_label, field_to_update, value, es_index, es_host_ip, es_host_port, verbose=1):
     es = get_es_session(host_ip=es_host_ip, port=es_host_port)
+    if es is None:
+        return 0, len(d_label)
+    print(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
     success, errors = helpers.bulk(es, _gen_bulk_doc_update_append_field(d_label, es_index, field_to_update, value),
                                    request_timeout=60, raise_on_error=False)
     if verbose > 0:
@@ -96,7 +99,7 @@ def update_doc_in_index(d_label, field_to_update, value, es_index, es_host_ip, e
                       f'because: {err["update"]["error"]["reason"]}')
                 if err["update"]["error"]["reason"] == "failed to execute script":
                     print(f'\t\t(error history: This error happened before because the "dataset" field of the label '
-                          f'in was not a list. Thus, could not append value...)')
+                          f'in the database was not a list. Thus, could not append value...)')
     return success, errors
 
 
