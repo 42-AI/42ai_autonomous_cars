@@ -101,6 +101,16 @@ def test_get_s3_formatted_bucket_path_double_nokey_with_filename():
     assert res == ("my-bucket/key_prefix/file.jpg", "my-bucket", "key_prefix/file.jpg")
 
 
+def test_get_s3_formatted_bucket_key_prefix_in_bucket():
+    res = s3_utils.get_s3_formatted_bucket_path("my-bucket/key/prefix", "")
+    assert res == ("my-bucket/key/prefix/", "my-bucket", "key/prefix/")
+
+
+def test_get_s3_formatted_bucket_key_prefix_in_bucket_plus_file():
+    res = s3_utils.get_s3_formatted_bucket_path("my-bucket/key/prefix", "", "/file")
+    assert res == ("my-bucket/key/prefix/file", "my-bucket", "key/prefix/file")
+
+
 def test_generate_key_prefix_ok():
     date_str = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
     date = datetime.now()

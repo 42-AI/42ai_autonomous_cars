@@ -83,6 +83,17 @@ def _gen_bulk_doc_update_append_field(d_label, index, update_field, new_dataset)
         }
 
 
+def _gen_bulk_doc_delete(l_doc_id, index):
+    """Yield well formatted document for bulk update to ES"""
+    for doc_id in tqdm(l_doc_id):
+        yield {
+            "_index": index,
+            "_type": "_doc",
+            "_op_type": "delete",
+            "_id": doc_id
+        }
+
+
 def update_doc_in_index(d_label, field_to_update, value, es_index, es_host_ip, es_host_port, verbose=1):
     es = get_es_session(host_ip=es_host_ip, port=es_host_port)
     if es is None:
@@ -145,15 +156,24 @@ def delete_index(index, host_ip, port):
     return es.indices.delete(index=index, ignore=[400, 404])
 
 
-def delete_document(index, doc_id, es=None, host_ip=None, port=9200):
-    if isinstance(doc_id, list):
-        print("Bulk delete not yet implemented... sorry, list of doc_id not accepted yet :/")
-        exit(1)
+def delete_document(index, l_doc_id, es=None, host_ip=None, port=9200):
+    """Delete all document listed in the list l_doc_id"""
     if bool(es) == bool(host_ip):
         print("host_ip and port will be ignored since es session object is provided")
     if es is None:
         es = get_es_session(host_ip, port)
-    return es.delete(index=index, id=doc_id, refresh=True)
+    nb_of_success, errors = helpers.bulk(es, _gen_bulk_doc_delete(l_doc_id, index),
+                                         request_timeout=60, raise_on_error=False)
+    failed_doc_id = []
+    for error in errors:
+        for error_type in error:
+            failed_doc_id.append(error[error_type]["_id"])
+            try:
+                print(f'  --> Error: couldn\'t delete document {failed_doc_id[-1]} '
+                      f'because:{error[error_type]["error"]["reason"]}')
+            except KeyError:
+                print(f'  --> Error: {error}')
+    return nb_of_success, failed_doc_id
 
 
 def _add_query(search_obj, field, query, bool="match"):
