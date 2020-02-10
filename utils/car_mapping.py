@@ -33,7 +33,7 @@ class CarMapping:
         if value <= list_[0]:
             return 0
         if value >= list_[-1]:
-            return len(list_)
+            return len(list_) - 1
         pos = bisect.bisect_left(list_, value)
         before = list_[pos - 1]
         after = list_[pos]

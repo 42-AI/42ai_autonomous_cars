@@ -46,7 +46,7 @@ def create_es_index(host_ip, host_port, index_name, alias=None, is_write_index=F
     return es
 
 
-def _gen_bulk_doc(d_label, index, op_type):
+def _gen_bulk_doc_ingest(d_label, index, op_type):
     """Yield well formatted document for bulk upload to ES"""
     for img_id, label in tqdm(d_label.items()):
         yield {
@@ -56,6 +56,51 @@ def _gen_bulk_doc(d_label, index, op_type):
             "_id": label["label_fingerprint"],
             "_source": label
         }
+
+
+def _gen_bulk_doc_update_replace_field(d_label, index, update_field, new_value):
+    """Yield well formatted document for bulk update to ES"""
+    for img_id, label in tqdm(d_label.items()):
+        yield {
+            "_index": index,
+            "_type": "_doc",
+            "_op_type": "update",
+            "_id": label["label_fingerprint"],
+            "doc": {update_field: new_value}
+        }
+
+
+def _gen_bulk_doc_update_append_field(d_label, index, update_field, new_dataset):
+    """Yield well formatted document for bulk update to ES"""
+    for img_id, label in tqdm(d_label.items()):
+        yield {
+            "_index": index,
+            "_type": "_doc",
+            "_op_type": "update",
+            "_id": label["label_fingerprint"],
+            "script": {"source": f"ctx._source.{update_field}.add(params.param1)", "lang": "painless",
+                       "params": {"param1": new_dataset}}
+        }
+
+
+def update_doc_in_index(d_label, field_to_update, value, es_index, es_host_ip, es_host_port, verbose=1):
+    es = get_es_session(host_ip=es_host_ip, port=es_host_port)
+    if es is None:
+        return 0, len(d_label)
+    print(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
+    success, errors = helpers.bulk(es, _gen_bulk_doc_update_append_field(d_label, es_index, field_to_update, value),
+                                   request_timeout=60, raise_on_error=False)
+    if verbose > 0:
+        print(f'{success} label(s) successfully update.')
+        if len(errors) > 0:
+            print(f'{len(errors)} label(s) update failed:')
+            for err in errors:
+                print(f'  --> Label "{err["update"]["_id"]}" got "{err["update"]["error"]["type"]}" '
+                      f'because: {err["update"]["error"]["reason"]}')
+                if err["update"]["error"]["reason"] == "failed to execute script":
+                    print(f'\t\t(error history: This error happened before because the "dataset" field of the label '
+                          f'in the database was not a list. Thus, could not append value...)')
+    return success, errors
 
 
 def upload_to_es(d_label, index, host_ip, port, overwrite=False):
@@ -80,9 +125,10 @@ def upload_to_es(d_label, index, host_ip, port, overwrite=False):
     """
     es = get_es_session(host_ip, port)
     if es is None:
-        return [img_id for img_id, _ in d_label]
+        return [img_id for img_id, _ in d_label.items()]
     op_type = "index" if overwrite else "create"
-    success, errors = helpers.bulk(es, _gen_bulk_doc(d_label, index, op_type), request_timeout=60, raise_on_error=False)
+    success, errors = helpers.bulk(es, _gen_bulk_doc_ingest(d_label, index, op_type),
+                                   request_timeout=60, raise_on_error=False)
     failed_doc_id = []
     for error in errors:
         for error_type in error:

@@ -125,8 +125,11 @@ def split_s3_path(bucket_key):
     return bucket, key_prefix, file_name
 
 
-def delete_object_s3(s3_resource, bucket, key_prefix, l_object_key):
+def delete_object_s3(bucket, key_prefix, l_object_key, s3_resource=None):
+    """Delete all object listed in l_object_key and with prefix key_prefix"""
     full_path, bucket, key_prefix = get_s3_formatted_bucket_path(bucket, key_prefix)
+    if s3_resource is None:
+        s3_resource = get_s3_resource()
     s3_bucket = s3_resource.Bucket(bucket)
     delete = {
         "Objects": []
@@ -137,6 +140,9 @@ def delete_object_s3(s3_resource, bucket, key_prefix, l_object_key):
 
 
 def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
+    if key_prefix == "" or key_prefix is None:
+        print(f'Can\'t delete all the bucket, too dangerous... Please specify a key_prefix')
+        return False
     if s3_resource is None:
         s3 = get_s3_resource()
     else:
@@ -144,6 +150,7 @@ def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
     bucket = s3.Bucket(bucket)
     for obj in bucket.objects.filter(Prefix=key_prefix):
         s3.Object(bucket.name, obj.key).delete()
+    return True
 
 
 def download_from_s3(picture_id, bucket_key, output_file):

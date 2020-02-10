@@ -156,12 +156,5 @@ class Label:
             "track": "",
             "track_picture": "",
             "track_type": "",
-            "dataset": [
-                {
-                    "name": "",
-                    "comment": "",
-                    "query": None,
-                }
-            ],
             "comment": ""
         }

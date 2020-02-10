@@ -123,3 +123,9 @@ def test_generate_key_prefix_different_name():
     d_label = {1: {"event": event_name, "img_id": 1}, 2: {"event": event_name, "img_id": 2}}
     key = upload.generate_key_prefix(d_label)
     assert key is None
+
+
+def test_delete_all_bucket_refused():
+    assert not s3_utils.delete_all_in_s3_folder("test", "", ["test"])
+    assert not s3_utils.delete_all_in_s3_folder("test", None, ["test"])
+
