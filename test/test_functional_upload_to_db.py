@@ -51,6 +51,7 @@ def test_upload_to_db_s3_KO_es_OK():
     s3_success, es_success, fail = upload.upload_to_db(label_file, es_ip_host, es_port_host, ES_TEST_INDEX,
                                                        bucket_name=bucket_name, key_prefix=key_prefix, overwrite=True)
     es_utils.delete_index(ES_TEST_INDEX, es_ip_host, es_port_host)
+    es_utils.create_es_index(ES_HOST_IP, ES_HOST_PORT, ES_TEST_INDEX)
     s3_success, es_success, fail = upload.upload_to_db(label_file, es_ip_host, es_port_host, ES_TEST_INDEX,
                                                        bucket_name=bucket_name, key_prefix=key_prefix, overwrite=False)
     update_db.delete_pic_and_index(label_file, bucket_name, key_prefix, ES_TEST_INDEX, es_ip_host, es_port_host)

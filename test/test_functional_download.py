@@ -41,7 +41,7 @@ def test_download_single_file(test_init):
     s3_success, es_success, fail = upload.upload_to_db(label_file, es_ip_host, es_port_host, es_index_name,
                                                        bucket_name=bucket_name, key_prefix=key_prefix, overwrite=False)
     if fail > 0:
-        raise RuntimeError("Failed to upload to s3, can't test download if upload is not working")
+        raise RuntimeError(f"Failed to upload: can't test download if upload is not working")
     time.sleep(1)
     test_res = s3_utils.download_from_s3(first_key, f'{bucket_name}/{key_prefix}', output.as_posix())
     assert test_res is None

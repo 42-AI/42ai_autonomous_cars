@@ -2,9 +2,11 @@ import os
 import elasticsearch
 from elasticsearch import helpers
 import elasticsearch_dsl as esdsl
+from elasticsearch import RequestsHttpConnection
 from tqdm import tqdm
 import json
 from pathlib import Path
+import ssl
 
 from conf.path import INDEX_TEMPLATE
 from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY
@@ -19,7 +21,14 @@ def get_es_session(host_ip, port):
         user = ""
         pwd = ""
     try:
-        es = elasticsearch.Elasticsearch([{"host": host_ip, "port": port, "timeout": 10}], http_auth=(user, pwd))
+        # ssl_context = ssl.create_default_context(cafile="conf/ca.crt")
+        # ssl_context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        # ssl_context.verify_mode = ssl.CERT_OPTIONAL
+        # ssl_context.check_hostname = False
+        # ssl_context.load_verify_locations(cafile="conf/ca.crt")
+        # es = elasticsearch.Elasticsearch([{"host": host_ip, "port": port, "timeout": 11}], http_auth=(user, pwd), scheme="https", port=443, ssl_context=ssl_context)
+        es = elasticsearch.Elasticsearch([{"host": host_ip, "port": port, "timeout": 11}], http_auth=(user, pwd),
+                                         connection_class=RequestsHttpConnection, use_ssl=True, verify_certs=False)
         connection_ok = es.ping()
         if not connection_ok:
             print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}"')
