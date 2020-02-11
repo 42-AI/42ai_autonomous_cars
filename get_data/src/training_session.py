@@ -16,14 +16,17 @@ except ModuleNotFoundError:
 
 from get_data.src import xbox
 from get_data.src import label_handler
-from conf.const import IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE, HEAD_DOWN, STOP_SPEED, \
-    MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, STOP_SPEED_LABEL
+from conf.const import HEAD_DOWN, STOP_SPEED, MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, STOP_SPEED_LABEL
 from utils import car_mapping as cm
+from utils import InitCam
 from get_data.src import utils_fct
 
 
 class TrainingSession:
     def __init__(self, delay, output_dir, pwm_freq=50):
+        # Setup Camera
+        self = InitCam()
+
         self.delay = float(delay)
         self.label = [-1, 2]
         self.buffer = []
@@ -42,14 +45,6 @@ class TrainingSession:
 
         # Set head down
         self.pwm.set_pwm(2, 0, self.head)
-
-        # Setup Camera
-        self.camera = PiCamera()
-        self.camera.resolution = IMAGE_SIZE
-        self.camera.framerate = FRAME_RATE
-        self.camera.exposure_mode = EXPOSURE_MODE
-        self.rawCapture = PiRGBArray(self.camera, size=IMAGE_SIZE)
-        time.sleep(2)
 
         # Setup xbox pad
         self.joy = xbox.Joystick()

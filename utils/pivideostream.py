@@ -8,17 +8,15 @@ from picamera import PiCamera
 from PIL import Image
 from threading import Thread
 
-from conf.const import IMAGE_SIZE
 from conf.path import HARDWARE_TEST_IMAGES_DIRECTORY
+from utils import InitCam
+
 
 
 class PiVideoStream:
-    def __init__(self, resolution=IMAGE_SIZE, framerate=32):
+    def __init__(self):
         # initialize the camera and stream
-        self.camera = PiCamera()
-        self.camera.resolution = resolution
-        self.camera.framerate = framerate
-        self.rawCapture = PiRGBArray(self.camera, size=resolution)
+        self = InitCam()
         self.stream = self.camera.capture_continuous(self.rawCapture,
                                                      format="rgb", use_video_port=True)
 
