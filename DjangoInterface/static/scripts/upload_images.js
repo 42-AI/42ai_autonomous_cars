@@ -36,28 +36,26 @@ $(function () {
 		a.style.margin = "5px 5px 5px 5px";
 		a.selected = false;
 		a.addEventListener('click', function(event)
-								{
-											if (a.selected==false)
-											{
-												var img_list = document.getElementById('gallery').querySelectorAll('a'), i;
-												for (i = 0; i < img_list.length; ++i)
-												{
-													img_list[i].style.outline="";
-													img_list[i].selected = false;
-												}
-												a.style.outline="4px solid red";
-												a.selected=true;
-											}
-											else
-											{
-												a.style.outline="";
-												a.selected=false;
-											}
-											
-											show_pic(data.result.url, data.result.name);
-								}
-							)
-		
+		{
+			if (a.selected==false)
+			{
+				var img_list = document.getElementById('gallery').querySelectorAll('a'), i;
+				for (i = 0; i < img_list.length; ++i)
+				{
+					img_list[i].style.outline="";
+					img_list[i].selected = false;
+				}
+				a.style.outline="4px solid red";
+				a.selected=true;
+			}
+			else
+			{
+				a.style.outline="";
+				a.selected=false;
+			}
+			
+			show_pic(data.result.url, data.result.name);
+		})
 		
 		var pic_div = document.getElementById("gallery");
 		pic_div.appendChild(a);
@@ -69,5 +67,4 @@ $(function () {
       }
     }
   });
-
 });
