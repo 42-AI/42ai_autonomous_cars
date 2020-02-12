@@ -3,6 +3,7 @@ from labels.models import Photo
 import json
 import sys
 import os
+from datetime import datetime
 
 class LabelsConsumer(WebsocketConsumer):
     def connect(self):
@@ -37,34 +38,21 @@ class LabelsConsumer(WebsocketConsumer):
         elif delete == 'true':
             self.delete(img, img_name, err)
         else:
-            self.send(text_data=json.dumps({'full_label': self.data[img_name], 
-                                            'count': None, 
-                                            'err': err}))
+            self.send(text_data=json.dumps({'full_label': self.data[img_name], 'err': err}))
     
     def retag(self, img, img_name, label, err):
         # edit tag
+        label["label"]["created_by"] = self.user.username
+        label["label"]["created_on_date"] = datetime.now().strftime("%Y%m%dT%H-%M-%S%f")[:-2]
+        label["dataset"] = []
         self.data[img_name] = label
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)
-        self.send(text_data=json.dumps({'full_label': self.data[img_name], 
-                                        'count': None, 
-                                        'err': err}))
+        self.send(text_data=json.dumps({'full_label': self.data[img_name], 'err': err}))
 
     def delete(self, img, img_name, err):
         # remove tag
         self.data[img_name]["to_delete"] = True
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)
-        photos_list = []
-        elem_list = Photo.objects.filter(owner=self.user, file=img)
-        for elem in elem_list:
-            elem.delete()
-            try:
-                os.remove(elem.file.name)
-            except Exception as e:
-                err = str(e)
-                print(err)
-            photos_list = Photo.objects.filter(owner=self.user)
-        self.send(text_data=json.dumps({'full_label': None, 
-                                        'count': len(photos_list), 
-                                        'err': err}))
+        self.send(text_data=json.dumps({'full_label': None, 'err': err}))

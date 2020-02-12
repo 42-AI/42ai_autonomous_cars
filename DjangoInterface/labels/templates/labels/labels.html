@@ -20,21 +20,13 @@
 {# PHOTOS PAGE SCRIPTS #}
 <script type="text/javascript" src="http://stuk.github.io/jszip/dist/jszip.min.js"></script>
 <script type="text/javascript" src="http://stuk.github.io/jszip/vendor/FileSaver.js"></script>
-{# CROPPER #}
-<script src="{% static 'scripts/jquery.Jcrop.min.js' %}"></script>
-<link rel="stylesheet" href="{% static 'scripts/jquery.Jcrop.css' %}" type="text/css" />
+
 
 <div id="h_commands">
 	{# BUTTON TO TRIGGER THE ACTION #}
 	<button type="button" class="btn btn-primary js-upload-photos" style="margin: 10px 10px 10px 10px;">
-		<span class="glyphicon glyphicon-cloud-upload"></span> Upload photos
+		<span class="glyphicon glyphicon-cloud-upload"></span> Load photos
 	</button>
-	<div id="h_commands">
-		<h4 style="margin : 10px; color: black;">W : </h4>
-		<input id="W_inp" type="text" style="text-align: center;" disabled></input>
-		<h4 style="margin : 10px; color: black;">H : </h4>
-		<input id="H_inp" type="text" style="text-align: center;" disabled></input>
-	</div>
 </div>
 
 {# DISPLAY THE UPLOAD PROGRESS #}
@@ -89,8 +81,6 @@
 				</label>
 			<p>Speed</p>
 		</div>
-		<button onclick="zoom()"><img id="zoom_pic" src="{% static 'img/zoom-out.png' %}" alt="zoom-out"></button>
-		<button id="crop_but" onclick="crop_all()"><img id="crop_pic" src="{% static 'img/crop-nok.png' %}" alt="Crop"></button>
 	</div>
 </div>
 <div id=label_prev_div>
@@ -128,7 +118,7 @@
 		}
 		if (full_label) 
 		{
-			var label = JSON.stringify(full_label, null, 2);
+			var label = JSON.stringify(full_label, null, 4);
 			document.getElementById("label_prev").innerHTML = label;
 			document.getElementById("label_prev").rows = label.split(/\r\n|\r|\n/).length;
 		}
@@ -174,45 +164,11 @@
 		img.alt = alt;
 		img.id = "image_elem";
 		
-		document.getElementById("W_inp").value = img.width;
-		document.getElementById("H_inp").value = img.height;
-		
 		el.appendChild(img);
 
-		if (document.getElementById("zoom_pic").alt == "zoom-in")
-		{
-			if (img.width > W || img.height > H)
-			{
-				img.width = W;
-				img.height = H;
-				size_changed = 2;
-			}
-			
-			jQuery(function($) {
-				$(img).Jcrop(
-					{
-						setSelect:   [ 0, 0, W, H ],
-						onSelect: crop,
-						onChange: crop
-					}
-				);
-			});
-			document.getElementById('W_inp').disabled = false;
-			document.getElementById('H_inp').disabled = false;
-			$('#W_inp').on('input', function() { 
-				size_changed = 1;
-			});
-			$('#H_inp').on('input', function() { 
-				size_changed = 1;
-			});
-		}
-		else
-		{
-			img.width = W;
-			img.height = H;
-			document.getElementById("W_inp").disabled = true;
-			document.getElementById("H_inp").disabled = true;
-		}
+		img.width = W;
+		img.height = H;
+
 		var j = 0;
 		var img_list = document.getElementById('gallery').querySelectorAll('a');
 		while (img_list[j] && img_list[j].selected == false)
@@ -363,67 +319,6 @@
 		}
 	}
 
-	var cropping = null;
-	function crop(c)
-	{
-		delete c.w;
-		delete c.h;
-		cropping = c;
-	};
-	
-	function crop_all()
-	{
-		if (document.getElementById("pic_div").innerHTML != "" && document.getElementById("zoom_pic").alt == "zoom-in")
-		{
-			if (size_changed > 0)
-			{
-				if (size_changed == 2)
-				{
-					message = "Image is too large, \n";
-				}
-				else
-				{
-					message = "";
-				}
-				if (window.confirm(message + "Resize all pictures with selected size ?"))
-				{
-					post_to_url('resize/' + String(Math.floor(document.getElementById("W_inp").value)) + "_" + String(Math.floor(document.getElementById("H_inp").value)));
-				}
-			}
-			else if (cropping != null && window.confirm("Crop all pictures with selected borders ?"))
-			{
-				post_to_url('crop/' + JSON.stringify(cropping));
-			}
-			else
-			{
-				window.alert("No Data to Crop/Resize...");
-			}
-		}
-	}
-	
-	function zoom()
-	{
-		if (document.getElementById("pic_div").innerHTML != "")
-		{
-			if (document.getElementById("zoom_pic").alt == "zoom-in")
-			{
-				document.getElementById("zoom_pic").src = "{% static 'img/zoom-out.png' %}";
-				document.getElementById("zoom_pic").alt = "zoom-out";
-				show_pic(document.getElementById("image_elem").src, document.getElementById("image_elem").alt);
-				document.getElementById("crop_pic").src = "{% static 'img/crop-nok.png' %}";
-				document.getElementById("crop_but").disabled = true;
-			}
-			else
-			{
-				document.getElementById("zoom_pic").src = "{% static 'img/zoom-in.png' %}";
-				document.getElementById("zoom_pic").alt = "zoom-in";
-				show_pic(document.getElementById("image_elem").src, document.getElementById("image_elem").alt);
-				document.getElementById("crop_pic").src = "{% static 'img/crop.png' %}";
-				document.getElementById("crop_but").disabled = false;
-			}
-		}
-	}
-
 	function retag(label, label_kind, img)
 	{
 		var full_label = JSON.parse(document.getElementById("label_prev").innerHTML);
@@ -475,7 +370,7 @@
 		
 		if (sel == true)
 		{
-			if (confirm("Remove selected picture ?")) {
+			if (confirm("Remove selected picture ?\n(Picture WILL be removed)")) {
 				for (i = 0; i < img_list.length; ++i) 
 				{
 					if (img_list[i].selected==true)
@@ -485,24 +380,16 @@
 							'label': "null",
 							'delete': 'true'
 							}));
-						img_list[i].parentNode.removeChild(img_list[i]);
-						document.getElementById('pic_div').innerHTML = "";
-						document.getElementById('cur').innerHTML = "";
+						// TODO add sign on pictures to delete
+						// TODO undelete
 						break;
 					}
-				}
-				i++;
-				if (img_list[i])
-				{
-					img_list[i].selected = true;
-					img_list[i].style.outline="4px solid red";
-					show_pic(img_list[i].firstChild.src, img_list[i].firstChild.alt);
 				}
 			}
 		}
 		else
 		{
-			if (confirm("Remove all pictures ?")) {
+			if (confirm("Clear all pictures ?\n(Pictures will NOT be removed)")) {
 				for (i = 0; i < img_list.length; ++i) 
 				{
 					img_list[i].parentNode.removeChild(img_list[i]);
@@ -546,6 +433,7 @@
 	
 	function save() 
 	{
+		// TODO dont save images but only json
 		var i = 0;
 		var img_list = document.getElementById('gallery').querySelectorAll('img');
 		
