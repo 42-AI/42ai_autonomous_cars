@@ -148,6 +148,16 @@ body
 	width: 100%;
 }
 
+.thumb {
+	position: relative;
+}
+
+.to_delete {
+	position: absolute;
+    top: 0;
+    left: 0;
+}
+
 @media only screen and (max-width: 768px) {
 	body
 	{
@@ -204,5 +214,19 @@ body
 			border-color: black;
 	}
 	
-
+	#label_prev_div { 
+		padding: 5%;
+	}
+	
+	#label_prev {
+		width: 100%;
+	}
+	
+	.thumb {
+		display: grid;
+	}
+	
+	.to_delete {
+		position: absolute;
+	}
 }

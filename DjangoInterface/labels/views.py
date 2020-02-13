@@ -20,6 +20,7 @@ class uploadView(View):
         form = PhotoForm(self.request.POST, self.request.FILES)
         if form.is_valid():
             photo = form.save(commit=False)
+            photo.title = photo.file.name.split(".")[0]
             photo.owner = self.request.user
             photo.file.name = photo.owner.username + '/' + photo.file.name
             photo.save()

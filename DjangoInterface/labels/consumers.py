@@ -10,8 +10,9 @@ class LabelsConsumer(WebsocketConsumer):
         self.accept()
         self.user = self.scope["user"]
         # load or create data dict
-        self.data = {}
         self.data_path = os.path.join("media", self.user.username, "labels.json")
+        self.data = {}
+        
         
     def disconnect(self, close_code):
         pass
@@ -51,8 +52,10 @@ class LabelsConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({'full_label': self.data[img_name], 'err': err}))
 
     def delete(self, img, img_name, err):
-        # remove tag
-        self.data[img_name]["to_delete"] = True
+        photo = Photo.objects.get(owner=self.user, title=img_name)
+        photo.to_delete = not photo.to_delete
+        self.data[img_name]["to_delete"] = photo.to_delete
+        photo.save()
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)
-        self.send(text_data=json.dumps({'full_label': None, 'err': err}))
+        self.send(text_data=json.dumps({'full_label': self.data[img_name], 'err': err}))
