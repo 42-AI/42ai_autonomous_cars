@@ -46,6 +46,7 @@ class LabelsConsumer(WebsocketConsumer):
         label["label"]["created_by"] = self.user.username
         label["label"]["created_on_date"] = datetime.now().strftime("%Y%m%dT%H-%M-%S%f")[:-2]
         label["dataset"] = []
+
         self.data[img_name] = label
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)

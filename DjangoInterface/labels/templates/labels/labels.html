@@ -62,7 +62,9 @@
 				{% endif %}
 			{% endfor %}
 	</div>	
-	<div id="pic_div"></div>
+	<div id="pic_div">
+		<p id="pic_p"></p>
+	</div>
 </div>
 
 <div id="count_div"><h1 id="cur" style="color: black;"></h1><h1 id="count_h1" style="color: black;">{{ photos|length }} pics</h1></div>
@@ -124,6 +126,14 @@
 			document.getElementById("label_prev").innerHTML = label;
 			document.getElementById("label_prev").rows = label.split(/\r\n|\r|\n/).length;
 
+			if ("label" in cur_label){
+				var pic_p = document.createElement("p");
+				pic_p.id = "pic_p";
+				document.getElementById("pic_div").appendChild(pic_p);
+				pic_p.innerHTML = "Speed : " + cur_label.label.label_speed.toString() +
+							" ; Direction : " + cur_label.label.label_direction.toString();
+		
+			}
 		}
 	}
 
@@ -152,7 +162,7 @@
 				'img': alt,
 				'label': 'null',
 				'delete': 'false'
-			}));
+		}));
 
 		size_changed = 0;
 		var el = document.getElementById('pic_div');
@@ -406,6 +416,7 @@
 							img_list[i].appendChild(to_delete_tag);
 						}
 						break;
+						document.getElementById("pic_div").innerHTML = "";
 					}
 				}
 			}
@@ -419,6 +430,7 @@
 					document.getElementById('pic_div').innerHTML = "";
 				}
 				post_to_url('/labels/delete_all')
+				document.getElementById("pic_div").innerHTML = "";
 			}
 		}
 	}
