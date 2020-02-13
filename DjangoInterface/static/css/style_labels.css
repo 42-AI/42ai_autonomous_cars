@@ -3,6 +3,10 @@ body
 	    background-color: #2e3842;
 }
 
+p {
+		font-size: xx-large;
+}
+
 #content_div {
 		height: 100%;
 		display: flex;
@@ -120,11 +124,11 @@ body
 
 #pic_p {
 		position: absolute;
-		left: 45%;
+		left: 20%;
 		bottom: 0;
 		z-index: 42;
 		color: red;
-	}
+}
 
 #gallery {
 		display: flex;
@@ -163,6 +167,10 @@ body
 	{
 			background-color: #2e3842;
 	}
+
+	p {
+			font-size: xx-large;
+	}
 	
 	#content_div {
 			height: 100%;
@@ -199,6 +207,14 @@ body
 			background-color: silver;
 	}
 
+	#pic_p {
+			position: absolute;
+			left: 20%;
+			bottom: 0;
+			z-index: 42;
+			color: red;
+}
+
 	#gallery {
 			width:100%;
 			display: flex;
@@ -223,10 +239,12 @@ body
 	}
 	
 	.thumb {
-		display: grid;
+		position: relative;
 	}
 	
 	.to_delete {
 		position: absolute;
+		top: 0;
+		left: 0;
 	}
 }
