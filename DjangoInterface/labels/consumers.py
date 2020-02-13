@@ -39,7 +39,7 @@ class LabelsConsumer(WebsocketConsumer):
         elif delete == 'true':
             self.delete(img, img_name, err)
         else:
-            self.send(text_data=json.dumps({'full_label': self.data[img_name], 'err': err}))
+            self.send(text_data=json.dumps({'full_label': self.data[img_name], 'data_path': self.data_path, 'err': err}))
     
     def retag(self, img, img_name, label, err):
         # edit tag
@@ -50,7 +50,7 @@ class LabelsConsumer(WebsocketConsumer):
         self.data[img_name] = label
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)
-        self.send(text_data=json.dumps({'full_label': self.data[img_name], 'err': err}))
+        self.send(text_data=json.dumps({'full_label': self.data[img_name], 'data_path': self.data_path, 'err': err}))
 
     def delete(self, img, img_name, err):
         photo = Photo.objects.get(owner=self.user, title=img_name)
@@ -59,4 +59,4 @@ class LabelsConsumer(WebsocketConsumer):
         photo.save()
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)
-        self.send(text_data=json.dumps({'full_label': self.data[img_name], 'err': err}))
+        self.send(text_data=json.dumps({'full_label': self.data[img_name], 'data_path': self.data_path, 'err': err}))
