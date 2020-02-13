@@ -176,6 +176,10 @@
 			document.getElementById("label_prev").rows = label.split(/\r\n|\r|\n/).length;
 
 			if ("label" in cur_label){
+				if (document.contains(document.getElementById("pic_p")))
+				{
+					document.getElementById("pic_p").remove();
+				}
 				var pic_p = document.createElement("p");
 				pic_p.id = "pic_p";
 				document.getElementById("pic_div").appendChild(pic_p);
@@ -383,36 +387,39 @@
 
 	function retag(label, label_kind, img)
 	{
-		var full_label = JSON.parse(document.getElementById("label_prev").innerHTML);
-		if (label_kind == "dir")
+		if (document.getElementById("label_prev").innerHTML.length > 2)
 		{
-			full_label["label"]["label_direction"] = label;
-		}
-		else
-		{
-			full_label["label"]["label_speed"] = label;
-		}
+			var full_label = JSON.parse(document.getElementById("label_prev").innerHTML);
+			if (label_kind == "dir")
+			{
+				full_label["label"]["label_direction"] = label;
+			}
+			else
+			{
+				full_label["label"]["label_speed"] = label;
+			}
 
-		labelsSocket.send(JSON.stringify({
-				'img': img,
-				'label': full_label,
-				'delete': 'false'
-			}));
-		
-		var  j = 0;
-		var img_list = document.getElementById('gallery').querySelectorAll('a');
-		while (img_list[j] && img_list[j].firstChild.alt != img)
-		{
+			labelsSocket.send(JSON.stringify({
+					'img': img,
+					'label': full_label,
+					'delete': 'false'
+				}));
+			
+			var  j = 0;
+			var img_list = document.getElementById('gallery').querySelectorAll('a');
+			while (img_list[j] && img_list[j].firstChild.alt != img)
+			{
+				j++;
+			}
+			img_list[j].style.outline="";
+			img_list[j].selected=false;
 			j++;
-		}
-		img_list[j].style.outline="";
-		img_list[j].selected=false;
-		j++;
-		if (j < img_list.length)
-		{
-			img_list[j].style.outline="4px solid red";
-			img_list[j].selected=true;
-			show_pic(img_list[j].firstChild.src, img_list[j].firstChild.alt);
+			if (j < img_list.length)
+			{
+				img_list[j].style.outline="4px solid red";
+				img_list[j].selected=true;
+				show_pic(img_list[j].firstChild.src, img_list[j].firstChild.alt);
+			}
 		}
 	}
 	

@@ -5,6 +5,8 @@ import sys
 import os
 from datetime import datetime
 
+from get_data.src import utils_fct
+
 class LabelsConsumer(WebsocketConsumer):
     def connect(self):
         self.accept()
@@ -46,7 +48,7 @@ class LabelsConsumer(WebsocketConsumer):
         label["label"]["created_by"] = self.user.username
         label["label"]["created_on_date"] = datetime.now().strftime("%Y%m%dT%H-%M-%S%f")[:-2]
         label["dataset"] = []
-
+        label["label_fingerprint"] = utils_fct.get_label_finger_print(label)
         self.data[img_name] = label
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)

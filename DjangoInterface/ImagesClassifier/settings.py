@@ -11,9 +11,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
-import os
+import os, sys
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PARENT_DIR = os.path.dirname(BASE_DIR)
+sys.path.append(PARENT_DIR)
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
