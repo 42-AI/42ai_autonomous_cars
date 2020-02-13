@@ -3,10 +3,10 @@ $(function () {
   $(".js-upload-photos").click(function () {
     $("#fileupload").click();
   });
-  
+ 
   /* 2. INITIALIZE THE FILE UPLOAD COMPONENT */
   $("#fileupload").fileupload({
-    dataType: 'json',
+	dataType: 'json',
 	/* PROGRESSBAR */
     start: function (e) {  /* 2. WHEN THE UPLOADING PROCESS STARTS, SHOW THE MODAL */
       $("#modal-progress").modal("show");
@@ -23,7 +23,10 @@ $(function () {
     done: function (e, data) {  /* 3. PROCESS THE RESPONSE FROM THE SERVER */
       if (data.result.is_valid) {
 		var a = document.createElement('a');
+		a.className = "thumb";
 		a.setAttribute("onclick", "show_pic('" + data.result.url + "', '" + data.result.name + "')");
+
+		
 		
 		var img = document.createElement('IMG');
 		img.src = data.result.url;

@@ -48,7 +48,7 @@
 <div id="content_div">	
 	<div id="gallery">
 		{# FILE INPUT TO BE USED BY THE PLUG-IN #}
-		<input id="fileupload" type="file" accept=".jpeg,.jpg,.png,.json" name="file" multiple
+		<input id="fileupload" type="file" accept=".png, .jpeg, .jpg, .json" name="file" multiple
 			   style="display: none;"
 			   data-url="{% url 'labels' %}"
 			   data-form-data='{"csrfmiddlewaretoken": "{{ csrf_token }}"}'>
@@ -56,9 +56,9 @@
 		{# DISPLAY THE UPLOADED PHOTOS #}
 			{% for photo in photos %}
 				{% if photo.file.name == sel %}
-					<a style="outline: 4px solid red;" onclick="show_pic('{{ photo.file.url }}', '{{ photo.file.name }}');"><img src={{ photo.file.url }} alt={{ photo.file.name }} width="160" height="120"></a></td>
+					<a class="thumb" style="outline: 4px solid red;" onclick="show_pic('{{ photo.file.url }}', '{{ photo.file.name }}');"><img src={{ photo.file.url }} alt={{ photo.file.name }} width="160" height="120"> {% if photo.to_delete %} <img src="{% static 'img/to_delete.png' %}" alt="to_delete" class="to_delete"> {% endif %}</a></td>
 				{% else %}
-					<a onclick="show_pic('{{ photo.file.url }}', '{{ photo.file.name }}');"><img src={{ photo.file.url }} alt={{ photo.file.name }} width="160" height="120"></a></td>
+					<a class="thumb" onclick="show_pic('{{ photo.file.url }}', '{{ photo.file.name }}');"><img src={{ photo.file.url }} alt={{ photo.file.name }} width="160" height="120"> {% if photo.to_delete %} <img src="{% static 'img/to_delete.png' %}" alt="to_delete" class="to_delete"> {% endif %}</a></td>
 				{% endif %}
 			{% endfor %}
 	</div>	
@@ -103,6 +103,7 @@
 		console.error('Labels socket closed unexpectedly');
 	};
 	
+	var cur_label = None;
 	labelsSocket.onmessage = function(e) {
 		var data = JSON.parse(e.data);
 		var err = data['err'];
@@ -118,9 +119,11 @@
 		}
 		if (full_label) 
 		{
+			cur_label = full_label;
 			var label = JSON.stringify(full_label, null, 4);
 			document.getElementById("label_prev").innerHTML = label;
 			document.getElementById("label_prev").rows = label.split(/\r\n|\r|\n/).length;
+
 		}
 	}
 
@@ -376,12 +379,32 @@
 					if (img_list[i].selected==true)
 					{
 						labelsSocket.send(JSON.stringify({
-							'img': img_list[i].firstChild.alt,
+							'img': img_list[i].querySelector("img:not([class])").alt,
 							'label': "null",
 							'delete': 'true'
 							}));
-						// TODO add sign on pictures to delete
-						// TODO undelete
+						// add/remove sign on pictures to delete
+						if ("to_delete" in cur_label && cur_label.to_delete == true)
+						{
+							var todel = document.getElementsByClassName('to_delete');
+
+							for (j = 0; j < todel.length; ++j)
+							{
+								if (todel[j].parentElement == img_list[i])
+								{
+									todel[j].parentNode.removeChild(todel[j]);
+									break;
+								}
+							}
+						}
+						else
+						{
+							var to_delete_tag = document.createElement("img");
+							to_delete_tag.src = "{% static 'img/to_delete.png' %}";
+							to_delete_tag.alt = "to_delete";
+							to_delete_tag.className = "to_delete";
+							img_list[i].appendChild(to_delete_tag);
+						}
 						break;
 					}
 				}
