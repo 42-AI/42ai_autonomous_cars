@@ -29,19 +29,24 @@ class LabelsConsumer(WebsocketConsumer):
         self.get_labels()
         text_data_json = json.loads(text_data)
         img = text_data_json['img']
-        img_name = img.split("/")[-1].split(".")[0]
-        if img_name not in self.data:
-            self.data[img_name] = {}
+        if img != 'null':
+            img_name = img.split("/")[-1].split(".")[0]
+            if img_name not in self.data:
+                self.data[img_name] = {}
         label = text_data_json['label']
         delete = text_data_json['delete']
         #retag
-        if label != 'null':
+        if img != 'null' and label != 'null':
             self.retag(img, img_name, label, err)
         #delete
-        elif delete == 'true':
+        elif img != 'null' and delete == 'true':
             self.delete(img, img_name, err)
         else:
-            self.send(text_data=json.dumps({'full_label': self.data[img_name], 'data_path': self.data_path, 'err': err}))
+            if img == 'null':
+                full_label = 'null'
+            else:
+                full_label = self.data[img_name]
+            self.send(text_data=json.dumps({'full_label': full_label, 'data_path': self.data_path, 'err': err}))
     
     def retag(self, img, img_name, label, err):
         # edit tag

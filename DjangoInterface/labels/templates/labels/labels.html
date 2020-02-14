@@ -116,6 +116,8 @@
 
 <script>
 
+	var None = null;
+
 	// Get the modal
 	var modal = document.getElementById("help_modal");
 
@@ -168,7 +170,7 @@
 		{
 			window.alert(err);
 		}
-		if (full_label) 
+		if (full_label != 'null') 
 		{
 			cur_label = full_label;
 			var label = JSON.stringify(full_label, null, 4);
@@ -190,7 +192,13 @@
 		}
 	}
 
-	var None = null;
+	labelsSocket.onopen = function(e) {
+		labelsSocket.send(JSON.stringify({
+				'img': 'null',
+				'label': 'null',
+				'delete': 'false'
+		}));
+	}
 	
 	//Set Sizes
 	var H = window.innerHeight / 2;
@@ -403,7 +411,7 @@
 					'img': img,
 					'label': full_label,
 					'delete': 'false'
-				}));
+			}));
 			
 			var  j = 0;
 			var img_list = document.getElementById('gallery').querySelectorAll('a');
@@ -439,19 +447,19 @@
 		
 		if (sel == true)
 		{
-			if (confirm("Remove selected picture ?\n(Picture WILL be removed from ES storage)")) {
-				for (i = 0; i < img_list.length; ++i) 
+			for (i = 0; i < img_list.length; ++i) 
+			{
+				if (img_list[i].selected==true)
 				{
-					if (img_list[i].selected==true)
+					// add/remove sign on pictures to delete
+					if ("to_delete" in cur_label && cur_label.to_delete == true)
 					{
-						labelsSocket.send(JSON.stringify({
-							'img': img_list[i].querySelector("img:not([class])").alt,
-							'label': "null",
-							'delete': 'true'
+						if (confirm("Restore selected picture ?\n(Picture will NOT be removed from ES storage)")) {
+							labelsSocket.send(JSON.stringify({
+								'img': img_list[i].querySelector("img:not([class])").alt,
+								'label': "null",
+								'delete': 'true'
 							}));
-						// add/remove sign on pictures to delete
-						if ("to_delete" in cur_label && cur_label.to_delete == true)
-						{
 							var todel = document.getElementsByClassName('to_delete');
 
 							for (j = 0; j < todel.length; ++j)
@@ -463,17 +471,24 @@
 								}
 							}
 						}
-						else
-						{
+					}
+					else
+					{
+						if (confirm("Remove selected picture ?\n(Picture WILL be removed from ES storage)")) {
+							labelsSocket.send(JSON.stringify({
+								'img': img_list[i].querySelector("img:not([class])").alt,
+								'label': "null",
+								'delete': 'true'
+							}));
 							var to_delete_tag = document.createElement("img");
 							to_delete_tag.src = "{% static 'img/to_delete.png' %}";
 							to_delete_tag.alt = "to_delete";
 							to_delete_tag.className = "to_delete";
 							img_list[i].appendChild(to_delete_tag);
 						}
-						break;
-						document.getElementById("pic_div").innerHTML = "";
 					}
+					break;
+					document.getElementById("pic_div").innerHTML = "";
 				}
 			}
 		}
@@ -510,21 +525,28 @@
 		form.submit('/labels/');
 	}
 	
-	function urlToPromise(url) {
-	return new Promise(function(resolve, reject) {
-		JSZipUtils.getBinaryContent(url, function (err, data) {
-			if(err) {
-				reject(err);
-			} else {
-				resolve(data);
-			}
-		});
-	});
+	// Download a file form a url.
+	function saveFile(url) {
+	// Get file name from url.
+		var filename = url.substring(url.lastIndexOf("/") + 1).split("?")[0];
+		var xhr = new XMLHttpRequest();
+		xhr.responseType = 'blob';
+		xhr.onload = function() {
+			var a = document.createElement('a');
+			a.href = window.URL.createObjectURL(xhr.response); // xhr.response is a blob
+			a.download = filename; // Set the file name.
+			a.style.display = 'none';
+			document.body.appendChild(a);
+			a.click();
+			delete a;
+		};
+		xhr.open('GET', url);
+		xhr.send();
 	}
-	
-	function save() 
+
+	function save()
 	{
-		download(data_path, "labels.json", "text/plain");
+		saveFile(window.location.origin + "/" + data_path);
 	}
 	
 </script>
