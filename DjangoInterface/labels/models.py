@@ -6,5 +6,6 @@ class Photo(models.Model):
     owner = models.ForeignKey(User, related_name='photos', on_delete=models.CASCADE)
     file = models.FileField(upload_to='media/')
     to_delete = models.BooleanField(default=False)
+    edited = models.BooleanField(default=False)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     

@@ -26,8 +26,6 @@ $(function () {
 		a.className = "thumb";
 		a.setAttribute("onclick", "show_pic('" + data.result.url + "', '" + data.result.name + "')");
 
-		
-		
 		var img = document.createElement('IMG');
 		img.src = data.result.url;
 		img.alt = data.result.name;
@@ -67,7 +65,11 @@ $(function () {
 		var img_list = document.getElementById('gallery').querySelectorAll('a');
 		var count_h1 = document.getElementById("count_h1");
 		count_h1.innerHTML = img_list.length.toString() + " pics";
-      }
+	  }
+	  if (data.result.refresh) 
+	  {
+		location.reload();
+	  }
     }
   });
 });
