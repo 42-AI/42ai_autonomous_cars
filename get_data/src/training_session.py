@@ -18,14 +18,14 @@ from get_data.src import xbox
 from get_data.src import label_handler
 from conf.const import HEAD_DOWN, STOP_SPEED, MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, STOP_SPEED_LABEL
 from utils import car_mapping as cm
-from utils import InitCam
+from utils.InitCam import InitCam
 from get_data.src import utils_fct
 
 
 class TrainingSession:
     def __init__(self, delay, output_dir, pwm_freq=50):
         # Setup Camera
-        self = InitCam()
+        self.camera, self.rawCapture = InitCam()
 
         self.delay = float(delay)
         self.label = [-1, 2]
