@@ -1,6 +1,6 @@
 {
-    "event": "event_name",
-    "track": "",
+    "event": "test_speed",
+    "track": "square_track",
     "track_picture": "",
     "track_type": "single lane",
     "dataset": [
@@ -10,5 +10,5 @@
             "query": null
         }
     ],
-    "comment": "this is for test"
+    "comment": " "
 }

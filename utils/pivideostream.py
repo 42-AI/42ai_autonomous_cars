@@ -9,14 +9,14 @@ from PIL import Image
 from threading import Thread
 
 from conf.path import HARDWARE_TEST_IMAGES_DIRECTORY
-from utils import InitCam
+from utils.InitCam import InitCam
 
 
 
 class PiVideoStream:
     def __init__(self):
         # initialize the camera and stream
-        self = InitCam()
+        self.camera, self.rawCapture = InitCam()
         self.stream = self.camera.capture_continuous(self.rawCapture,
                                                      format="rgb", use_video_port=True)
 
