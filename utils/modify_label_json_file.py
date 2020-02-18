@@ -51,16 +51,20 @@ def substitute_matching_char():
         json.dump(l_label, fp, indent=4)
 
 
-def custom_change_field(json_file):
-    with Path(json_file).open(mode='r', encoding='utf-8') as fp:
+def custom_change_field():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", type=str, help="Path to the json file to be modified")
+    args = parser.parse_args()
+    with Path(args.file).open(mode='r', encoding='utf-8') as fp:
         d_label = json.load(fp)
     for img_id, label in d_label.items():
-        label["label_fingerprint"] = utils_fct.get_label_finger_print(label)
-    with Path(json_file).open(mode='w', encoding='utf-8') as fp:
+        # label["label_fingerprint"] = utils_fct.get_label_finger_print(label)
+        label["location"] = "../Pics/NewPull"
+    with Path(args.file).open(mode='w', encoding='utf-8') as fp:
         json.dump(d_label, fp, indent=4)
 
 
 if __name__ == "__main__":
     # substitute_matching_char()
-    custom_change_field("../test/resources/labels_block_delete.json")
+    custom_change_field()
     pass

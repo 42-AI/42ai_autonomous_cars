@@ -1,11 +1,9 @@
 from datetime import datetime
 import argparse
+from pathlib import Path
 
 import sys
-import os
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.dirname(CURRENT_DIR)
-sys.path.append(PARENT_DIR)
+sys.path.append(Path(__file__).absolute().parents[1])
 
 from get_data.src import es_utils
 from conf.cluster_conf import ES_HOST_IP, ES_HOST_PORT, ES_INDEX
