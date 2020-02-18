@@ -8,7 +8,7 @@ from get_data.src import s3_utils
 
 def get_label_file_name(label_file):
     """Generate a unique label file name based on now timestamp."""
-    return Path(label_file).parent / f'{label_file.stem}_{datetime.now().strftime("%Y%m%dT%H-%M-%f")}{label_file.suffix}'
+    return Path(label_file).parent / f'{label_file.stem}_{datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")}{label_file.suffix}'
 
 
 def get_label_dict_from_file(file):
