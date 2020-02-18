@@ -7,10 +7,19 @@ from picamera import PiCamera
 # noinspection PyUnresolvedReferences
 from PIL import Image
 from threading import Thread
-
 from conf.path import HARDWARE_TEST_IMAGES_DIRECTORY
-from utils.InitCam import InitCam
+from conf.const import IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE
 
+
+#initialize the camera
+def InitCam():
+    camera = PiCamera()
+    camera.resolution = IMAGE_SIZE
+    camera.framerate = FRAME_RATE
+    camera.exposure_mode = EXPOSURE_MODE
+    rawCapture = PiRGBArray(camera, size=IMAGE_SIZE)
+    time.sleep(2)
+    return camera, rawCapture
 
 
 class PiVideoStream:

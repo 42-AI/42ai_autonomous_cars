@@ -18,7 +18,7 @@ from get_data.src import xbox
 from get_data.src import label_handler
 from conf.const import HEAD_DOWN, STOP_SPEED, MAX_DIRECTION_LEFT, MAX_DIRECTION_RIGHT, STOP_SPEED_LABEL
 from utils import car_mapping as cm
-from utils.InitCam import InitCam
+from utils.pivideostream import InitCam
 from get_data.src import utils_fct
 
 
