@@ -152,12 +152,21 @@ p {
 
 #pic_div {
 		position: relative;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-content: center;
-		align-items: center;
 		background-color: silver;
+}
+
+.grid {
+	position: absolute;
+	left: 0;
+	top: 0;
+    border: 1px solid red;
+    border-width: 1px 0 0 1px;
+}
+
+.grid div {
+    border: 1px solid red;
+    border-width: 0 1px 1px 0;
+    float: left;
 }
 
 #pic_p {
@@ -193,7 +202,7 @@ p {
 	position: relative;
 }
 
-.to_delete {
+.watermark {
 	position: absolute;
     top: 0;
     left: 0;
@@ -282,6 +291,20 @@ p {
 			background-color: silver;
 	}
 
+	.grid {
+		position: absolute;
+		left: 0;
+		top: 0;
+		border: 1px solid red;
+		border-width: 1px 0 0 1px;
+	}
+	
+	.grid div {
+		border: 1px solid red;
+		border-width: 0 1px 1px 0;
+		float: left;
+	}
+
 	#pic_p {
 			position: absolute;
 			left: 20%;
@@ -316,7 +339,7 @@ p {
 		position: relative;
 	}
 	
-	.to_delete {
+	.watermark {
 		position: absolute;
 		top: 0;
 		left: 0;

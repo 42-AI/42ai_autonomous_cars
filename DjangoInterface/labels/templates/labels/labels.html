@@ -13,7 +13,7 @@
 <script src="{% static 'scripts/jquery.iframe-transport.js' %}"></script>
 <script src="{% static 'scripts/jquery.fileupload.js' %}"></script>
 <script src="{% static 'scripts/upload_images.js' %}"></script>
-<script src="{% static 'scripts/download.js' %}"></script>
+
 {# BOOTSTRAP FILE UPLOAD SCRIPTS #}
 <script src="{% static 'scripts/bootstrap.min.js' %}"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -43,7 +43,8 @@
 			
 			3 - Select label to edit with CTRL<br /><br />
 			
-			4 - Press any key to labelize and pass to the next image<br /><br />
+			4 - Press any key to labelize and pass to the next image<br />
+				Or just press ENTER to validate current label<br /><br />
 
 			5 - Delete specific images from dataset (and ES storage) by selecting it and pressing the trash button<img src="{% static 'img/del.png' %}" alt="save"><br />
 				To only clean the interface (without modifying th ES storage) dont select any picture (or unselect) and press the trash button<br /><br />
@@ -80,10 +81,8 @@
 		{# Do NOT REFACTOR THESE LINES !! #}
 		{# DISPLAY THE UPLOADED PHOTOS #}
 			{% for photo in photos %}
-				{% if photo.file.name == sel %}
-					<a class="thumb" style="outline: 4px solid red;" onclick="show_pic('{{ photo.file.url }}', '{{ photo.file.name }}');"><img src={{ photo.file.url }} alt={{ photo.file.name }} width="160" height="120"> {% if photo.to_delete %} <img src="{% static 'img/to_delete.png' %}" alt="to_delete" class="to_delete"> {% endif %}</a></td>
-				{% else %}
-					<a class="thumb" onclick="show_pic('{{ photo.file.url }}', '{{ photo.file.name }}');"><img src={{ photo.file.url }} alt={{ photo.file.name }} width="160" height="120"> {% if photo.to_delete %} <img src="{% static 'img/to_delete.png' %}" alt="to_delete" class="to_delete"> {% endif %}</a></td>
+				{% if ".json" not in photo.file.name %}
+					<a class="thumb" {% if photo.file.name == sel %} style="outline: 4px solid red;" {% endif %} onclick="show_pic('{{ photo.file.url }}', '{{ photo.file.name }}');"><img src={{ photo.file.url }} alt={{ photo.file.name }} width="160" height="120"> {% if photo.edited %} <img src="{% static 'img/check.png' %}" alt="edited" class="edited watermark"> {% endif %} {% if photo.to_delete %} <img src="{% static 'img/to_delete.png' %}" alt="to_delete" class="to_delete watermark"> {% endif %}</a></td>
 				{% endif %}
 			{% endfor %}
 	</div>	
@@ -170,7 +169,7 @@
 		{
 			window.alert(err);
 		}
-		if (full_label != 'null') 
+		else if (full_label != 'null') 
 		{
 			cur_label = full_label;
 			var label = JSON.stringify(full_label, null, 4);
@@ -196,7 +195,7 @@
 		labelsSocket.send(JSON.stringify({
 				'img': 'null',
 				'label': 'null',
-				'delete': 'false'
+				'to_delete': 'false'
 		}));
 	}
 	
@@ -222,10 +221,9 @@
 		labelsSocket.send(JSON.stringify({
 				'img': alt,
 				'label': 'null',
-				'delete': 'false'
+				'to_delete': 'false'
 		}));
 
-		size_changed = 0;
 		var el = document.getElementById('pic_div');
 
 		if (el.childElementCount!=0)
@@ -233,15 +231,19 @@
 			el.innerHTML = "";
 		}
 		
-		var img = document.createElement("IMG");
-		img.src = url;
-		img.alt = alt;
-		img.id = "image_elem";
-		
-		el.appendChild(img);
+		if (!(alt.includes(".json"))) 
+		{
+			var img = document.createElement("IMG");
+			img.src = url;
+			img.alt = alt;
+			img.id = "image_elem";
+			img.width = W;
+			img.height = H;
 
-		img.width = W;
-		img.height = H;
+			el.appendChild(img);
+
+			createGrid(el, 3);
+		}
 
 		var j = 0;
 		var img_list = document.getElementById('gallery').querySelectorAll('a');
@@ -250,6 +252,26 @@
 			j++;
 		}
 		document.getElementById("cur").innerHTML = (j + 1).toString() + ' / ';
+	}
+
+	function createGrid(elem, size) {
+		var ratioW = Math.floor(W / size),
+			ratioH = Math.floor(H / size);
+
+		var parent = document.createElement('div');
+		parent.className = 'grid';
+		parent.style.width = W;
+		parent.style.height = H;
+
+		for (var i = 0; i < size; i++) {
+			for (var p = 0; p < size; p++) {
+				var cell = document.createElement('div');
+				cell.style.height = ratioH + 'px';
+				cell.style.width = ratioW + 'px';
+				parent.appendChild(cell);
+			}
+		}
+		elem.appendChild(parent);
 	}
 
 	//set Selection event
@@ -369,6 +391,10 @@
 				}
 				retag(e.key, label_kind, img_list[j].firstChild.alt);
 			}
+			else if (e.key == "Enter")
+			{
+				retag("null", "null", img_list[j].firstChild.alt);
+			}
 			else if (e.key == "Delete")
 			{
 				del();
@@ -398,35 +424,53 @@
 		if (document.getElementById("label_prev").innerHTML.length > 2)
 		{
 			var full_label = JSON.parse(document.getElementById("label_prev").innerHTML);
-			if (label_kind == "dir")
+			if (label != "null")
 			{
-				full_label["label"]["label_direction"] = label;
+				if (label_kind == "dir")
+				{
+					full_label["label"]["label_direction"] = label;
+				}
+				else
+				{
+					full_label["label"]["label_speed"] = label;
+				}
 			}
-			else
-			{
-				full_label["label"]["label_speed"] = label;
-			}
-
 			labelsSocket.send(JSON.stringify({
 					'img': img,
 					'label': full_label,
-					'delete': 'false'
+					'to_delete': 'false'
 			}));
-			
-			var  j = 0;
+		
+			var  i = 0;
 			var img_list = document.getElementById('gallery').querySelectorAll('a');
-			while (img_list[j] && img_list[j].firstChild.alt != img)
+			while (img_list[i] && img_list[i].firstChild.alt != img)
 			{
-				j++;
+				i++;
 			}
-			img_list[j].style.outline="";
-			img_list[j].selected=false;
-			j++;
-			if (j < img_list.length)
+			img_list[i].style.outline="";
+			img_list[i].selected=false;
+
+			var todel = document.getElementsByClassName('edited');
+			for (j = 0; j < todel.length; ++j)
 			{
-				img_list[j].style.outline="4px solid red";
-				img_list[j].selected=true;
-				show_pic(img_list[j].firstChild.src, img_list[j].firstChild.alt);
+				if (todel[j].parentElement == img_list[i])
+				{
+					todel[j].parentNode.removeChild(todel[j]);
+					break;
+				}
+			}
+			var edited_tag = document.createElement("img");
+			edited_tag.src = "{% static 'img/check.png' %}";
+			edited_tag.alt = "edited";
+			edited_tag.className = "edited watermark";
+			img_list[i].appendChild(edited_tag);
+
+			i++;
+			if (i < img_list.length)
+			{
+				img_list[i].style.outline="4px solid red";
+				img_list[i].selected=true;
+				show_pic(img_list[i].firstChild.src, img_list[i].firstChild.alt);
 			}
 		}
 	}
@@ -458,10 +502,9 @@
 							labelsSocket.send(JSON.stringify({
 								'img': img_list[i].querySelector("img:not([class])").alt,
 								'label': "null",
-								'delete': 'true'
+								'to_delete': 'true'
 							}));
 							var todel = document.getElementsByClassName('to_delete');
-
 							for (j = 0; j < todel.length; ++j)
 							{
 								if (todel[j].parentElement == img_list[i])
@@ -478,12 +521,12 @@
 							labelsSocket.send(JSON.stringify({
 								'img': img_list[i].querySelector("img:not([class])").alt,
 								'label': "null",
-								'delete': 'true'
+								'to_delete': 'true'
 							}));
 							var to_delete_tag = document.createElement("img");
 							to_delete_tag.src = "{% static 'img/to_delete.png' %}";
 							to_delete_tag.alt = "to_delete";
-							to_delete_tag.className = "to_delete";
+							to_delete_tag.className = "to_delete watermark";
 							img_list[i].appendChild(to_delete_tag);
 						}
 					}
@@ -506,6 +549,11 @@
 		}
 	}
 	
+	function save()
+	{
+		post_to_url('/labels/save');
+	}
+	
 	function post_to_url(url) 
 	{
 		method = 'POST';
@@ -523,30 +571,6 @@
 		form.appendChild(input);
 		document.body.appendChild(form);
 		form.submit('/labels/');
-	}
-	
-	// Download a file form a url.
-	function saveFile(url) {
-	// Get file name from url.
-		var filename = url.substring(url.lastIndexOf("/") + 1).split("?")[0];
-		var xhr = new XMLHttpRequest();
-		xhr.responseType = 'blob';
-		xhr.onload = function() {
-			var a = document.createElement('a');
-			a.href = window.URL.createObjectURL(xhr.response); // xhr.response is a blob
-			a.download = filename; // Set the file name.
-			a.style.display = 'none';
-			document.body.appendChild(a);
-			a.click();
-			delete a;
-		};
-		xhr.open('GET', url);
-		xhr.send();
-	}
-
-	function save()
-	{
-		saveFile(window.location.origin + "/" + data_path);
 	}
 	
 </script>
