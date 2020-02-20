@@ -123,7 +123,7 @@ def upload_to_es(d_label, index, host_ip, port, overwrite=False):
                                                 img_id: {
                                                     "img_id": "id",
                                                     "file_name": "pic_file_name.jpg",
-                                                    "location": "s3_bucket_path",
+                                                    "s3_bucket": "s3_bucket_path",
                                                     "label_fingerprint": "c072a1b9a16b633d6b3004c3edab7553"
                                                 },
                                                 ...

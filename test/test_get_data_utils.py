@@ -25,13 +25,13 @@ def test_remove_label_to_delete_todelete_false():
         "20200212T15-39-30-123456": {
             "to_delete": False,
             "img_id": "20200212T15-39-30-123456",
-            "location": "my-bucket",
+            "s3_bucket": "my-bucket",
             "label_fingerprint": "e170fca7848a59a815d2288802cc2832"
         },
         "20200212T15-39-30-987654": {
             "to_delete": True,
             "img_id": "20200212T15-39-30-987654",
-            "location": "my-bucket",
+            "s3_bucket": "my-bucket",
             "label_fingerprint": "e170fca7848a59a815d2288802aa1111"
         }
     }

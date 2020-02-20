@@ -20,7 +20,7 @@ def _get_missing_picture(picture_dir, d_wanted_pic):
                                                 "img_id": {
                                                     "img_id": "id",
                                                     "file_name": "pic_file_name.jpg",
-                                                    "location": "s3_bucket_path"
+                                                    "s3_bucket": "s3_bucket_path"
                                                 }
     :return:                    [dict]          Dictionary of missing picture, same format as d_wanted_pic
     """
@@ -44,7 +44,7 @@ def _get_label_from_db(query_file, es_index=ES_INDEX, verbose=1):
                                                 img_id: {
                                                     "img_id": id,
                                                     "file_name": "pic_file_name.jpg",
-                                                    "location": "s3_bucket_path",
+                                                    "s3_bucket": "s3_bucket_path",
                                                     ...
                                                 },
                                                 ...
@@ -101,7 +101,7 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
                                                 img_id: {
                                                     "img_id": id,
                                                     "file_name": "pic_file_name.jpg",
-                                                    "location": "s3_bucket_path"
+                                                    "s3_bucket": "s3_bucket_path"
                                                 },
                                                 ...
                                             }
@@ -135,6 +135,6 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
     print("Downloading the missing picture(s)...")
     for img_id, picture in tqdm(d_missing_pic.items()):
         output_file = picture_dir / picture["file_name"]
-        s3_utils.download_from_s3(img_id, picture["location"], output_file.as_posix())
+        s3_utils.download_from_s3(img_id, picture["s3_bucket"], output_file.as_posix())
     print(f'Pictures have successfully been downloaded to "{picture_dir}"')
     return d_missing_pic

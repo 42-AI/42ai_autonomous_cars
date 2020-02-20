@@ -45,7 +45,7 @@ def remove_label_to_delete_from_dict(d_label):
             to_delete = False
         if to_delete:
             d_label.pop(img_id)
-            _, _, s3_key = s3_utils.get_s3_formatted_bucket_path(label["location"], "", label["img_id"])
+            _, _, s3_key = s3_utils.get_s3_formatted_bucket_path(label["s3_bucket"], "", label["img_id"])
             l_removed_item.append({"img_id": img_id, "s3_key": s3_key, "label_fingerprint": label["label_fingerprint"]})
     return l_removed_item
 

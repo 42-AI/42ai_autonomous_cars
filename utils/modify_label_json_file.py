@@ -58,8 +58,7 @@ def custom_change_field():
     with Path(args.file).open(mode='r', encoding='utf-8') as fp:
         d_label = json.load(fp)
     for img_id, label in d_label.items():
-        # label["label_fingerprint"] = utils_fct.get_label_finger_print(label)
-        label["location"] = "../Pics/NewPull"
+        label["label_fingerprint"] = utils_fct.get_label_finger_print(label)
     with Path(args.file).open(mode='w', encoding='utf-8') as fp:
         json.dump(d_label, fp, indent=4)
 

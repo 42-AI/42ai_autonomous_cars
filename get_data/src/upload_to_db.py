@@ -95,15 +95,15 @@ def generate_key_prefix(d_label):
 
 def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, key_prefix=None, overwrite=False):
     """
-    Upload picture(s) to the DataBase according to the label file.
-    Labels are uploaded to Elasticsearch cluster ; pictures are uploaded to S3 bucket.
+    Upload picture(s) to the DataBase according to the label file, json format.
+    Labels are uploaded to Elasticsearch cluster ; pictures are uploaded to S3 bucket. The label file and the pictures
+    shall be in the same folder.
     Label file shall be in json format. It can contain one document or a list of document. Each document shall at least
     have the following fields:
     [
       {
         "img_id": "xxx",
         "file_name": "file-name.jpg",
-        "location": "/path/to/picture/dir/",
         "label_fingerprint": "c072a1b9a16b633d6b3004c3edab7553",
         "event": "event_name"
       }
