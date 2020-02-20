@@ -118,7 +118,7 @@ To check the actual state of the label format, you can print a template to a jso
 
 ## 3. How to upload pictures and labels to the database 
 
-Use the function `upload_to_db` to read labels from a file, upload picture to s3 and labels to ES cluster.  
+Use the function `upload_data.py` to read labels from a file, upload picture to s3 and labels to ES cluster.  
 See usage with `-h` option.
 
 Note that you will need credential for Elasticsearch and s3. Ask admin for details.
@@ -127,23 +127,24 @@ Your credentials shall be stored in the following environment variable
 ```
 export PATATE_S3_KEY_ID="your_access_key_id"
 export PATATE_S3_KEY="your_secret_key_code"
-export ES_USER_ID="your_es_user_id"
-export ES_USER_PWD="your_es_password"
+export PATATE_ES_USER_ID="your_es_user_id"
+export PATATE_ES_USER_PWD="your_es_password"
 ```
 **MAKE SURE TO NEVER UPLOAD YOUR CREDENTIALS TO GITHUB OR OTHER PUBLIC REPO**
 
 
 ## 4. How to re lablize pictures manually
 
-TO DO
+To learn how to run the GUI labelizer, see the README.md in the Django interface folder.
   
-Once you have re-labelized the pictures and pointed to the picture to be delete, a new `labels.json` file will be 
-generated from the GUI. This file contains the new labels and the label the shall be deleted (a field "to_delete" is 
-added in the label). All you need to do to upload new label and delete label + picture selected is to run the 
-`upload_to_db.py` scripts.  
+Once you have re-labelized the pictures and/or selected pictures to be deleted, you can download the new 
+labels json file from the GUI. This file contains the new labels and the label that shall be deleted 
+(a field "to_delete" is added in the label). All you need to do to upload new label and delete label + picture 
+selected is to run the `upload_to_db.py` scripts.  
 
-The script will upload the new label and for each label with the field "to_delete", delete the associated picture from 
-S3 and the label from ES. Note: the picture will only be deleted if no other labels in the database points to it.
+The script will upload the new label and, for each label with the field "to_delete" set to True, delete the associated 
+picture from S3 and the label from ES. Note: the picture will only be deleted if no other labels in the database points 
+to it.
 
 ## 5. How to search and download pictures from the database
 
