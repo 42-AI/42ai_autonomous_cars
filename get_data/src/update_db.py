@@ -55,7 +55,7 @@ def _delete_local_picture(l_pic_id, folder, extension_pattern=".*", verbose=1):
     return cpt_delete
 
 
-def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=False):
+def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=False, delete_local=False):
     """
     Read a labels json file and delete all labels with the key "to_delete" in their dictionary.
     Labels will be removed from Elasticsearch and pictures from S3.
@@ -79,6 +79,7 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
     :param bucket:              [str]   Name of the s3 bucket where to delete the picture. If None (default), bucket
                                         name is read from the label
     :param force:               [bool]  False by default. If True, will proceed with delete without user confirmation.
+    :param delete_local         [bool]  If True picture will also be deleted from local drive
     :return:                    [tuple] (int, int, int, int):
                                         number of successful delete from Elastic, number of failed delete from ES,
                                         number of successful delete from S3, number of failed delete from S3
@@ -118,7 +119,10 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
     if len(l_ok_delete) > 0:
         s3_utils.delete_object_s3(bucket=bucket, l_object_key=l_ok_delete, s3_resource=s3)
     local_pic_delete = [pic_id for pic_id, s3_key in l_img_to_delete if pic_id not in l_failed_s3]
-    ret = _delete_local_picture(l_pic_id=local_pic_delete, folder=Path(label_file).parent, extension_pattern=".*")
+    if delete_local:
+        ret = _delete_local_picture(l_pic_id=local_pic_delete, folder=Path(label_file).parent, extension_pattern=".*")
+    else:
+        ret = 0
     print(f'Deletions completed:')
     print(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
     print(f'S3: {l_ok_delete} deletion(s) ; {len(l_failed_s3)} failed')
