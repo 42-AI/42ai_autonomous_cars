@@ -7,24 +7,24 @@ from get_data.src import es_utils
 from get_data.src import utils_fct
 
 
-def _remove_missing_pic_from_dic(label_dict):
+def _remove_missing_pic_from_dic(label_dict, picture_dir):
     """
     Check if all pictures referenced in the label_dict exists. All non existing picture are removed from label_dict
     (modification in-place).
-    :param label_dict:      [dict]  dictionary of label with the following format (at least those 3 keys are required):
+    :param label_dict:      [dict]  dictionary of label with the following format (at least those 2 keys are required):
                                     {
                                         img_id: {
                                             "img_id": id,
                                             "file_name": "pic_file_name.jpg",
-                                            "location": "s3_bucket_path"
                                         },
                                         ...
                                     }
-    :return:                [list] list of missing pictures id
+    :param  picture_dir:    [str]   Path to the folder where to look for the pictures
+    :return:                [list]  list of missing pictures id
     """
     missing_pic_id = []
     for img_id, label in label_dict.items():
-        pics = Path(label["location"]) / label["file_name"]
+        pics = Path(picture_dir) / label["file_name"]
         if not pics.is_file():
             print(f'  --> Picture "{pics}" can\'t be found.')
             missing_pic_id.append(label["img_id"])
@@ -124,6 +124,7 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
                                         "https://s3.amazonaws.com/{my-bucket}/{event_name}/{picture_date}/"
     :return:                [tuple]     (int) s3 success upload, (int) ES success upload, (int) total nb of failed upload
     """
+    picture_folder = Path(label_file).parent
     d_label = utils_fct.get_label_dict_from_file(label_file)
     utils_fct.remove_label_to_delete_from_dict(d_label)
     print(f'Label file "{label_file}" loaded. {len(d_label)} picture(s) and/or label(s) to upload.')
@@ -132,7 +133,7 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
     total_label = len(d_label)
     if bucket_name is not None:
         print(f'Looking for pictures...')
-        missing_pic = _remove_missing_pic_from_dic(d_label)
+        missing_pic = _remove_missing_pic_from_dic(d_label, picture_dir=picture_folder)
         if len(d_label) == 0:
             return 0, 0, total_label
         if key_prefix is None:
@@ -141,8 +142,9 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
                 return 0, 0, total_label
         upload_bucket_dir, bucket_name, key_prefix = s3_utils.get_s3_formatted_bucket_path(bucket_name, key_prefix)
         print(f'Uploading to s3...')
-        s3_upload_success, already_exist_pic = s3_utils.upload_to_s3_from_label(d_label, bucket_name, key_prefix, overwrite)
-        utils_fct.edit_label(d_label, "location", upload_bucket_dir)
+        s3_upload_success, already_exist_pic = s3_utils.upload_to_s3_from_label(
+            d_label, picture_dir=picture_folder, s3_bucket_name=bucket_name, prefix=key_prefix, overwrite=overwrite)
+        utils_fct.edit_label(d_label, "s3_bucket", upload_bucket_dir)
         utils_fct.edit_label(d_label, "upload_date", datetime.now().strftime("%Y%m%dT%H-%M-%S-%f"))
     else:
         upload_bucket_dir = None

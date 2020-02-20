@@ -47,14 +47,14 @@ def object_exist_in_bucket(s3, bucket, key):
     return True
 
 
-def upload_to_s3_from_label(d_label, s3_bucket_name, prefix="", overwrite=False):
+def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False):
     """
     Upload picture to s3 bucket.
     Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
     :param d_label:             [dict]      Dictionary of labels. Each label shall contains the following keys:
                                             "file_name": the name of the picture file
-                                            "location": path to the picture directory
                                             "img_id": id that will be used to index the picture (shall be unique)
+    :param picture_dir:         [string]    Path to the folder containing the pictures
     :param s3_bucket_name:      [string]    Name of the bucket
     :param prefix:              [string]    Prefix for every picture
     :param overwrite:           [bool]      If True, existing pic will be overwritten by new one sharing the same img_id
@@ -67,7 +67,7 @@ def upload_to_s3_from_label(d_label, s3_bucket_name, prefix="", overwrite=False)
     upload_success = []
     log = ""
     for pic_id, label in tqdm(d_label.items()):
-        picture = Path(label["location"]) / label["file_name"]
+        picture = Path(picture_dir) / label["file_name"]
         key = prefix + pic_id
         if not overwrite and object_exist_in_bucket(s3, s3_bucket_name, key):
             log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'
