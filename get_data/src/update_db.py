@@ -24,10 +24,35 @@ def _user_ok_for_deletion(file_name, nb_of_img_to_delete):
     print(f'File "{file_name}" loaded.')
     ok = None
     while ok not in ["y", "n"]:
-        ok = input(f'{nb_of_img_to_delete} picture(s) and label(s) will be deleted, to you want to proceed (y/n)? ')
+        ok = input(f'{nb_of_img_to_delete} picture(s) and label(s) will be deleted from the DB (pictures will also be '
+                   f'deleted from your local drive) to you want to proceed (y/n)? ')
     if ok == "n":
         exit(0)
     return True
+
+
+def _delete_local_picture(l_pic_id, folder, extension_pattern=".*", verbose=1):
+    """
+    Delete pictures in local drive
+    :param l_pic_id:                [list]  List of picture id (as a string)
+    :param folder:                  [str]   Path to the folder containing the pictures
+    :param extension_pattern:       [str]   Pattern to append to the pic_id to match with local file. All match will be
+                                            deleted. For ex:
+                                            folder has file ["123.jpeg", "123.jpg", "123.png"]
+                                            pic_id = "123", extenstion_pattern=".jp*" --> "123.jpg" and "123.jpeg" will
+                                            be deleted
+    :param verbose:                 [int]   verbosity level
+    :return:                        [int]   Number of file deleted
+    """
+    folder = Path(folder)
+    cpt_delete = 0
+    for pic_id in l_pic_id:
+        for pic_file in folder.glob(f'{pic_id}{extension_pattern}'):
+            pic_file.unlink()
+            if verbose > 0:
+                print(f'File "{pic_file}" has been deleted.')
+            cpt_delete += 1
+    return cpt_delete
 
 
 def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=False):
@@ -92,7 +117,12 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
                 l_ok_delete.append(s3_key)
     if len(l_ok_delete) > 0:
         s3_utils.delete_object_s3(bucket=bucket, l_object_key=l_ok_delete, s3_resource=s3)
-    print(f'Deletions completed: {len(l_failed_es)} delete failed in ES ; {len(l_failed_s3)} delete failed in S3')
+    local_pic_delete = [pic_id for pic_id, s3_key in l_img_to_delete if pic_id not in l_failed_s3]
+    ret = _delete_local_picture(l_pic_id=local_pic_delete, folder=Path(label_file).parent, extension_pattern=".*")
+    print(f'Deletions completed:')
+    print(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
+    print(f'S3: {l_ok_delete} deletion(s) ; {len(l_failed_s3)} failed')
+    print(f'{ret} picture(s) deleted from local drive.')
     return i_es_success, len(l_failed_es), len(l_img_to_delete) - len(l_failed_s3), len(l_failed_s3)
 
 
