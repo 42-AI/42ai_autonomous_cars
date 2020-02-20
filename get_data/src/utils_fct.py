@@ -45,15 +45,23 @@ def remove_label_to_delete_from_dict(d_label):
             to_delete = False
         if to_delete:
             d_label.pop(img_id)
-            _, _, s3_key = s3_utils.get_s3_formatted_bucket_path(label["location"], "", label["img_id"])
+            _, _, s3_key = s3_utils.get_s3_formatted_bucket_path(label["s3_bucket"], "", label["img_id"])
             l_removed_item.append({"img_id": img_id, "s3_key": s3_key, "label_fingerprint": label["label_fingerprint"]})
     return l_removed_item
 
 
-def edit_label(d_label, field, value):
-    """Set one field of all labels in d_label to a value."""
+def edit_label(d_label, field, value, filter_out=None):
+    """
+    Set one field of all labels in d_label to a value.
+    :param d_label:         [dict]      Label dictionary to edit
+    :param field:           [string]    Name of the field to edit
+    :param value:           [object]    Value to put in the field
+    :param filter_out:      [list]      list of img_id not to be affected by the edit
+    """
+    filter_out = [] if filter_out is None else filter_out
     for img_id, label in d_label.items():
-        label[field] = value
+        if img_id not in filter_out:
+            label[field] = value
 
 
 def get_label_finger_print(label):

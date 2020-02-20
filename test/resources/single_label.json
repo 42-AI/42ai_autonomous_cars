@@ -1,6 +1,6 @@
 {
     "20200204T15-23-19-881268": {
-        "location": "test/resources",
+        "s3_bucket": "",
         "car_setting": {
             "camera": {
                 "resolution-horizontal": 160,

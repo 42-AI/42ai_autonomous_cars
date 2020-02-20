@@ -47,14 +47,14 @@ def object_exist_in_bucket(s3, bucket, key):
     return True
 
 
-def upload_to_s3_from_label(d_label, s3_bucket_name, prefix="", overwrite=False):
+def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False):
     """
     Upload picture to s3 bucket.
     Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
     :param d_label:             [dict]      Dictionary of labels. Each label shall contains the following keys:
                                             "file_name": the name of the picture file
-                                            "location": path to the picture directory
                                             "img_id": id that will be used to index the picture (shall be unique)
+    :param picture_dir:         [string]    Path to the folder containing the pictures
     :param s3_bucket_name:      [string]    Name of the bucket
     :param prefix:              [string]    Prefix for every picture
     :param overwrite:           [bool]      If True, existing pic will be overwritten by new one sharing the same img_id
@@ -67,7 +67,7 @@ def upload_to_s3_from_label(d_label, s3_bucket_name, prefix="", overwrite=False)
     upload_success = []
     log = ""
     for pic_id, label in tqdm(d_label.items()):
-        picture = Path(label["location"]) / label["file_name"]
+        picture = Path(picture_dir) / label["file_name"]
         key = prefix + pic_id
         if not overwrite and object_exist_in_bucket(s3, s3_bucket_name, key):
             log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'
@@ -82,12 +82,12 @@ def upload_to_s3_from_label(d_label, s3_bucket_name, prefix="", overwrite=False)
 def get_s3_formatted_bucket_path(bucket_name, key_prefix, file_name=None):
     """
     Creates a cleaned and well formatted name and path for access to s3 bucket from the bucket name and key prefix.
-    If file_name is given, the function will return a file path instead of a key_prefix path.
+    If file_name is None, the function will return a key ended by a '/' (as for a key prefix)
     :param bucket_name:     [string]        s3 Bucket name
     :param key_prefix:      [string]        key prefix (s3 sub-folder)
     :param file_name:       [string]        OPTIONAL: name of the file. If defined, the function will return a
                                             path to file (not "/" terminated) and not to a bucket ("/" terminated)
-    :return:                [tuple of str]  clean_full_path, clean_buck_name, clean_key_prefix
+    :return:                [tuple of str]  clean_full_path, clean_buck_name, clean_key
 
     For example:
     >>> get_s3_formatted_bucket_path("my-bucket/", "/sub/bucket//directory/with/typo")

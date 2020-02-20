@@ -88,7 +88,7 @@ Example of info specific to each picture
    {
      "img_id": "1517255696",
      "file_name": "0_0_1517255696.923487.jpg",
-     "location": "../session",
+     "s3_bucket": "my-s3-bucket",
      "raw": "true",
      "color": "rgb",
      "timestamp": "2015-01-01T12:10:30Z",

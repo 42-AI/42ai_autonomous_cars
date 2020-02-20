@@ -39,13 +39,13 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
     "8s64fs4g4h51" will be removed from ES.
     {
       "id1": {
-        "location": "my_s3_bucket",
+        "s3_bucket": "my_s3_bucket",
         "label_fingerprint": "1asd5g4gdf1s",
         ...
       },
       "id2": {
         "to_delete": "value doesn't matter",
-        "location": "my_s3_bucket",
+        "s3_bucket": "my_s3_bucket",
         "label_fingerprint": "8s64fs4g4h51",
       ...
     }

@@ -11,20 +11,6 @@ def test_label_handler_empty_init():
     assert label is not None
 
 
-def test_label_handler_change_output_dir():
-    label = lb.Label()
-    label.picture_dir = "foo/bar/"
-    assert label[label.picture_dir_key] == "foo/bar/"
-    assert label.picture_dir == "foo/bar/"
-
-
-def test_label_handler_change_output_dir_bis():
-    label = lb.Label()
-    label[label.picture_dir_key] = "foo/bar/"
-    assert label[label.picture_dir_key] == "foo/bar/"
-    assert label.picture_dir == "foo/bar/"
-
-
 def test_label_handler_init_file_valid_dir():
     output = "test/resources"
     session_template_file = Path(output) / SESSION_TEMPLATE_NAME
@@ -32,7 +18,6 @@ def test_label_handler_init_file_valid_dir():
     with session_template_file.open(mode='r', encoding='utf-8') as fp:
         session_template = json.load(fp)
     assert label.picture_dir == output
-    assert label[label.picture_dir_key] == output
     for key, val in session_template.items():
         assert label[key] == val
 
