@@ -80,8 +80,7 @@
             "nb_of_speed": 2
         },
         "timestamp": "20200204T15-23-08-574348",
-        "label_fingerprint": "ff4c8a7882ae8d4d9a2d139ff420a62b",
-	"to_delete": true
+        "label_fingerprint": "ff4c8a7882ae8d4d9a2d139ff420a62b"
     },
     "20200204T15-23-08-695024": {
         "location": "test/resources",
@@ -330,7 +329,6 @@
             "nb_of_speed": 2
         },
         "timestamp": "20200204T15-23-19-111111",
-        "label_fingerprint": "e170fca7848a59a815d2288802111111",
-	"to_delete": true
+        "label_fingerprint": "e170fca7848a59a815d2288802111111"
     }
 }
