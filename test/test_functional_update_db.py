@@ -1,4 +1,6 @@
 import pytest
+from pathlib import Path
+import subprocess
 
 
 from get_data.src import update_db
@@ -22,7 +24,9 @@ def test_delete_pic_and_label():
     key_prefix = "resources"
     upload_to_db.upload_to_db(file, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
                               bucket_name=BUCKET_NAME, key_prefix=key_prefix)
-    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file_delete, es_index=ES_TEST_INDEX, bucket=BUCKET_NAME, force=True)
+    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file_delete, es_index=ES_TEST_INDEX,
+                                                                                  bucket=BUCKET_NAME, force=True,
+                                                                                  delete_local=False)
     assert (2, 0, 2, 0) == (success_es, fail_es, success_s3, fail_s3)
     update_db.delete_pic_and_index(file, BUCKET_NAME, key_prefix, ES_TEST_INDEX, ES_HOST_IP, ES_HOST_PORT)
 
@@ -33,7 +37,9 @@ def test_delete_pic_and_label_wrong_key_prefix():
     key_prefix = "wrong_key_prefix"
     upload_to_db.upload_to_db(file, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
                               bucket_name=BUCKET_NAME, key_prefix=key_prefix)
-    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file_delete, es_index=ES_TEST_INDEX, bucket=BUCKET_NAME, force=True)
+    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file_delete, es_index=ES_TEST_INDEX,
+                                                                                  bucket=BUCKET_NAME, force=True,
+                                                                                  delete_local=False)
     assert (2, 0, 0, 2) == (success_es, fail_es, success_s3, fail_s3)
     update_db.delete_pic_and_index(file, BUCKET_NAME, key_prefix, ES_TEST_INDEX, ES_HOST_IP, ES_HOST_PORT)
 
@@ -46,7 +52,9 @@ def test_delete_pic_and_label_other_label_points_to_pic():
     upload_to_db.upload_to_db(file, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
                               bucket_name=BUCKET_NAME, key_prefix=key_prefix)
     upload_to_db.upload_to_db(file_blocking_label, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT)
-    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file_delete, es_index=ES_TEST_INDEX, bucket=BUCKET_NAME, force=True)
+    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file_delete, es_index=ES_TEST_INDEX,
+                                                                                  bucket=BUCKET_NAME, force=True,
+                                                                                  delete_local=False)
     assert (2, 0, 1, 1) == (success_es, fail_es, success_s3, fail_s3)
     update_db.delete_pic_and_index(file, BUCKET_NAME, key_prefix, ES_TEST_INDEX, ES_HOST_IP, ES_HOST_PORT)
 
@@ -56,6 +64,24 @@ def test_delete_pic_and_label_nothing_to_delete():
     key_prefix = "wrong_key_prefix"
     upload_to_db.upload_to_db(file, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
                               bucket_name=BUCKET_NAME, key_prefix=key_prefix)
-    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file, es_index=ES_TEST_INDEX, bucket=BUCKET_NAME, force=True)
+    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file, es_index=ES_TEST_INDEX,
+                                                                                  bucket=BUCKET_NAME, force=True,
+                                                                                  delete_local=False)
     assert (0, 0, 0, 0) == (success_es, fail_es, success_s3, fail_s3)
     update_db.delete_pic_and_index(file, BUCKET_NAME, key_prefix, ES_TEST_INDEX, ES_HOST_IP, ES_HOST_PORT)
+
+
+def test_delete_pic_and_label_local_delete_true():
+    """
+    subprocess.call("test/resources/copy_to_tmp.sh")
+    file = "test/.tmp/labels.json"
+    file_delete = "test/.tmp/labels_delete.json"
+    key_prefix = "resources"
+    upload_to_db.upload_to_db(file, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
+                              bucket_name=BUCKET_NAME, key_prefix=key_prefix)
+    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file_delete, es_index=ES_TEST_INDEX,
+                                                                                  bucket=BUCKET_NAME, force=True,
+                                                                                  delete_local=False)
+    assert (2, 0, 2, 0) == (success_es, fail_es, success_s3, fail_s3)
+    update_db.delete_pic_and_index(file, BUCKET_NAME, key_prefix, ES_TEST_INDEX, ES_HOST_IP, ES_HOST_PORT)
+    """
