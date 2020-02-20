@@ -82,12 +82,12 @@ def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", ove
 def get_s3_formatted_bucket_path(bucket_name, key_prefix, file_name=None):
     """
     Creates a cleaned and well formatted name and path for access to s3 bucket from the bucket name and key prefix.
-    If file_name is given, the function will return a file path instead of a key_prefix path.
+    If file_name is None, the function will return a key ended by a '/' (as for a key prefix)
     :param bucket_name:     [string]        s3 Bucket name
     :param key_prefix:      [string]        key prefix (s3 sub-folder)
     :param file_name:       [string]        OPTIONAL: name of the file. If defined, the function will return a
                                             path to file (not "/" terminated) and not to a bucket ("/" terminated)
-    :return:                [tuple of str]  clean_full_path, clean_buck_name, clean_key_prefix
+    :return:                [tuple of str]  clean_full_path, clean_buck_name, clean_key
 
     For example:
     >>> get_s3_formatted_bucket_path("my-bucket/", "/sub/bucket//directory/with/typo")

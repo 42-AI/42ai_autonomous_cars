@@ -4,6 +4,8 @@ import pytest
 from get_data.src import update_db
 from get_data.src import upload_to_db
 from get_data.src import es_utils
+from get_data.src import s3_utils
+from get_data.src import utils_fct
 from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP, BUCKET_NAME
 
 
@@ -19,7 +21,7 @@ def create_test_index():
 def test_delete_pic_and_label():
     file = "test/resources/labels.json"
     file_delete = "test/resources/labels_delete.json"
-    key_prefix = "resources"
+    key_prefix = "unittest"
     upload_to_db.upload_to_db(file, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
                               bucket_name=BUCKET_NAME, key_prefix=key_prefix)
     success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(file_delete, es_index=ES_TEST_INDEX, bucket=BUCKET_NAME, force=True)
@@ -42,7 +44,7 @@ def test_delete_pic_and_label_other_label_points_to_pic():
     file = "test/resources/labels.json"
     file_delete = "test/resources/labels_delete.json"
     file_blocking_label = "test/resources/labels_block_delete.json"
-    key_prefix = "resources"
+    key_prefix = "unittest"
     upload_to_db.upload_to_db(file, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
                               bucket_name=BUCKET_NAME, key_prefix=key_prefix)
     upload_to_db.upload_to_db(file_blocking_label, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT)

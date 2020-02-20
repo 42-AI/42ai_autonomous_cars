@@ -1,7 +1,7 @@
 {
     "20200204T15-23-08-574348": {
         "to_delete": true,
-        "s3_bucket": "",
+        "s3_bucket": "032854191254-patate/unittest/",
         "car_setting": {
             "camera": {
                 "resolution-horizontal": 160,
@@ -85,7 +85,7 @@
     },
     "20200204T15-23-08-695024": {
         "to_delete": true,
-        "s3_bucket": "",
+        "s3_bucket": "032854191254-patate/unittest/",
         "car_setting": {
             "camera": {
                 "resolution-horizontal": 160,
@@ -168,7 +168,7 @@
         "label_fingerprint": "beae513889776ada9ac0e8ee800f65c1"
     },
     "20200204T15-23-19-881268": {
-        "s3_bucket": "",
+        "s3_bucket": "032854191254-patate/unittest/",
         "car_setting": {
             "camera": {
                 "resolution-horizontal": 160,
@@ -251,7 +251,7 @@
         "label_fingerprint": "e170fca7848a59a815d2288802cc2832"
     },
     "20200204T15-23-19-111111": {
-        "s3_bucket": "",
+        "s3_bucket": "032854191254-patate/unittest/",
         "car_setting": {
             "camera": {
                 "resolution-horizontal": 160,

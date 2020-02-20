@@ -36,6 +36,7 @@ class Label:
         self.init_car_setting_from_const(cam_position=camera_position)
         self.init_hardware_conf_from_file(raise_error=raise_error)
         self.init_session_template_from_file(directory=self.picture_dir, raise_error=raise_error)
+        self._template["s3_bucket"] = ""
         self._template["raw_picture"] = True
         self._template["upload_date"] = None
         self.set_label()
