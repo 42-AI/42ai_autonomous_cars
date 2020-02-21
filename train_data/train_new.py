@@ -4,6 +4,7 @@ import pathlib
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import numpy as np
 
 # import matplotlib.pyplot as plt
 # import pandas as pd
@@ -108,8 +109,8 @@ class TrainModel:
     def train(self):
         self.model = model_params_setter_new.get_model_params()
         # self.model.build(input_shape=(None, 96, 160, 3))
-        self.model.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
-                      optimizer=tf.keras.optimizers.Adam(), metrics=['accuracy'])
+        self.model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                      optimizer=tf.keras.optimizers.Adadelta(learning_rate=0.001), metrics=['accuracy'])
         self.model.summary()
 
         train_size = int(self.ds_size * self.validation_split)
@@ -117,7 +118,7 @@ class TrainModel:
         validation_steps = (self.ds_size - train_size) // self.batch_size
 
         history = self.model.fit(self.ds_train, epochs=self.nb_epochs, steps_per_epoch=steps_per_epoch,
-                                 validation_data=self.ds_validation, validation_steps=validation_steps,
+                                 #validation_data=self.ds_validation, validation_steps=validation_steps,
                                  shuffle=True, verbose=1)
         return history
 

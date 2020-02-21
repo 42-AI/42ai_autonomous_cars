@@ -42,7 +42,9 @@ class TrainModel:
     def load_images(self, images_dir, show_test=True, show_balance=False):
         images, labels_speed, labels_directions = [], [], []
         self.images_dir = images_dir
-        for filename in random.shuffle(os.listdir(self.images_dir)):
+        filenames = os.listdir(self.images_dir)
+        random.shuffle(filenames)
+        for filename in filenames:
             filepath = self.images_dir + '/' + filename
             # load an image from file
             image = load_img(filepath, target_size=(96, 160))
@@ -67,7 +69,7 @@ class TrainModel:
 
     def train(self):
         self.model = Model(inputs=self.model_inputs, outputs=self.model_outputs)
-        self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        self.model.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
         print(self.model.summary)
         best_checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(self.model_name, monitor='val_loss', verbose=1,
                                                           save_best_only=True, mode='min')
