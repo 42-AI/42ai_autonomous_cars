@@ -60,7 +60,7 @@ def _delete_local_picture(l_pic_id, folder, extension_pattern=".*", verbose=1):
 
 def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=False, delete_local=False):
     """
-    Read a labels json file and delete all labels with the key "to_delete" in their dictionary.
+    Read a labels json file and delete all labels with the key "to_delete" set to True in their dictionary.
     Labels will be removed from Elasticsearch and pictures from S3.
     Pictures in local file will also be removed after user approval.
     For instance, given the following json, picture with "id2" will be removed from S3 bucket "my_s3_bucket" and label
@@ -72,7 +72,7 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
         ...
       },
       "id2": {
-        "to_delete": "value doesn't matter",
+        "to_delete": "true",
         "s3_bucket": "my_s3_bucket",
         "label_fingerprint": "8s64fs4g4h51",
       ...
@@ -121,9 +121,8 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
                 l_ok_delete.append(s3_key)
     if len(l_ok_delete) > 0:
         s3_utils.delete_object_s3(bucket=bucket, l_object_key=l_ok_delete, s3_resource=s3)
-    local_pic_delete = [pic_id for pic_id, s3_key in l_img_to_delete if pic_id not in l_failed_s3]
     if delete_local:
-        ret = _delete_local_picture(l_pic_id=local_pic_delete, folder=Path(label_file).parent, extension_pattern=".*")
+        ret = _delete_local_picture(l_pic_id=l_img_to_delete, folder=Path(label_file).parent, extension_pattern=".*")
     else:
         ret = 0
     print(f'Deletions completed:')
