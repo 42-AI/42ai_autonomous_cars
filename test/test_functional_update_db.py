@@ -39,9 +39,20 @@ def create_delete_tmp_folder():
     shutil.rmtree("test/.tmp", ignore_errors=True)
 
 
+def test_delete_pic_and_label_local_delete_false(create_delete_tmp_folder):
+    total_file_in_tmp = len(list(Path("test/.tmp").iterdir()))
+    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(TMP_LABELS_DELETE,
+                                                                                  es_index=ES_TEST_INDEX,
+                                                                                  bucket=BUCKET_NAME,
+                                                                                  force=True,
+                                                                                  delete_local=False)
+    assert total_file_in_tmp == len(list(Path("test/.tmp").iterdir()))
+
+
 def test_delete_pic_and_label_local_delete_true(create_delete_tmp_folder):
     assert (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-574348.jpg").is_file()
     assert (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-695024.jpg").is_file()
+    total_file_in_tmp = len(list(Path("test/.tmp").iterdir()))
     upload_to_db.upload_to_db(TMP_LABELS, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
                               bucket_name=BUCKET_NAME, key_prefix=KEY_PREFIX)
     success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(TMP_LABELS_DELETE,
@@ -49,6 +60,7 @@ def test_delete_pic_and_label_local_delete_true(create_delete_tmp_folder):
                                                                                   bucket=BUCKET_NAME,
                                                                                   force=True,
                                                                                   delete_local=True)
+    assert total_file_in_tmp - 2 == len(list(Path("test/.tmp").iterdir()))
     assert not (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-574348.jpg").is_file()
     assert not (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-695024.jpg").is_file()
 
@@ -56,25 +68,15 @@ def test_delete_pic_and_label_local_delete_true(create_delete_tmp_folder):
 def test_delete_pic_and_label_local_delete_true_pic_not_in_db(create_delete_tmp_folder):
     assert (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-574348.jpg").is_file()
     assert (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-695024.jpg").is_file()
+    total_file_in_tmp = len(list(Path("test/.tmp").iterdir()))
     success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(TMP_LABELS_DELETE,
                                                                                   es_index=ES_TEST_INDEX,
                                                                                   bucket=BUCKET_NAME,
                                                                                   force=True,
                                                                                   delete_local=True)
+    assert total_file_in_tmp - 2 == len(list(Path("test/.tmp").iterdir()))
     assert not (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-574348.jpg").is_file()
     assert not (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-695024.jpg").is_file()
-
-
-def test_delete_pic_and_label_local_delete_false(create_delete_tmp_folder):
-    assert (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-574348.jpg").is_file()
-    assert (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-695024.jpg").is_file()
-    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(TMP_LABELS_DELETE,
-                                                                                  es_index=ES_TEST_INDEX,
-                                                                                  bucket=BUCKET_NAME,
-                                                                                  force=True,
-                                                                                  delete_local=False)
-    assert (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-574348.jpg").is_file()
-    assert (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-695024.jpg").is_file()
 
 
 def test_delete_pic_and_label():
