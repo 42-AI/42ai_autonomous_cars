@@ -122,12 +122,13 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
     if len(l_ok_delete) > 0:
         s3_utils.delete_object_s3(bucket=bucket, l_object_key=l_ok_delete, s3_resource=s3)
     if delete_local:
-        ret = _delete_local_picture(l_pic_id=l_img_to_delete, folder=Path(label_file).parent, extension_pattern=".*")
+        ret = _delete_local_picture(l_pic_id=[pic_id for pic_id, _ in l_img_to_delete],
+                                    folder=Path(label_file).parent, extension_pattern=".*")
     else:
         ret = 0
     print(f'Deletions completed:')
     print(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
-    print(f'S3: {l_ok_delete} deletion(s) ; {len(l_failed_s3)} failed')
+    print(f'S3: {len(l_ok_delete)} deletion(s) ; {len(l_failed_s3)} failed')
     print(f'{ret} picture(s) deleted from local drive.')
     return i_es_success, len(l_failed_es), len(l_img_to_delete) - len(l_failed_s3), len(l_failed_s3)
 
