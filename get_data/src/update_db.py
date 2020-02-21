@@ -20,12 +20,15 @@ def _get_img_and_label_to_delete_from_file(label_file):
     return l_img_delete, l_label_to_delete
 
 
-def _user_ok_for_deletion(file_name, nb_of_img_to_delete):
+def _user_ok_for_deletion(file_name, nb_of_img_to_delete, delete_local):
     print(f'File "{file_name}" loaded.')
     ok = None
     while ok not in ["y", "n"]:
-        ok = input(f'{nb_of_img_to_delete} picture(s) and label(s) will be deleted from the DB (pictures will also be '
-                   f'deleted from your local drive) to you want to proceed (y/n)? ')
+        print(f'{nb_of_img_to_delete} picture(s) and label(s) will be deleted from the DB', end="")
+        if delete_local:
+            print(f' (pictures will also be deleted from your local drive)', end="")
+        print(f'. Do you want to proceed (y/n)? ', end="")
+        ok = input()
     if ok == "n":
         exit(0)
     return True
@@ -87,7 +90,7 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
     l_img_to_delete, l_label_fingerprint_to_delete = _get_img_and_label_to_delete_from_file(label_file)
     if len(l_img_to_delete) == 0:
         return 0, 0, 0, 0
-    if not force and not _user_ok_for_deletion(label_file, len(l_img_to_delete)):
+    if not force and not _user_ok_for_deletion(label_file, len(l_img_to_delete), delete_local):
         return 0, 0, 0, 0
     es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
     print(f'Deleting {len(l_img_to_delete)} label(s) in index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})...')
