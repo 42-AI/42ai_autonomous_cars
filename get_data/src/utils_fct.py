@@ -6,9 +6,10 @@ import hashlib
 from get_data.src import s3_utils
 
 
-def get_label_file_name(label_file):
+def get_label_file_name(directory, base_name="labels", suffix=".json"):
     """Generate a unique label file name based on now timestamp."""
-    return Path(label_file).parent / f'{label_file.stem}_{datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")}{label_file.suffix}'
+    # return Path(label_file).parent / f'{label_file.stem}_{datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")}{label_file.suffix}'
+    return Path(directory) / f'{base_name}_{datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")}{suffix}'
 
 
 def get_label_dict_from_file(file):
