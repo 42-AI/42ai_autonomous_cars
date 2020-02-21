@@ -31,14 +31,15 @@ def _get_args(description):
 
 def upload_data():
     """
-    Upload and/or Delete picture in S3 and/or label in ES from a label file (json format).
+    Upload and/or Delete picture in S3 and/or label in ES from a label file (json format). The label file shall be
+    in the same folder as the picture to upload.
     The label file can contain one or more label in the form of a dictionary with the img_id as key for each label.
     To see a label template, use the write_label_template.py function.
     You will need credential for the upload. Access keys shall be defined in the following environment variables:
     export PATATE_S3_KEY_ID="your_access_key_id"
     export PATATE_S3_KEY="your_secret_key_code"
-    export ES_USER_ID="your_es_user_id"
-    export ES_USER_PWD="your_es_password"
+    export PATATE_ES_USER_ID="your_es_user_id"
+    export PATATE_ES_USER_PWD="your_es_password"
     """
     args = _get_args(upload_data.__doc__)
     label_file = args.label_file

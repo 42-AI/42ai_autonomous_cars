@@ -105,8 +105,7 @@ class RaceOn:
         if self.debug > 0 and self.sampling > 1:
             self.sampling = 0
             t_stamp = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
-            picture_path = Path(self.meta_label.picture_dir) / f'{str(t_stamp)}#s{predicted_labels[0]}' \
-                                                               f'_d{predicted_labels[1]}.jpg'
+            picture_path = Path(self.meta_label.picture_dir) / f'{str(t_stamp)}.jpg'
             self.meta_label.set_label(img_id=t_stamp,
                                       file_name=picture_path.name,
                                       timestamp=t_stamp,
