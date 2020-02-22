@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from conf.path import INDEX_TEMPLATE
-from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY
+from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY, ES_INDEX
 
 
 def get_es_session(host_ip, port):
@@ -30,7 +30,7 @@ def get_es_session(host_ip, port):
     return es
 
 
-def create_es_index(host_ip, host_port, index_name, alias=None, is_write_index=False, current_write_index=None):
+def create_es_index(host_ip, host_port, index_name, alias=None, index_pattern="_all"):
     """Create an index in ES from the template defined in utils.path."""
     es = get_es_session(host_ip, host_port)
     if es is None:
@@ -39,10 +39,12 @@ def create_es_index(host_ip, host_port, index_name, alias=None, is_write_index=F
         index_template = json.load(fp)
     es.indices.create(index_name, body=index_template)
     if alias is not None:
-        is_write_index_false = {"is_write_index": "false"} if is_write_index is True else None
-        es.indices.put_alias(index=current_write_index, name=alias, body=is_write_index_false)
-        is_write_index_true = {"is_write_index": "true"} if is_write_index is True else None
-        es.indices.put_alias(index=index_name, name=alias, body=is_write_index_true)
+        es.indices.update_aliases({
+            "actions": [
+                {"remove": {"index": index_pattern, "alias": alias}},
+                {"add": {"index": index_name, "alias": alias}}
+            ]
+        })
     return es
 
 

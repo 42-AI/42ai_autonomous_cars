@@ -20,19 +20,47 @@ def _get_img_and_label_to_delete_from_file(label_file):
     return l_img_delete, l_label_to_delete
 
 
-def _user_ok_for_deletion(file_name, nb_of_img_to_delete):
+def _user_ok_for_deletion(file_name, nb_of_img_to_delete, delete_local):
     print(f'File "{file_name}" loaded.')
     ok = None
     while ok not in ["y", "n"]:
-        ok = input(f'{nb_of_img_to_delete} picture(s) and label(s) will be deleted, to you want to proceed (y/n)? ')
+        print(f'{nb_of_img_to_delete} picture(s) and label(s) will be deleted from the DB', end="")
+        if delete_local:
+            print(f' (pictures will also be deleted from your local drive)', end="")
+        print(f'. Do you want to proceed (y/n)? ', end="")
+        ok = input()
     if ok == "n":
         exit(0)
     return True
 
 
-def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=False):
+def _delete_local_picture(l_pic_id, folder, extension_pattern=".*", verbose=1):
     """
-    Read a labels json file and delete all labels with the key "to_delete" in their dictionary.
+    Delete pictures in local drive
+    :param l_pic_id:                [list]  List of picture id (as a string)
+    :param folder:                  [str]   Path to the folder containing the pictures
+    :param extension_pattern:       [str]   Pattern to append to the pic_id to match with local file. All match will be
+                                            deleted. For ex:
+                                            folder has file ["123.jpeg", "123.jpg", "123.png"]
+                                            pic_id = "123", extenstion_pattern=".jp*" --> "123.jpg" and "123.jpeg" will
+                                            be deleted
+    :param verbose:                 [int]   verbosity level
+    :return:                        [int]   Number of file deleted
+    """
+    folder = Path(folder)
+    cpt_delete = 0
+    for pic_id in l_pic_id:
+        for pic_file in folder.glob(f'{pic_id}{extension_pattern}'):
+            pic_file.unlink()
+            if verbose > 0:
+                print(f'File "{pic_file}" has been deleted.')
+            cpt_delete += 1
+    return cpt_delete
+
+
+def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=False, delete_local=False):
+    """
+    Read a labels json file and delete all labels with the key "to_delete" set to True in their dictionary.
     Labels will be removed from Elasticsearch and pictures from S3.
     Pictures in local file will also be removed after user approval.
     For instance, given the following json, picture with "id2" will be removed from S3 bucket "my_s3_bucket" and label
@@ -44,7 +72,7 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
         ...
       },
       "id2": {
-        "to_delete": "value doesn't matter",
+        "to_delete": "true",
         "s3_bucket": "my_s3_bucket",
         "label_fingerprint": "8s64fs4g4h51",
       ...
@@ -54,6 +82,7 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
     :param bucket:              [str]   Name of the s3 bucket where to delete the picture. If None (default), bucket
                                         name is read from the label
     :param force:               [bool]  False by default. If True, will proceed with delete without user confirmation.
+    :param delete_local         [bool]  If True picture will also be deleted from local drive
     :return:                    [tuple] (int, int, int, int):
                                         number of successful delete from Elastic, number of failed delete from ES,
                                         number of successful delete from S3, number of failed delete from S3
@@ -61,7 +90,7 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
     l_img_to_delete, l_label_fingerprint_to_delete = _get_img_and_label_to_delete_from_file(label_file)
     if len(l_img_to_delete) == 0:
         return 0, 0, 0, 0
-    if not force and not _user_ok_for_deletion(label_file, len(l_img_to_delete)):
+    if not force and not _user_ok_for_deletion(label_file, len(l_img_to_delete), delete_local):
         return 0, 0, 0, 0
     es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
     print(f'Deleting {len(l_img_to_delete)} label(s) in index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})...')
@@ -92,7 +121,15 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
                 l_ok_delete.append(s3_key)
     if len(l_ok_delete) > 0:
         s3_utils.delete_object_s3(bucket=bucket, l_object_key=l_ok_delete, s3_resource=s3)
-    print(f'Deletions completed: {len(l_failed_es)} delete failed in ES ; {len(l_failed_s3)} delete failed in S3')
+    if delete_local:
+        ret = _delete_local_picture(l_pic_id=[pic_id for pic_id, _ in l_img_to_delete],
+                                    folder=Path(label_file).parent, extension_pattern=".*")
+    else:
+        ret = 0
+    print(f'Deletions completed:')
+    print(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
+    print(f'S3: {len(l_ok_delete)} deletion(s) ; {len(l_failed_s3)} failed')
+    print(f'{ret} picture(s) deleted from local drive.')
     return i_es_success, len(l_failed_es), len(l_img_to_delete) - len(l_failed_s3), len(l_failed_s3)
 
 
