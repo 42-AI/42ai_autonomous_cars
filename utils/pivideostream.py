@@ -12,7 +12,7 @@ from conf.const import IMAGE_SIZE, FRAME_RATE, EXPOSURE_MODE
 
 
 #initialize the camera
-def InitCam():
+def init_cam():
     camera = PiCamera()
     camera.resolution = IMAGE_SIZE
     camera.framerate = FRAME_RATE
@@ -25,7 +25,7 @@ def InitCam():
 class PiVideoStream:
     def __init__(self):
         # initialize the camera and stream
-        self.camera, self.rawCapture = InitCam()
+        self.camera, self.rawCapture = init_cam()
         self.stream = self.camera.capture_continuous(self.rawCapture,
                                                      format="rgb", use_video_port=True)
 
