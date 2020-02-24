@@ -39,12 +39,6 @@ class TrainModel:
         self.ds_train = None
         self.ds_validation = None
 
-        # self.images = None
-        # self.labels_directions = None
-        # self.labels_speed = None
-        # self.model_name = model_params['name']
-        # self.model_inputs = model_params['inputs']
-        # self.model_outputs = model_params['outputs']
         self.model = None
 
         self._get_images_json(labels_path)

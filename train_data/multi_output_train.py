@@ -5,10 +5,10 @@ import pathlib
 import random
 
 import matplotlib.pyplot as plt
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
-from train_data import model_params_setter_new_multi
+import model_setter
 
 
 def get_args():
@@ -19,7 +19,7 @@ def get_args():
 
 
 class TrainModel:
-    def __init__(self, labels_path, seed=42, validation_split=0.2, batch_size=32, nb_epochs=20, name='saved_model'):
+    def __init__(self, labels_path, seed=42, validation_split=0.2, batch_size=32, nb_epochs=4, name='saved_model'):
         tf.random.set_seed(seed)
         random.seed(seed)
         self.images_json = None
@@ -41,7 +41,8 @@ class TrainModel:
             self.images_json = json.load(data)
 
         # est ce qu'il faudrait pas mieux shuffle et split la ?
-        # TODO shuffle ici les images ac seed ?
+        # TODO shuffle ici les images ac seed ? fusionnet get images json et get feat_labels_tensors
+        # TODO rajouter avec modele le resultat evaluate et le json du set de donnee ?
 
     def _get_feat_labels_tensors(self):
         features, speeds, directions = [], [], []
@@ -52,7 +53,7 @@ class TrainModel:
             speeds.append(v['label']['label_speed'])
             directions.append(v['label']['label_direction'])
 
-        return np.asarray(features), np.asarray(directions), np.asarray(speeds)
+        return np.asarray(features), np.asarray(directions, dtype='int16'), np.asarray(speeds, dtype='int16')
 
     def _get_image(self, image_path):
         image_str = tf.io.read_file(image_path)
@@ -70,16 +71,20 @@ class TrainModel:
         plt.show()
 
     def train(self):
-        self.model = model_params_setter_new_multi.get_model_params()
+        self.model = model_setter.get_model_params()
         self.model.build(input_shape=(None, 96, 160, 3))
         self.model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                       optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), metrics=['accuracy'])
         self.model.summary()
 
+        # TODO name dans args et log dir. Mettre path dans models et dans logs (dans models)
+        name = "training_1"
+        date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_dir = f"logs/fit/{name}/{date}"
+        checkpoint_path = f"{name}/{date}/cp-{{epoch:04d}}.ckpt"
 
-        best_checkpoint = tf.keras.callbacks.ModelCheckpoint(self.name, monitor='val_loss', verbose=0,
-                                                             save_best_only=True, mode='min')
-        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        best_checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, monitor='val_loss', verbose=0,
+                                                             mode='min', save_best_only=True)
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
         self.history = self.model.fit(self.images, [self.directions, self.speeds], epochs=self.nb_epochs,
@@ -98,13 +103,14 @@ class TrainModel:
         # TODO (pclement): use vecorized numpy method to define those
         return predictions, np.array(speed_preds), np.array(dir_preds)
 
-    # def _show_balance(self):
-    #     labels_speed_df = pd.Series(self.labels_speed)
-    #     print(labels_speed_df.value_counts(), labels_speed_df.describe())
-    #     labels_directions_df = pd.Series(self.labels_directions)
-    #     print(labels_directions_df.value_counts(), labels_directions_df.describe())
-    #     # TODO (pclement): make graphs?
-    # or use kibana ?
+    def show_balance(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 2, 1)
+        ax.hist(self.directions)
+        ax = fig.add_subplot(1, 2, 2)
+        ax.hist(self.speeds)
+        plt.show()
+        # save in training1
 
 
 if __name__ == '__main__':
@@ -112,5 +118,8 @@ if __name__ == '__main__':
     train_model = TrainModel(options.labels_path)
     # train_model.show_images(5, 10)
     train_model.train()
+    # train_model.show_balance()
+    #TODO sauvegarder et mettre show balance dans meme dossier
+    #TODO faire un evaluate ?
 
     # train_model.predict()

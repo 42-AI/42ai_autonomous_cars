@@ -1,6 +1,3 @@
-#  Patate/Data_processing/Training/3_directions_models_Opti_speed.ipynb
-# show_balance replaces check balance.ipynb
-
 import numpy as np
 import os
 import random

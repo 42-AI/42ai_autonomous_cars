@@ -1,14 +1,11 @@
-#  Patate/Data_processing/Training/3_directions_models_Opti_speed.ipynb
-
-# noinspection PyPep8Naming
-import tensorflow.keras.backend as K
+import tensorflow as tf
 from tensorflow.keras.layers import Convolution2D, BatchNormalization, Activation, Dropout, Flatten, Input, Dense
 
-
 def get_model_params():
-    # TODO (pclement): play with models this is Model from PatateV2
+    # TODO padding=same, activation in FC and activation with convolution ? ...
 
-    K.clear_session()
+    tf.keras.backend.clear_session()
+
     img_in = Input(shape=(96, 160, 3), name='img_in')
     x = img_in
 
@@ -35,17 +32,15 @@ def get_model_params():
     x = Activation("relu")(x)
     x = Dropout(.3)(x)
 
-    out_dir = Dense(3, activation='softmax')(x)
-    out_speed = Dense(2, activation='softmax')(x)
+    out_dir = Dense(5, activation='softmax', name='direction')(x)
+    out_speed = Dense(2, activation='softmax', name='speed')(x)
 
-    model_parameters = {
-        'model_name': "model_race_speed.h5",
-        'model_inputs': [img_in],
-        'model_outputs': [out_speed, out_dir],
-    }
-    return model_parameters
+    model = tf.keras.models.Model(inputs=img_in, outputs=[out_dir, out_speed])
+
+    return model
 
 
 if __name__ == '__main__':
-    model_params = get_model_params()
-    print(model_params)
+    model = get_model_params()
+    model.build(input_shape=(None, 96, 160, 3))
+    model.summary()
