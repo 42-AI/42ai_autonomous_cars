@@ -40,37 +40,33 @@ def get_model_params():
 
     tf.keras.backend.clear_session()
 
-    img_in = Input(shape=(96, 160, 3), name='img_in')
-    x = img_in
 
-    x = Convolution2D(2, (5, 5), strides=(2, 2), use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Convolution2D(4, (5, 5), strides=(2, 2), use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(.4)(x)
-    x = Convolution2D(8, (5, 5), strides=(2, 2), use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(.5)(x)
+    model = tf.keras.Sequential()
+    model.add(Convolution2D(2, (5, 5), strides=(2, 2), use_bias=False))
+    model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    model.add(Convolution2D(4, (5, 5), strides=(2, 2), use_bias=False))
+    model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    model.add(Dropout(.4))
+    model.add(Convolution2D(8, (5, 5), strides=(2, 2), use_bias=False))
+    model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    model.add(Dropout(.5))
 
-    x = Flatten(name='flattened')(x)
+    model.add(Flatten(name='flattened'))
 
-    x = Dense(100, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(.4)(x)
-    x = Dense(50, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(.3)(x)
+    model.add(Dense(100, use_bias=False))
+    model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    model.add(Dropout(.4))
+    model.add(Dense(50, use_bias=False))
+    model.add(BatchNormalization())
+    model.add(Activation("relu"))
+    model.add(Dropout(.3))
 
     # pk 3 et pas 5 ??
-    out_dir = Dense(3, activation='softmax')(x)
-    out_speed = Dense(2, activation='softmax')(x)
-
-    model = tf.keras.models.Model(inputs=img_in, outputs=[out_dir, out_speed])
+    model.add(Dense(5, activation='softmax'))
 
     return model
 

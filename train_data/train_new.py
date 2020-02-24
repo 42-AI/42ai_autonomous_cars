@@ -27,7 +27,7 @@ def get_args():
 
 
 class TrainModel:
-    def __init__(self, labels_path, model_params=None, seed=1, validation_split=0.8, batch_size=16, nb_epochs=10):
+    def __init__(self, labels_path, seed=1, validation_split=0.8, batch_size=16, nb_epochs=10):
         self.images_json = None
         self.images_dir = None
         self.validation_split = validation_split
@@ -66,8 +66,8 @@ class TrainModel:
         for k, v in self.images_json.items():
             image_path = self.images_dir / v['file_name']
             label_dir = v['label']['label_direction']
-            label_speed = v['label']['label_speed']
-            yield str(image_path), tf.convert_to_tensor([label_dir, label_speed])
+            # label_speed = v['label']['label_speed']
+            yield str(image_path), tf.constant(label_dir)
 
     def _get_image(self, image_path, labels):
         image_str = tf.io.read_file(image_path)
@@ -81,7 +81,7 @@ class TrainModel:
         train_size = int(self.ds_size * self.validation_split)
 
         ds_path = tf.data.Dataset.from_generator(self._dataset_generator, (tf.string, tf.int16),
-                                                 output_shapes=(tf.TensorShape([]), tf.TensorShape([2])))
+                                                 output_shapes=(tf.TensorShape([]), tf.TensorShape([])))
 
         self.ds_all = ds_path.map(lambda x, y: self._get_image(x, y), num_parallel_calls=tf.data.experimental.AUTOTUNE
                              ).shuffle(buffer_size=self.ds_size, reshuffle_each_iteration=False)
@@ -108,9 +108,9 @@ class TrainModel:
 
     def train(self):
         self.model = model_params_setter_new.get_model_params()
-        # self.model.build(input_shape=(None, 96, 160, 3))
+        self.model.build(input_shape=(None, 96, 160, 3))
         self.model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-                      optimizer=tf.keras.optimizers.Adadelta(learning_rate=0.001), metrics=['accuracy'])
+                      optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), metrics=['accuracy'])
         self.model.summary()
 
         train_size = int(self.ds_size * self.validation_split)
@@ -118,7 +118,7 @@ class TrainModel:
         validation_steps = (self.ds_size - train_size) // self.batch_size
 
         history = self.model.fit(self.ds_train, epochs=self.nb_epochs, steps_per_epoch=steps_per_epoch,
-                                 #validation_data=self.ds_validation, validation_steps=validation_steps,
+                                 validation_data=self.ds_validation, validation_steps=validation_steps,
                                  shuffle=True, verbose=1)
         return history
 
