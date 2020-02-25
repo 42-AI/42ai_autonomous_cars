@@ -7,19 +7,19 @@ from get_data.src import get_from_db
 def list_of_existing_pic():
     return {
         "1517255696": {"img_id": "20200204T15-23-19-881268", "file_name": "20200204T15-23-19-881268.jpg",
-                       "location": "s3bucket/key/"},
+                       "s3_bucket": "s3bucket/key/"},
         "1517255705": {"img_id": "20200204T15-23-08-574348", "file_name": "20200204T15-23-08-574348.jpg",
-                       "location": "s3bucket/key/"},
+                       "s3_bucket": "s3bucket/key/"},
         "1537441219": {"img_id": "20200204T15-23-08-695024", "file_name": "20200204T15-23-08-695024.jpg",
-                       "location": "s3bucket/key/"}
+                       "s3_bucket": "s3bucket/key/"}
     }
 
 
 @pytest.fixture()
 def list_of_missing_pic():
     return {
-        "missing_pic_1": {"img_id": "missing_pic_1", "file_name": "missing_pic_1.jpeg", "location": "s3bucket/key/"},
-        "missing_pic_2": {"img_id": "missing_pic_2", "file_name": "missing_pic_2.jpeg", "location": "s3bucket/key/"}
+        "missing_pic_1": {"img_id": "missing_pic_1", "file_name": "missing_pic_1.jpeg", "s3_bucket": "s3bucket/key/"},
+        "missing_pic_2": {"img_id": "missing_pic_2", "file_name": "missing_pic_2.jpeg", "s3_bucket": "s3bucket/key/"}
     }
 
 

@@ -6,6 +6,7 @@ PARENT_DIR = os.path.dirname(CURRENT_DIR)
 sys.path.append(PARENT_DIR)
 
 from get_data.src import upload_to_db as upload
+from get_data.src import update_db
 from conf import cluster_conf
 
 
@@ -22,19 +23,23 @@ def _get_args(description):
     parser.add_argument("-f", "--force", action="store_true",
                         help="Force option will overwrite existing pictures and labels in S3 and ES with new one"
                              " if same img_id is found")
+    parser.add_argument("-e", "--es_only", default=None,
+                        help="Only upload labels to Elasticsearch cluster and doesn't upload pictures to S3."
+                             "However, picture in S3 will still be removed based on instruction from the label_file.")
     return parser.parse_args()
 
 
 def upload_data():
     """
-    Upload date picture and label to S3 and ES from a label file (json format). The label file can contain one or
-    a list of label.
+    Upload and/or Delete picture in S3 and/or label in ES from a label file (json format). The label file shall be
+    in the same folder as the picture to upload.
+    The label file can contain one or more label in the form of a dictionary with the img_id as key for each label.
     To see a label template, use the write_label_template.py function.
     You will need credential for the upload. Access keys shall be defined in the following environment variables:
     export PATATE_S3_KEY_ID="your_access_key_id"
     export PATATE_S3_KEY="your_secret_key_code"
-    export ES_USER_ID="your_es_user_id"
-    export ES_USER_PWD="your_es_password"
+    export PATATE_ES_USER_ID="your_es_user_id"
+    export PATATE_ES_USER_PWD="your_es_password"
     """
     args = _get_args(upload_data.__doc__)
     label_file = args.label_file
@@ -43,8 +48,9 @@ def upload_data():
     es_index_name = cluster_conf.ES_INDEX if args.index is None else args.index
     es_ip_host = cluster_conf.ES_HOST_IP
     es_port_host = cluster_conf.ES_HOST_PORT
-    upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
-                        overwrite=args.force, key_prefix=key_prefix)
+    update_db.delete_picture_and_label(label_file, es_index=es_index_name, bucket=bucket_name)
+    upload.upload_to_db(label_file, es_ip_host, es_port_host, es_index_name,
+                        bucket_name=bucket_name, overwrite=args.force, key_prefix=key_prefix)
 
 
 if __name__ == "__main__":

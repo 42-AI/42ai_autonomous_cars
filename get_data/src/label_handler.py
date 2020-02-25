@@ -14,7 +14,6 @@ class Label:
 
     def __init__(self, picture_dir=None, camera_position="unknown", car_mapping=None, raise_error=True):
         self._template = {}
-        self.picture_dir_key = "location"
         self.picture_dir = picture_dir
         self.car_mapping = cm.CarMapping() if car_mapping is None else car_mapping
         self.init_label_template(camera_position, raise_error=raise_error)
@@ -26,27 +25,18 @@ class Label:
         return self._template[item]
 
     def __setitem__(self, key, value):
-        if key == self.picture_dir_key:
-            self._picture_dir = value
         self._template[key] = value
-
-    def set_picture_dir(self, directory):
-        self._picture_dir = directory
-        self._template[self.picture_dir_key] = self._picture_dir
-
-    def get_picture_dir(self):
-        return self._picture_dir
 
     def get_template(self):
         return self._template
 
-    picture_dir = property(get_picture_dir, set_picture_dir)
     template = property(get_template)
 
     def init_label_template(self, camera_position="unknown", raise_error=True):
         self.init_car_setting_from_const(cam_position=camera_position)
         self.init_hardware_conf_from_file(raise_error=raise_error)
         self.init_session_template_from_file(directory=self.picture_dir, raise_error=raise_error)
+        self._template["s3_bucket"] = ""
         self._template["raw_picture"] = True
         self._template["upload_date"] = None
         self.set_label()

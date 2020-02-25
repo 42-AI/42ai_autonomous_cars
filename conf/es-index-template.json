@@ -189,7 +189,7 @@
           }
         }
       },
-      "location" : {
+      "s3_bucket" : {
         "type" : "keyword",
         "ignore_above" : 256
       },
