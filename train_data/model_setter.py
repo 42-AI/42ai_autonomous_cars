@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Convolution2D, BatchNormalization, Activation, Dropout, Flatten, Input, Dense
 
+
 def get_model_params():
     # TODO padding=same, activation in FC and activation with convolution ? ...
 
