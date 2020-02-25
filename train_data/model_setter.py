@@ -1,7 +1,9 @@
 import tensorflow as tf
+# noinspection PyUnresolvedReferences
 from tensorflow.keras.layers import Convolution2D, BatchNormalization, Activation, Dropout, Flatten, Input, Dense
 
 
+# noinspection PyUnresolvedReferences
 def get_model_params():
     # TODO padding=same, activation in FC and activation with convolution ? ...
 
@@ -42,6 +44,6 @@ def get_model_params():
 
 
 if __name__ == '__main__':
-    model = get_model_params()
-    model.build(input_shape=(None, 96, 160, 3))
-    model.summary()
+    t_model = get_model_params()
+    t_model.build(input_shape=(None, 96, 160, 3))
+    t_model.summary()

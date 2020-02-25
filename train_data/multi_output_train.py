@@ -18,8 +18,10 @@ def get_args():
                         help="Provide the model path.\n")
     parser.add_argument("-n", "--name", type=str, default='training_race_1',
                         help="Name of the training.")
-    parser.add_argument("-s", "--validation_split", type=float, default=0.2,
+    parser.add_argument("-s", "--validation_split", type=float, default=0.15,
                         help="Validation split. Must be between 0 and 1.")
+    parser.add_argument("-t", "--test_split", type=float, default=0.15,
+                        help="Test split. Must be between 0 and 1.")
     parser.add_argument("-e", "--nb_epochs", type=int, default=20,
                         help="Number of epochs of the training.")
     parser.add_argument("-r", "--random_seed", type=int, default=42,
@@ -27,9 +29,11 @@ def get_args():
     return parser.parse_args()
 
 
+# noinspection PyUnresolvedReferences
 class TrainModel:
     def __init__(self, labels_path, name='training_race_1',
                  validation_split=0.15, test_split=0.15, nb_epochs=20, seed=42):
+        self.seed = seed
         tf.random.set_seed(seed)
         random.seed(seed)
         self.images_json = None
@@ -41,10 +45,12 @@ class TrainModel:
         self.nb_epochs = nb_epochs
 
         self.model = None
+        self.history = None
         self.output_path = f"{name}/{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
         self._set_images_json(labels_path)
         self._save_json(labels_path)
+        self._save_params()
         self._set_feat_labels()
 
     def _set_images_json(self, labels_path):
@@ -59,10 +65,18 @@ class TrainModel:
         new_labels_path = f"{self.output_path}/labels.json"
         shutil.copy(labels_path, new_labels_path)
 
+    def _save_params(self):
+        pathlib.Path(self.output_path).mkdir(parents=True, exist_ok=True)
+        params_path = f"{self.output_path}/params.json"
+        params_dic = {"validation_split": self.validation_split, "test_split": self.test_split,
+                      "nb_epochs": self.nb_epochs, "random_seed": self.seed}
+        with open(params_path, 'w', encoding='utf-8') as fd:
+            json.dump(params_dic, fd, indent=4)
+
     def _set_feat_labels(self):
         features, speeds, directions = [], [], []
         test_features, test_speeds, test_directions = [], [], []
-        images_values = list((self.images_json).values())
+        images_values = list(self.images_json.values())
         random.shuffle(images_values)
         for index, item in enumerate(images_values):
             if index < (1 - self.test_split) * len(images_values):
@@ -81,7 +95,8 @@ class TrainModel:
         self.test_directions_labels = np.asarray(directions, dtype='int16')
         self.test_speeds_labels = np.asarray(speeds, dtype='int16')
 
-    def _get_image(self, image_path):
+    @staticmethod
+    def _get_image(image_path):
         image_str = tf.io.read_file(image_path)
         image = tf.image.decode_jpeg(image_str, channels=3).numpy() / 255.0
         return image
@@ -100,7 +115,7 @@ class TrainModel:
         self.model = model_setter.get_model_params()
         self.model.build(input_shape=(None, 96, 160, 3))
         self.model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-                      optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), metrics=['accuracy'])
+                           optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), metrics=['accuracy'])
         self.model.summary()
 
         log_dir = f"logs/fit/{self.output_path}"
@@ -111,8 +126,8 @@ class TrainModel:
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
         self.history = self.model.fit(self.images, [self.directions_labels, self.speeds_labels], epochs=self.nb_epochs,
-                                      validation_split=self.validation_split,
-                                 shuffle=True, verbose=1, callbacks=[best_checkpoint, tensorboard_callback])
+                                      validation_split=self.validation_split, shuffle=True, verbose=1,
+                                      callbacks=[best_checkpoint, tensorboard_callback])
         if self.test_split > 0:
             self._evaluate()
 
@@ -153,9 +168,9 @@ class TrainModel:
 if __name__ == '__main__':
     options = get_args()
     train_model = TrainModel(options.labels_path, name=options.name, validation_split=options.validation_split,
-                             nb_epochs=options.nb_epochs, seed=options.random_seed)
+                             nb_epochs=options.nb_epochs, seed=options.random_seed, test_split=options.test_split)
     # train_model.show_images(5, 10)
     train_model.train()
     train_model.show_balance()
-    # TODO README?
-
+    # TODO evaluate: reflechir si ne pas utiliser lien vers folder avec images pour evaluer en fonction ?
+    # TODO eventuellement dans evaluate mettre taille des datasets de train / validation / test
