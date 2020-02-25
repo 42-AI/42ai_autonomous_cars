@@ -43,20 +43,23 @@ class TrainModel:
         self.model = None
         self.output_path = f"{name}/{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
-        self._get_and_save_json(labels_path)
-        self._get_feat_labels()
+        self._set_images_json(labels_path)
+        self._save_json(labels_path)
+        self._set_feat_labels()
 
-    def _get_and_save_json(self, labels_path):
+    def _set_images_json(self, labels_path):
         labels_json = pathlib.Path(labels_path)
         self.images_dir = labels_json.parent
 
         with open(labels_json) as data:
             self.images_json = json.load(data)
+
+    def _save_json(self, labels_path):
         pathlib.Path(self.output_path).mkdir(parents=True, exist_ok=True)
         new_labels_path = f"{self.output_path}/labels.json"
         shutil.copy(labels_path, new_labels_path)
 
-    def _get_feat_labels(self):
+    def _set_feat_labels(self):
         features, speeds, directions = [], [], []
         test_features, test_speeds, test_directions = [], [], []
         images_values = list((self.images_json).values())
