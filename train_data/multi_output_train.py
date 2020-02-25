@@ -28,12 +28,16 @@ def get_args():
 
 
 class TrainModel:
-    def __init__(self, labels_path, name='training_race_1', validation_split=0.2, nb_epochs=2, seed=42):
+    def __init__(self, labels_path, name='training_race_1',
+                 validation_split=0.15, test_split=0.15, nb_epochs=20, seed=42):
         tf.random.set_seed(seed)
         random.seed(seed)
-        self.images_json, self.features, self.directions_labels, self.speeds_labels = None, None, None, None
+        self.images_json = None
+        self.features, self.directions_labels, self.speeds_labels = None, None, None
+        self.test_features, self.test_directions_labels, self.test_speeds_labels = None, None, None
         self.images_dir = None
         self.validation_split = validation_split
+        self.test_split = test_split
         self.nb_epochs = nb_epochs
 
         self.model = None
@@ -54,16 +58,25 @@ class TrainModel:
 
     def _get_feat_labels(self):
         features, speeds, directions = [], [], []
+        test_features, test_speeds, test_directions = [], [], []
         images_values = list((self.images_json).values())
         random.shuffle(images_values)
-        for v in images_values:
-            features.append(self._get_image(str(self.images_dir / v['file_name'])))
-            speeds.append(v['label']['label_speed'])
-            directions.append(v['label']['label_direction'])
+        for index, item in enumerate(images_values):
+            if index < (1 - self.test_split) * len(images_values):
+                features.append(self._get_image(str(self.images_dir / item['file_name'])))
+                speeds.append(item['label']['label_speed'])
+                directions.append(item['label']['label_direction'])
+            else:
+                test_features.append(self._get_image(str(self.images_dir / item['file_name'])))
+                test_speeds.append(item['label']['label_speed'])
+                test_directions.append(item['label']['label_direction'])
 
         self.images = np.asarray(features)
         self.directions_labels = np.asarray(directions, dtype='int16')
         self.speeds_labels = np.asarray(speeds, dtype='int16')
+        self.test_images = np.asarray(features)
+        self.test_directions_labels = np.asarray(directions, dtype='int16')
+        self.test_speeds_labels = np.asarray(speeds, dtype='int16')
 
     def _get_image(self, image_path):
         image_str = tf.io.read_file(image_path)
@@ -97,9 +110,23 @@ class TrainModel:
         self.history = self.model.fit(self.images, [self.directions_labels, self.speeds_labels], epochs=self.nb_epochs,
                                       validation_split=self.validation_split,
                                  shuffle=True, verbose=1, callbacks=[best_checkpoint, tensorboard_callback])
+        if self.test_split > 0:
+            self._evaluate()
 
-    def predict(self):
-        predictions = self.model.predict(self.images)
+    def _evaluate(self):
+        evaluation_path = f"{self.output_path}/evaluation.txt"
+        evaluation = self.model.evaluate(x=self.test_images,
+                                         y=[self.test_directions_labels, self.test_speeds_labels], verbose=0)
+        evaluation_dic = {"loss": float(evaluation[0]),
+                          "direction_loss": float(evaluation[1]), "speed_loss": float(evaluation[2]),
+                          "direction_accuracy": float(evaluation[3]), "speed_accuracy": float(evaluation[4])}
+        with open(evaluation_path, 'w', encoding='utf-8') as fd:
+            json.dump(evaluation_dic, fd, indent=4)
+
+    def predict(self, image_path):
+        image = self._get_image(image_path)
+        predictions = self.model(image)
+        # put as @tf.function if many
         speed_preds = []
         for elem in predictions[0]:
             speed_preds.append(np.argmax(elem))
@@ -123,12 +150,9 @@ class TrainModel:
 if __name__ == '__main__':
     options = get_args()
     train_model = TrainModel(options.labels_path, name=options.name, validation_split=options.validation_split,
-                             nb_epochs=options.nb_epochs, seed=options.seed)
+                             nb_epochs=options.nb_epochs, seed=options.random_seed)
     # train_model.show_images(5, 10)
     train_model.train()
     train_model.show_balance()
     # TODO README?
-    # TODO evaluate and put results with model?
-
-    # train_model.predict()
 
