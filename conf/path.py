@@ -16,4 +16,4 @@ SESSION_TEMPLATE_NAME = "session_template.json"
 HARDWARE_CONF_FILE = "utils/hardware_conf.json"
 
 # ES
-INDEX_TEMPLATE = "conf/es-index-template.json"
+INDEX_TEMPLATE = "conf/patate-db-index-mapping.json"

@@ -206,8 +206,9 @@ following information:
     ...
 ]
 ```
-Note: you can only search a dataset by name, or comment, or creation_date but not combined. If you combine those field 
-you will get wrong result. (In later version dataset will only be searchable by name to avoid error).  
+**/!\ WARNING /!\ : Make sure the name of the dataset is unique when you create it. There is no verification, so if you 
+name a dataset with an existing name, the labels will be appended to the existing one instead of creating a new dataset.**  
+Note: you can only search a dataset by name. "comment", "created_on_date" and "query" are not searchable. 
 
 ### 7.1 Create a dataset
 Use the function `create_dataset.py` in `get_data/` and follow the instruction (use `-h` to see usage). 

@@ -87,15 +87,19 @@
             }
           },
           "comment": {
-            "type" : "text"
+            "type" : "text",
+            "enable": false
           },
           "query": {
             "type" : "keyword",
-            "ignore_above" : 8191
+            "ignore_above" : 8191,
+            "null_value": "",
+            "enable": false
           },
           "created_on_date": {
             "type" : "date",
-            "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy"
+            "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy",
+            "enable": false
           }
         }
       },
@@ -211,7 +215,8 @@
       },
       "track_picture" : {
         "type" : "keyword",
-        "ignore_above" : 256
+        "ignore_above" : 256,
+        "enable": false
       },
       "track_type" : {
         "type" : "text",
