@@ -1,7 +1,6 @@
 # Specific to project
-images/
 download_images/
-
+get_data/queries
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
