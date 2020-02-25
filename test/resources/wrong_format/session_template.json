@@ -1,10 +1,9 @@
 {
   {
-    "location": "",
+    "s3_bucket": "",
     "event": "session_14012020",
     "track" : "piste1",
     "track_type": "single lane",
-    "dataset": ["D1"],
     "comment": "night session"
   }
 }

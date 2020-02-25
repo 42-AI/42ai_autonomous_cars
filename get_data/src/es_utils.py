@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from conf.path import INDEX_TEMPLATE
-from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY
+from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY, ES_INDEX
 
 
 def get_es_session(host_ip, port):
@@ -19,7 +19,7 @@ def get_es_session(host_ip, port):
         user = ""
         pwd = ""
     try:
-        es = elasticsearch.Elasticsearch([{"host": host_ip, "port": port, "timeout": 10}], http_auth=(user, pwd))
+        es = elasticsearch.Elasticsearch([host_ip], http_auth=(user, pwd), scheme="https", port=443)
         connection_ok = es.ping()
         if not connection_ok:
             print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}"')
@@ -30,7 +30,7 @@ def get_es_session(host_ip, port):
     return es
 
 
-def create_es_index(host_ip, host_port, index_name, alias=None, is_write_index=False, current_write_index=None):
+def create_es_index(host_ip, host_port, index_name, alias=None, index_pattern="_all"):
     """Create an index in ES from the template defined in utils.path."""
     es = get_es_session(host_ip, host_port)
     if es is None:
@@ -39,14 +39,16 @@ def create_es_index(host_ip, host_port, index_name, alias=None, is_write_index=F
         index_template = json.load(fp)
     es.indices.create(index_name, body=index_template)
     if alias is not None:
-        is_write_index_false = {"is_write_index": "false"} if is_write_index is True else None
-        es.indices.put_alias(index=current_write_index, name=alias, body=is_write_index_false)
-        is_write_index_true = {"is_write_index": "true"} if is_write_index is True else None
-        es.indices.put_alias(index=index_name, name=alias, body=is_write_index_true)
+        es.indices.update_aliases({
+            "actions": [
+                {"remove": {"index": index_pattern, "alias": alias}},
+                {"add": {"index": index_name, "alias": alias}}
+            ]
+        })
     return es
 
 
-def _gen_bulk_doc(d_label, index, op_type):
+def _gen_bulk_doc_ingest(d_label, index, op_type):
     """Yield well formatted document for bulk upload to ES"""
     for img_id, label in tqdm(d_label.items()):
         yield {
@@ -58,6 +60,62 @@ def _gen_bulk_doc(d_label, index, op_type):
         }
 
 
+def _gen_bulk_doc_update_replace_field(d_label, index, update_field, new_value):
+    """Yield well formatted document for bulk update to ES"""
+    for img_id, label in tqdm(d_label.items()):
+        yield {
+            "_index": index,
+            "_type": "_doc",
+            "_op_type": "update",
+            "_id": label["label_fingerprint"],
+            "doc": {update_field: new_value}
+        }
+
+
+def _gen_bulk_doc_update_append_field(d_label, index, update_field, new_dataset):
+    """Yield well formatted document for bulk update to ES"""
+    for img_id, label in tqdm(d_label.items()):
+        yield {
+            "_index": index,
+            "_type": "_doc",
+            "_op_type": "update",
+            "_id": label["label_fingerprint"],
+            "script": {"source": f"ctx._source.{update_field}.add(params.param1)", "lang": "painless",
+                       "params": {"param1": new_dataset}}
+        }
+
+
+def _gen_bulk_doc_delete(l_doc_id, index):
+    """Yield well formatted document for bulk update to ES"""
+    for doc_id in tqdm(l_doc_id):
+        yield {
+            "_index": index,
+            "_type": "_doc",
+            "_op_type": "delete",
+            "_id": doc_id
+        }
+
+
+def update_doc_in_index(d_label, field_to_update, value, es_index, es_host_ip, es_host_port, verbose=1):
+    es = get_es_session(host_ip=es_host_ip, port=es_host_port)
+    if es is None:
+        return 0, len(d_label)
+    print(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
+    success, errors = helpers.bulk(es, _gen_bulk_doc_update_append_field(d_label, es_index, field_to_update, value),
+                                   request_timeout=60, raise_on_error=False)
+    if verbose > 0:
+        print(f'{success} label(s) successfully update.')
+        if len(errors) > 0:
+            print(f'{len(errors)} label(s) update failed:')
+            for err in errors:
+                print(f'  --> Label "{err["update"]["_id"]}" got "{err["update"]["error"]["type"]}" '
+                      f'because: {err["update"]["error"]["reason"]}')
+                if err["update"]["error"]["reason"] == "failed to execute script":
+                    print(f'\t\t(error history: This error happened before because the "dataset" field of the label '
+                          f'in the database was not a list. Thus, could not append value...)')
+    return success, errors
+
+
 def upload_to_es(d_label, index, host_ip, port, overwrite=False):
     """
     Upload all label in d_label to Elasticsearch cluster.
@@ -67,7 +125,7 @@ def upload_to_es(d_label, index, host_ip, port, overwrite=False):
                                                 img_id: {
                                                     "img_id": "id",
                                                     "file_name": "pic_file_name.jpg",
-                                                    "location": "s3_bucket_path",
+                                                    "s3_bucket": "s3_bucket_path",
                                                     "label_fingerprint": "c072a1b9a16b633d6b3004c3edab7553"
                                                 },
                                                 ...
@@ -80,9 +138,10 @@ def upload_to_es(d_label, index, host_ip, port, overwrite=False):
     """
     es = get_es_session(host_ip, port)
     if es is None:
-        return [img_id for img_id, _ in d_label]
+        return [img_id for img_id, _ in d_label.items()]
     op_type = "index" if overwrite else "create"
-    success, errors = helpers.bulk(es, _gen_bulk_doc(d_label, index, op_type), request_timeout=60, raise_on_error=False)
+    success, errors = helpers.bulk(es, _gen_bulk_doc_ingest(d_label, index, op_type),
+                                   request_timeout=60, raise_on_error=False)
     failed_doc_id = []
     for error in errors:
         for error_type in error:
@@ -99,15 +158,24 @@ def delete_index(index, host_ip, port):
     return es.indices.delete(index=index, ignore=[400, 404])
 
 
-def delete_document(index, doc_id, es=None, host_ip=None, port=9200):
-    if isinstance(doc_id, list):
-        print("Bulk delete not yet implemented... sorry, list of doc_id not accepted yet :/")
-        exit(1)
+def delete_document(index, l_doc_id, es=None, host_ip=None, port=9200):
+    """Delete all document listed in the list l_doc_id"""
     if bool(es) == bool(host_ip):
         print("host_ip and port will be ignored since es session object is provided")
     if es is None:
         es = get_es_session(host_ip, port)
-    return es.delete(index=index, id=doc_id, refresh=True)
+    nb_of_success, errors = helpers.bulk(es, _gen_bulk_doc_delete(l_doc_id, index),
+                                         request_timeout=60, raise_on_error=False)
+    failed_doc_id = []
+    for error in errors:
+        for error_type in error:
+            failed_doc_id.append(error[error_type]["_id"])
+            try:
+                print(f'  --> Error: couldn\'t delete document {failed_doc_id[-1]} '
+                      f'because:{error[error_type]["error"]["reason"]}')
+            except KeyError:
+                print(f'  --> Error: {error}')
+    return nb_of_success, failed_doc_id
 
 
 def _add_query(search_obj, field, query, bool="match"):

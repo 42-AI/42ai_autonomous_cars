@@ -1,7 +1,13 @@
 {
-  "event": {
-    "type": "match",
-    "field": "",
-    "query": "training"
-  }
+     "timestamp": {
+        "type": "range",
+        "bool": "filter",
+        "field": "",
+        "gte": "20200210T16-25-00-000000",
+        "lte": "20200210T16-26-00-000000"
+    },
+	"event": {
+		"query": "training",
+		"type": "match"
+	}
 }

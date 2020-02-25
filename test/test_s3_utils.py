@@ -101,6 +101,16 @@ def test_get_s3_formatted_bucket_path_double_nokey_with_filename():
     assert res == ("my-bucket/key_prefix/file.jpg", "my-bucket", "key_prefix/file.jpg")
 
 
+def test_get_s3_formatted_bucket_key_prefix_in_bucket():
+    res = s3_utils.get_s3_formatted_bucket_path("my-bucket/key/prefix", "")
+    assert res == ("my-bucket/key/prefix/", "my-bucket", "key/prefix/")
+
+
+def test_get_s3_formatted_bucket_key_prefix_in_bucket_plus_file():
+    res = s3_utils.get_s3_formatted_bucket_path("my-bucket/key/prefix", "", "/file")
+    assert res == ("my-bucket/key/prefix/file", "my-bucket", "key/prefix/file")
+
+
 def test_generate_key_prefix_ok():
     date_str = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
     date = datetime.now()
@@ -123,3 +133,9 @@ def test_generate_key_prefix_different_name():
     d_label = {1: {"event": event_name, "img_id": 1}, 2: {"event": event_name, "img_id": 2}}
     key = upload.generate_key_prefix(d_label)
     assert key is None
+
+
+def test_delete_all_bucket_refused():
+    assert not s3_utils.delete_all_in_s3_folder("test", "", ["test"])
+    assert not s3_utils.delete_all_in_s3_folder("test", None, ["test"])
+

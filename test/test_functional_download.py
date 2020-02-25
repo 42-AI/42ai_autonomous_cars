@@ -17,6 +17,8 @@ def test_init():
     es_index_name = "test_index"
     output_test_folder = Path("output_test_folder")
     output_test_folder.mkdir(exist_ok=True)
+    es_utils.delete_index(es_index_name, host_ip=cluster_conf.ES_HOST_IP, port=cluster_conf.ES_HOST_PORT)
+    es_utils.create_es_index(cluster_conf.ES_HOST_IP, cluster_conf.ES_HOST_PORT, es_index_name)
     yield output_test_folder, bucket_name, key_prefix, es_ip_host, es_port_host, es_index_name
     print("--------------- Test completed ----------------")
     print("Deleting test pictures from s3")
@@ -36,10 +38,10 @@ def test_download_single_file(test_init):
         label = json.load(fp)
     first_key = next(iter(label))
     output = Path(output_test_folder) / label[first_key]["file_name"]
-    s3_success, es_success, fail = upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
-                                                       key_prefix=key_prefix, overwrite=True)
+    s3_success, es_success, fail = upload.upload_to_db(label_file, es_ip_host, es_port_host, es_index_name,
+                                                       bucket_name=bucket_name, key_prefix=key_prefix, overwrite=False)
     if fail > 0:
-        raise RuntimeError("Failed to upload to s3, can't test download if upload is not working")
+        raise RuntimeError(f"Failed to upload: can't test download if upload is not working")
     time.sleep(1)
     test_res = s3_utils.download_from_s3(first_key, f'{bucket_name}/{key_prefix}', output.as_posix())
     assert test_res is None
@@ -48,14 +50,14 @@ def test_download_single_file(test_init):
 def test_download_full_pipeline(test_init):
     label_file = "test/resources/labels.json"
     output_test_folder, bucket_name, key_prefix, es_ip_host, es_port_host, es_index_name = test_init
-    s3_success, es_success, fail = upload.upload_to_db(label_file, bucket_name, es_ip_host, es_port_host, es_index_name,
-                                                       key_prefix=key_prefix, overwrite=True)
+    s3_success, es_success, fail = upload.upload_to_db(label_file, es_ip_host, es_port_host, es_index_name,
+                                                       bucket_name=bucket_name, key_prefix=key_prefix, overwrite=False)
     assert fail == 1
     search = {
         "event": {
             "type": "match",
             "field": "",
-            "query": "demo_session"
+            "query": "unittest"
         }
     }
     search_json = "tmp_search_test.json"

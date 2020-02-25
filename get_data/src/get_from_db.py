@@ -9,7 +9,7 @@ from get_data.src import utils_fct
 from conf.cluster_conf import ES_INDEX, ES_HOST_IP, ES_HOST_PORT
 
 
-def get_missing_picture(picture_dir, d_wanted_pic):
+def _get_missing_picture(picture_dir, d_wanted_pic):
     """
     Look in 'picture_dir' for the pictures listed in 'd_wanted_pic'.
     Return the list of missing pic id.
@@ -20,7 +20,7 @@ def get_missing_picture(picture_dir, d_wanted_pic):
                                                 "img_id": {
                                                     "img_id": "id",
                                                     "file_name": "pic_file_name.jpg",
-                                                    "location": "s3_bucket_path"
+                                                    "s3_bucket": "s3_bucket_path"
                                                 }
     :return:                    [dict]          Dictionary of missing picture, same format as d_wanted_pic
     """
@@ -33,25 +33,24 @@ def get_missing_picture(picture_dir, d_wanted_pic):
     return l_missing_pic
 
 
-def find_picture_in_db(json_file, output=None, es_index=ES_INDEX, verbose=1):
+def _get_label_from_db(query_file, es_index=ES_INDEX, verbose=1):
     """
-    Search picture in the database according to a json_file describing the query and return the list of matching pics.
-    :param json_file:       [string]        Path to the search description file, json format
-    :param output:          [string]        Path to directory where to write the output as a json.
+    Search labels in the database according to a json_file describing the query and return the list of matching labels.
+    :param query_file:      [string]        Path to the search description file, json format
     :param es_index:        [string]        Name of the index
     :param verbose:         [int]           verbosity level
-    :return:                [dict]          Dictionary of pictures as dictionary as follow:
+    :return:                [dict]          Dictionary of labels as follow, or None on error.
                                             {
                                                 img_id: {
                                                     "img_id": id,
                                                     "file_name": "pic_file_name.jpg",
-                                                    "location": "s3_bucket_path"
+                                                    "s3_bucket": "s3_bucket_path",
+                                                    ...
                                                 },
                                                 ...
                                             }
-                            [None]          Return None on error.
     """
-    with Path(json_file).open(mode='r', encoding='utf-8') as fp:
+    with Path(query_file).open(mode='r', encoding='utf-8') as fp:
         d_query = json.load(fp)
     es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
     if es is None:
@@ -74,12 +73,15 @@ def find_picture_in_db(json_file, output=None, es_index=ES_INDEX, verbose=1):
             print(f'WARNING --> Your search return multiple label for a single picture: Labels "{fingerprint_1}" '
                   f'and "{fingerprint_2}" point to the same picture: "{img_id}". Only one label will be saved.')
         d_match_pic[img_id] = hit["_source"]
-    if output is not None and len(d_match_pic) > 0:
-        with Path(output).open(mode='w', encoding='utf-8') as fp:
-            json.dump(d_match_pic, fp, indent=4)
+    return d_match_pic
+
+
+def _write_labels_to_file(output, d_label, verbose=1):
+    """Write d_label to the output file"""
+    with Path(output).open(mode='w', encoding='utf-8') as fp:
+        json.dump(d_label, fp, indent=4)
         if verbose > 0:
             print(f'Labels written to: "{Path(output)}"')
-    return d_match_pic
 
 
 def search_and_download(query_json, picture_dir, label_file_name="labels.json", es_index=ES_INDEX, force=False, verbose=1):
@@ -99,7 +101,7 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
                                                 img_id: {
                                                     "img_id": id,
                                                     "file_name": "pic_file_name.jpg",
-                                                    "location": "s3_bucket_path"
+                                                    "s3_bucket": "s3_bucket_path"
                                                 },
                                                 ...
                                             }
@@ -110,17 +112,16 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
     if not picture_dir.is_dir():
         picture_dir.mkdir(parents=True)
         print(f'Output folder "{picture_dir}" created.')
-    elif label_file_name.is_file():
-        label_file_name = utils_fct.get_label_file_name(label_file_name)
+    label_file_name = utils_fct.get_label_file_name(label_file_name)
     print(f'Searching for picture in "{es_index}" index')
-    d_matching_label = find_picture_in_db(json_file=query_json, es_index=es_index, verbose=verbose,
-                                          output=label_file_name)
+    d_matching_label = _get_label_from_db(query_file=query_json, es_index=es_index, verbose=verbose)
     if d_matching_label is None:
         return None
     if len(d_matching_label) == 0:
         print(f'No matching picture found.')
         return {}
-    d_missing_pic = get_missing_picture(picture_dir, d_matching_label)
+    _write_labels_to_file(output=label_file_name, d_label=d_matching_label)
+    d_missing_pic = _get_missing_picture(picture_dir, d_matching_label)
     print(f'{len(d_matching_label)} picture(s) found matching the query')
     print(f'{len(d_missing_pic)} picture(s) missing in "{picture_dir}"')
     if len(d_missing_pic) == 0:
@@ -134,6 +135,6 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
     print("Downloading the missing picture(s)...")
     for img_id, picture in tqdm(d_missing_pic.items()):
         output_file = picture_dir / picture["file_name"]
-        s3_utils.download_from_s3(img_id, picture["location"], output_file.as_posix())
+        s3_utils.download_from_s3(img_id, picture["s3_bucket"], output_file.as_posix())
     print(f'Pictures have successfully been downloaded to "{picture_dir}"')
     return d_missing_pic

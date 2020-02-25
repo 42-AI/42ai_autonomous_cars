@@ -92,6 +92,10 @@
           "query": {
             "type" : "keyword",
             "ignore_above" : 8191
+          },
+          "created_on_date": {
+            "type" : "date",
+            "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy"
           }
         }
       },
@@ -185,7 +189,7 @@
           }
         }
       },
-      "location" : {
+      "s3_bucket" : {
         "type" : "keyword",
         "ignore_above" : 256
       },

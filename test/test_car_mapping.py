@@ -125,7 +125,7 @@ def test_get_closest_item_index_min():
 def test_get_closest_item_index_max():
     mylist = [1, 4, 6, 7, 9, 10, 23]
     val = 24
-    assert len(mylist) == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)
+    assert 6 == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)
 
 
 def test_get_closest_item_index_mid():
@@ -155,4 +155,4 @@ def test_get_closest_item_index_eq_min():
 def test_get_closest_item_index_eq_max():
     mylist = [1, 2, 3, 7, 11, 15, 23]
     val = 23
-    assert len(mylist) == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)
+    assert 6 == cm.CarMapping.get_closest_value_index_in_sorted_list(value=val, list_=mylist)

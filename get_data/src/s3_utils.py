@@ -38,7 +38,7 @@ def get_s3_resource():
     return s3
 
 
-def file_exist_in_bucket(s3, bucket, key):
+def object_exist_in_bucket(s3, bucket, key):
     """check if key already exists in bucket. Return True if exists, False otherwise."""
     try:
         s3.Object(bucket, key).load()
@@ -47,14 +47,14 @@ def file_exist_in_bucket(s3, bucket, key):
     return True
 
 
-def upload_to_s3_from_label(d_label, s3_bucket_name, prefix="", overwrite=False):
+def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False):
     """
     Upload picture to s3 bucket.
     Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
     :param d_label:             [dict]      Dictionary of labels. Each label shall contains the following keys:
                                             "file_name": the name of the picture file
-                                            "location": path to the picture directory
                                             "img_id": id that will be used to index the picture (shall be unique)
+    :param picture_dir:         [string]    Path to the folder containing the pictures
     :param s3_bucket_name:      [string]    Name of the bucket
     :param prefix:              [string]    Prefix for every picture
     :param overwrite:           [bool]      If True, existing pic will be overwritten by new one sharing the same img_id
@@ -67,9 +67,9 @@ def upload_to_s3_from_label(d_label, s3_bucket_name, prefix="", overwrite=False)
     upload_success = []
     log = ""
     for pic_id, label in tqdm(d_label.items()):
-        picture = Path(label["location"]) / label["file_name"]
+        picture = Path(picture_dir) / label["file_name"]
         key = prefix + pic_id
-        if not overwrite and file_exist_in_bucket(s3, s3_bucket_name, key):
+        if not overwrite and object_exist_in_bucket(s3, s3_bucket_name, key):
             log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'
             already_exist_pic.append(pic_id)
         else:
@@ -82,12 +82,12 @@ def upload_to_s3_from_label(d_label, s3_bucket_name, prefix="", overwrite=False)
 def get_s3_formatted_bucket_path(bucket_name, key_prefix, file_name=None):
     """
     Creates a cleaned and well formatted name and path for access to s3 bucket from the bucket name and key prefix.
-    If file_name is given, the function will return a file path instead of a key_prefix path.
+    If file_name is None, the function will return a key ended by a '/' (as for a key prefix)
     :param bucket_name:     [string]        s3 Bucket name
     :param key_prefix:      [string]        key prefix (s3 sub-folder)
     :param file_name:       [string]        OPTIONAL: name of the file. If defined, the function will return a
                                             path to file (not "/" terminated) and not to a bucket ("/" terminated)
-    :return:                [tuple of str]  clean_full_path, clean_buck_name, clean_key_prefix
+    :return:                [tuple of str]  clean_full_path, clean_buck_name, clean_key
 
     For example:
     >>> get_s3_formatted_bucket_path("my-bucket/", "/sub/bucket//directory/with/typo")
@@ -101,6 +101,12 @@ def get_s3_formatted_bucket_path(bucket_name, key_prefix, file_name=None):
 
     >>> get_s3_formatted_bucket_path("my-bucket", "", "key_prefix/file.jpg")
     ("my-bucket/key_prefix/file.jpg", "my-bucket", "key_prefix/file.jpg")
+
+    >>> get_s3_formatted_bucket_path("my-bucket/key/prefix", "")
+    ("my-bucket/key/prefix/", "my-bucket", "key/prefix/")
+
+    >>> get_s3_formatted_bucket_path("my-bucket/key/prefix", "", "/file")
+    ("my-bucket/key/prefix/file", "my-bucket", "key/prefix/file")
     """
     if file_name is None:
         raw_dir = bucket_name + "/" + key_prefix
@@ -108,12 +114,12 @@ def get_s3_formatted_bucket_path(bucket_name, key_prefix, file_name=None):
         raw_dir = bucket_name + "/" + key_prefix + "/" + file_name
     dir_list_clean = [elm for elm in raw_dir.split("/") if bool(elm)]
     clean_full_path = "/".join(dir_list_clean)
-    clean_key_prefix = "/".join(dir_list_clean[1:]) if len(dir_list_clean) > 1 else ""
+    clean_key = "/".join(dir_list_clean[1:]) if len(dir_list_clean) > 1 else ""
     if file_name is None:
         clean_full_path += "/"
-        clean_key_prefix += "/" if clean_key_prefix != "" else ""
+        clean_key += "/" if clean_key != "" else ""
     clean_bucket_name = dir_list_clean[0]
-    return clean_full_path, clean_bucket_name, clean_key_prefix
+    return clean_full_path, clean_bucket_name, clean_key
 
 
 def split_s3_path(bucket_key):
@@ -125,18 +131,25 @@ def split_s3_path(bucket_key):
     return bucket, key_prefix, file_name
 
 
-def delete_object_s3(s3_resource, bucket, key_prefix, l_object_key):
-    full_path, bucket, key_prefix = get_s3_formatted_bucket_path(bucket, key_prefix)
+def delete_object_s3(bucket, l_object_key, s3_resource=None):
+    """Delete all object in bucket with key listed in l_object_key"""
+    if s3_resource is None:
+        s3_resource = get_s3_resource()
+    _, bucket, _ = get_s3_formatted_bucket_path(bucket, "")
     s3_bucket = s3_resource.Bucket(bucket)
     delete = {
         "Objects": []
     }
     for key in l_object_key:
-        delete["Objects"].append({"Key": key_prefix + key})
+        _, _, key = get_s3_formatted_bucket_path(bucket, "", key)
+        delete["Objects"].append({"Key": key})
     return s3_bucket.delete_objects(Delete=delete)
 
 
 def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
+    if key_prefix == "" or key_prefix is None:
+        print(f'Can\'t delete all the bucket, too dangerous... Please specify a key_prefix')
+        return False
     if s3_resource is None:
         s3 = get_s3_resource()
     else:
@@ -144,6 +157,7 @@ def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
     bucket = s3.Bucket(bucket)
     for obj in bucket.objects.filter(Prefix=key_prefix):
         s3.Object(bucket.name, obj.key).delete()
+    return True
 
 
 def download_from_s3(picture_id, bucket_key, output_file):
