@@ -33,10 +33,10 @@ def _get_missing_picture(picture_dir, d_wanted_pic):
     return l_missing_pic
 
 
-def _get_label_from_db(query_file, es_index=ES_INDEX, verbose=1):
+def run_search_query(d_query, es_index=ES_INDEX, verbose=1):
     """
     Search labels in the database according to a json_file describing the query and return the list of matching labels.
-    :param query_file:      [string]        Path to the search description file, json format
+    :param d_query:         [string]        Dictionary containing the query
     :param es_index:        [string]        Name of the index
     :param verbose:         [int]           verbosity level
     :return:                [dict]          Dictionary of labels as follow, or None on error.
@@ -50,8 +50,6 @@ def _get_label_from_db(query_file, es_index=ES_INDEX, verbose=1):
                                                 ...
                                             }
     """
-    with Path(query_file).open(mode='r', encoding='utf-8') as fp:
-        d_query = json.load(fp)
     es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
     if es is None:
         return None
@@ -74,6 +72,28 @@ def _get_label_from_db(query_file, es_index=ES_INDEX, verbose=1):
                   f'and "{fingerprint_2}" point to the same picture: "{img_id}". Only one label will be saved.')
         d_match_pic[img_id] = hit["_source"]
     return d_match_pic
+
+
+def run_search_query_from_file(query_file, es_index=ES_INDEX, verbose=1):
+    """
+    Search labels in the database according to a json_file describing the query and return the list of matching labels.
+    :param query_file:      [string]        Path to the search description file, json format
+    :param es_index:        [string]        Name of the index
+    :param verbose:         [int]           verbosity level
+    :return:                [dict]          Dictionary of labels as follow, or None on error.
+                                            {
+                                                img_id: {
+                                                    "img_id": id,
+                                                    "file_name": "pic_file_name.jpg",
+                                                    "s3_bucket": "s3_bucket_path",
+                                                    ...
+                                                },
+                                                ...
+                                            }
+    """
+    with Path(query_file).open(mode='r', encoding='utf-8') as fp:
+        d_query = json.load(fp)
+    return run_search_query(d_query, es_index=es_index, verbose=verbose)
 
 
 def _write_labels_to_file(output, d_label, verbose=1):
@@ -113,7 +133,7 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
         print(f'Output folder "{picture_dir}" created.')
     label_file_name = utils_fct.get_label_file_name(directory=picture_dir, base_name="labels")
     print(f'Searching for picture in "{es_index}" index')
-    d_matching_label = _get_label_from_db(query_file=query_json, es_index=es_index, verbose=verbose)
+    d_matching_label = run_search_query_from_file(query_file=query_json, es_index=es_index, verbose=verbose)
     if d_matching_label is None:
         return None
     if len(d_matching_label) == 0:
