@@ -3,6 +3,7 @@ images/
 get_data/training_images
 download_images/
 get_data/queries
+logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
