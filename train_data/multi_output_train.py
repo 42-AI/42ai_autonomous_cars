@@ -19,9 +19,9 @@ def get_args():
     parser.add_argument("-n", "--name", type=str, default='training_race_1',
                         help="Name of the training.")
     parser.add_argument("-s", "--validation_split", type=float, default=0.15,
-                        help="Validation split. Must be between 0 and 1.")
+                        help="Proportion of the original image set to be used for validation. Must be between 0 and 1.")
     parser.add_argument("-t", "--test_split", type=float, default=0.15,
-                        help="Test split. Must be between 0 and 1.")
+                        help="Proportion of the original image set to be used for test. Must be between 0 and 1.")
     parser.add_argument("-e", "--nb_epochs", type=int, default=20,
                         help="Number of epochs of the training.")
     parser.add_argument("-r", "--random_seed", type=int, default=42,
@@ -140,6 +140,8 @@ class TrainModel:
                           "direction_accuracy": float(evaluation[3]), "speed_accuracy": float(evaluation[4])}
         with open(evaluation_path, 'w', encoding='utf-8') as fd:
             json.dump(evaluation_dic, fd, indent=4)
+
+
 
     def predict(self, image_path):
         image = self._get_image(image_path)
