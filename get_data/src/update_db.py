@@ -20,11 +20,14 @@ def _get_img_and_label_to_delete_from_file(label_file):
     return l_img_delete, l_label_to_delete
 
 
-def _user_ok_for_deletion(file_name, nb_of_img_to_delete, delete_local):
+def _user_ok_for_deletion(file_name, nb_of_img_to_delete, delete_local=False, label_only=False):
     print(f'File "{file_name}" loaded.')
     ok = None
     while ok not in ["y", "n"]:
-        print(f'{nb_of_img_to_delete} picture(s) and label(s) will be deleted from the DB', end="")
+        print(f'{nb_of_img_to_delete} ', end="")
+        if not label_only:
+            print(f'picture(s) and ', end="")
+        print(f'label(s) will be deleted from the DB', end="")
         if delete_local:
             print(f' (pictures will also be deleted from your local drive)', end="")
         print(f'. Do you want to proceed (y/n)? ', end="")
@@ -58,7 +61,27 @@ def _delete_local_picture(l_pic_id, folder, extension_pattern=".*", verbose=1):
     return cpt_delete
 
 
-def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=False, delete_local=False):
+def delete_label_only(label_file, es_index=ES_INDEX, force=False):
+    """
+    Read a labels json file and delete all labels in this file from the database
+    :param label_file:      [string]    Path to the input json file
+    :param es_index:        [string]    Name of the ES index
+    :param force:           [bool]      If True, user won't be prompted for validation before deletion
+    :return:                [tuple]     (int, int): nb_of_deletion, nb_of_failed_delete
+    """
+    d_label = utils_fct.get_label_dict_from_file(label_file)
+    l_label_fingerprint = [label["label_fingerprint"] for _, label in d_label.items()]
+    if not force and not _user_ok_for_deletion(label_file, len(l_label_fingerprint), label_only=True):
+        return 0, 0
+    es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
+    print(f'Deleting {len(l_label_fingerprint)} label(s) in index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})...')
+    i_es_success, l_failed_es = es_utils.delete_document(es=es, index=es_index, l_doc_id=l_label_fingerprint)
+    print(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
+    print(f'{len(l_failed_es)} deletion(s) failed.')
+    return i_es_success, l_failed_es
+
+
+def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, force=False, delete_local=False):
     """
     Read a labels json file and delete all labels with the key "to_delete" set to True in their dictionary.
     Labels will be removed from Elasticsearch and pictures from S3.
@@ -79,8 +102,8 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
     }
     :param label_file:          [str]   Path to the label file
     :param es_index:            [str]   Elasticsearch index name. By default, index name is read from the config file.
-    :param bucket:              [str]   Name of the s3 bucket where to delete the picture. If None (default), bucket
-                                        name is read from the label
+    :param bucket:              [str]   Name of the s3 bucket where to delete the picture. If None only labels will be
+                                        deleted. Bucket name default value is read from the conf file.
     :param force:               [bool]  False by default. If True, will proceed with delete without user confirmation.
     :param delete_local         [bool]  If True picture will also be deleted from local drive
     :return:                    [tuple] (int, int, int, int):
@@ -90,46 +113,45 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=None, force=F
     l_img_to_delete, l_label_fingerprint_to_delete = _get_img_and_label_to_delete_from_file(label_file)
     if len(l_img_to_delete) == 0:
         return 0, 0, 0, 0
-    if not force and not _user_ok_for_deletion(label_file, len(l_img_to_delete), delete_local):
+    if not force and not _user_ok_for_deletion(label_file, len(l_img_to_delete), delete_local, label_only=not bool(bucket)):
         return 0, 0, 0, 0
     es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
     print(f'Deleting {len(l_img_to_delete)} label(s) in index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})...')
     i_es_success, l_failed_es = es_utils.delete_document(es=es, index=es_index, l_doc_id=l_label_fingerprint_to_delete)
     print(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
     time.sleep(1)
-    s = esdsl.Search(index=es_index).using(es)
-    s3 = s3_utils.get_s3_resource()
-    bucket = BUCKET_NAME if bucket is None else bucket
     l_ok_delete = []
     l_failed_s3 = []
-    print(f'Deleting {len(l_img_to_delete)} picture(s) in s3...')
-    for img_id, s3_key in l_img_to_delete:
-        s = s.query("match", img_id=img_id)
-        response = s.execute()
-        if response.hits.total.value > 0:
-            print(f'  --> Image "{img_id}" can\'t be removed: {response.hits.total.value} label(s) points to it.'
-                  f' List of labels:')
-            blocking_label = [hit.label_fingerprint for hit in response.hits]
-            print(f'      {blocking_label}')
-            l_failed_s3.append(img_id)
-        else:
-            if not s3_utils.object_exist_in_bucket(s3=s3, bucket=bucket, key=s3_key):
-                print(f'Image with id "{img_id}" couldn\'t be deleted from s3 bucket "{bucket}"'
-                      f' because key "{s3_key}" does not exists.')
+    nb_local_pic_deleted = 0
+    if bucket is not None:
+        s = esdsl.Search(index=es_index).using(es)
+        s3 = s3_utils.get_s3_resource()
+        print(f'Deleting {len(l_img_to_delete)} picture(s) in s3...')
+        for img_id, s3_key in l_img_to_delete:
+            s = s.query("match", img_id=img_id)
+            response = s.execute()
+            if response.hits.total.value > 0:
+                print(f'  --> Image "{img_id}" can\'t be removed: {response.hits.total.value} label(s) points to it.'
+                      f' List of labels:')
+                blocking_label = [hit.label_fingerprint for hit in response.hits]
+                print(f'      {blocking_label}')
                 l_failed_s3.append(img_id)
             else:
-                l_ok_delete.append(s3_key)
-    if len(l_ok_delete) > 0:
-        s3_utils.delete_object_s3(bucket=bucket, l_object_key=l_ok_delete, s3_resource=s3)
-    if delete_local:
-        ret = _delete_local_picture(l_pic_id=[pic_id for pic_id, _ in l_img_to_delete],
-                                    folder=Path(label_file).parent, extension_pattern=".*")
-    else:
-        ret = 0
+                if not s3_utils.object_exist_in_bucket(s3=s3, bucket=bucket, key=s3_key):
+                    print(f'Image with id "{img_id}" couldn\'t be deleted from s3 bucket "{bucket}"'
+                          f' because key "{s3_key}" does not exists.')
+                    l_failed_s3.append(img_id)
+                else:
+                    l_ok_delete.append(s3_key)
+        if len(l_ok_delete) > 0:
+            s3_utils.delete_object_s3(bucket=bucket, l_object_key=l_ok_delete, s3_resource=s3)
+        if delete_local:
+            nb_local_pic_deleted = _delete_local_picture(l_pic_id=[pic_id for pic_id, _ in l_img_to_delete],
+                                                         folder=Path(label_file).parent, extension_pattern=".*")
     print(f'Deletions completed:')
     print(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
     print(f'S3: {len(l_ok_delete)} deletion(s) ; {len(l_failed_s3)} failed')
-    print(f'{ret} picture(s) deleted from local drive.')
+    print(f'{nb_local_pic_deleted} picture(s) deleted from local drive.')
     return i_es_success, len(l_failed_es), len(l_img_to_delete) - len(l_failed_s3), len(l_failed_s3)
 
 

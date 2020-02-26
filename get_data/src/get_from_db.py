@@ -108,11 +108,10 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
                             [None]          Return None on error.
     """
     picture_dir = Path(picture_dir)
-    label_file_name = picture_dir / label_file_name
     if not picture_dir.is_dir():
         picture_dir.mkdir(parents=True)
         print(f'Output folder "{picture_dir}" created.')
-    label_file_name = utils_fct.get_label_file_name(label_file_name)
+    label_file_name = utils_fct.get_label_file_name(directory=picture_dir, base_name="labels")
     print(f'Searching for picture in "{es_index}" index')
     d_matching_label = _get_label_from_db(query_file=query_json, es_index=es_index, verbose=verbose)
     if d_matching_label is None:

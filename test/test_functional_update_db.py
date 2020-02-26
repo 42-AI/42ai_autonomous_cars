@@ -114,3 +114,16 @@ def test_delete_pic_and_label_nothing_to_delete():
                                                                                   bucket=BUCKET_NAME, force=True,
                                                                                   delete_local=False)
     assert (0, 0, 0, 0) == (success_es, fail_es, success_s3, fail_s3)
+
+
+def test_delete_label_only():
+    s3_up_ok, es_up_ok, failed_up = upload_to_db.upload_to_db(LABELS, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP,
+                                                              es_port=ES_HOST_PORT, bucket_name=BUCKET_NAME,
+                                                              key_prefix=KEY_PREFIX)
+    success, fail = update_db.delete_label_only(LABELS, es_index=ES_TEST_INDEX, force=True)
+    assert es_up_ok == success
+    s3_up_ok, es_up_ok, failed_up = upload_to_db.upload_to_db(LABELS, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP,
+                                                              es_port=ES_HOST_PORT, bucket_name=BUCKET_NAME,
+                                                              key_prefix=KEY_PREFIX)
+    assert s3_up_ok == 0
+    assert es_up_ok == 3
