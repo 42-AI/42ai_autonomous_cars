@@ -61,8 +61,7 @@ def custom_change_field():
         ##
         #  EDIT ACTION TO PERFORM BELOW -->
         ##
-        label["event"] = "event_name"
-        label["label_speed"] = 0
+        label["label"]["label_speed"] = 0
         ##
         #  <-- EDIT ACTION TO PERFORM ABOVE
         ##
