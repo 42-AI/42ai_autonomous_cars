@@ -10,6 +10,7 @@ import numpy as np
 import tensorflow as tf
 
 import model_setter
+import validation
 
 
 def get_args():
@@ -37,8 +38,8 @@ class TrainModel:
         tf.random.set_seed(seed)
         random.seed(seed)
         self.images_json = None
-        self.features, self.directions_labels, self.speeds_labels = None, None, None
-        self.test_features, self.test_directions_labels, self.test_speeds_labels = None, None, None
+        self.images, self.directions_labels, self.speeds_labels = None, None, None
+        self.test_images, self.test_directions_labels, self.test_speeds_labels = None, None, None
         self.images_dir = None
         self.validation_split = validation_split
         self.test_split = test_split
@@ -91,9 +92,9 @@ class TrainModel:
         self.images = np.asarray(features)
         self.directions_labels = np.asarray(directions, dtype='int16')
         self.speeds_labels = np.asarray(speeds, dtype='int16')
-        self.test_images = np.asarray(features)
-        self.test_directions_labels = np.asarray(directions, dtype='int16')
-        self.test_speeds_labels = np.asarray(speeds, dtype='int16')
+        self.test_images = np.asarray(test_features)
+        self.test_directions_labels = np.asarray(test_directions, dtype='int16')
+        self.test_speeds_labels = np.asarray(test_speeds, dtype='int16')
 
     @staticmethod
     def _get_image(image_path):
@@ -124,12 +125,13 @@ class TrainModel:
         best_checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, monitor='val_loss', verbose=0,
                                                              mode='min', save_best_only=True)
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-
+        # TODO cm_callback = keras.callbacks.LambdaCallback(on_epoch_end=validation.log_confusion_matrix)
+        #TODO add it to callbacks
         self.history = self.model.fit(self.images, [self.directions_labels, self.speeds_labels], epochs=self.nb_epochs,
                                       validation_split=self.validation_split, shuffle=True, verbose=1,
                                       callbacks=[best_checkpoint, tensorboard_callback])
         if self.test_split > 0:
-            self._evaluate()
+            validation._evaluate(self)
 
     def _evaluate(self):
         evaluation_path = f"{self.output_path}/evaluation.txt"
