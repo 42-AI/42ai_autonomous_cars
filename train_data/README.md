@@ -3,8 +3,7 @@
 This file describes how to train data:
 1. Context
 2. How to run the program
-3. Options
-4. Output
+3. Output
 
 
 ## 1. Context 
