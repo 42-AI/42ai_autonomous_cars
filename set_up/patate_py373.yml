@@ -17,7 +17,7 @@ dependencies:
   - service_identity
   - numpy
   - pandas
-  - tensorflow
+  - tensorflow=2
   - h5py
   - elasticsearch
   - elasticsearch-dsl

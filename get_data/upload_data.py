@@ -11,19 +11,20 @@ from conf import cluster_conf
 
 
 def _get_args(description):
-    parser = argparse.ArgumentParser(description=description)
+    parser = argparse.ArgumentParser(description=description,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("label_file", type=str, help="Path to the json label file")
-    parser.add_argument("-b", "--bucket", default=None,
+    parser.add_argument("-b", "--bucket", default=cluster_conf.BUCKET_NAME,
                         help="OPTIONAL. By default, bucket name is retrieved from the cluster_conf.py file")
     parser.add_argument("-k", "--key", default=None,
                         help="OPTIONAL. By default, key is automatically generated from the label. Final url of the "
                              "picture: https://s3.amazonaws.com/<bucket_name>/<key_prefix><file_name>)")
-    parser.add_argument("-i", "--index", default=None,
+    parser.add_argument("-i", "--index", default=cluster_conf.ES_INDEX,
                         help="OPTIONAL. By default, index name is retrieved from the cluster_conf.py file")
     parser.add_argument("-f", "--force", action="store_true",
                         help="Force option will overwrite existing pictures and labels in S3 and ES with new one"
                              " if same img_id is found")
-    parser.add_argument("-e", "--es_only", default=None,
+    parser.add_argument("-e", "--es_only", action="store_true",
                         help="Only upload labels to Elasticsearch cluster and doesn't upload pictures to S3."
                              "However, picture in S3 will still be removed based on instruction from the label_file.")
     return parser.parse_args()
@@ -43,9 +44,9 @@ def upload_data():
     """
     args = _get_args(upload_data.__doc__)
     label_file = args.label_file
-    bucket_name = cluster_conf.BUCKET_NAME if args.bucket is None else args.bucket
+    bucket_name = None if args.es_only else args.bucket
     key_prefix = args.key
-    es_index_name = cluster_conf.ES_INDEX if args.index is None else args.index
+    es_index_name = args.index
     es_ip_host = cluster_conf.ES_HOST_IP
     es_port_host = cluster_conf.ES_HOST_PORT
     update_db.delete_picture_and_label(label_file, es_index=es_index_name, bucket=bucket_name)

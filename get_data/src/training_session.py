@@ -101,9 +101,7 @@ class TrainingSession:
                 self.pwm.set_pwm(1, 0, 0)
                 self.save_and_clear_buffer()
                 print("Stop")
-                output_label = Path(self.meta_label.picture_dir) / "labels.json"
-                if output_label.is_file():
-                    output_label = utils_fct.get_label_file_name(output_label)
+                output_label = utils_fct.get_label_file_name(self.meta_label.picture_dir)
                 with output_label.open(mode='w', encoding='utf-8') as fp:
                     json.dump(l_label, fp, indent=4)
                 print(f'Labels saved to "{output_label}"')
