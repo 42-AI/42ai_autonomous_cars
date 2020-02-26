@@ -36,8 +36,8 @@ The labels path is the only required arguments. So the minimum command is:
 
 ## 3. Output  
   
-Running the script will create 2 folders: 
-a) NAME/timestamp that contains the models
+Running the script will create 2 folders:  
+a) NAME/timestamp that contains the models  
 b) logs/fit/NAME/timestamp that contains the information used by tensorboard  
   
 ### a) NAME/timestamp  
