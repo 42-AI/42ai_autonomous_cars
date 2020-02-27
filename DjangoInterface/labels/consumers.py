@@ -16,7 +16,7 @@ class LabelsConsumer(WebsocketConsumer):
         
         
     def disconnect(self, err):
-        self.send(text_data=json.dumps({'full_label': None, 'data_path': None, 'err': err}))
+        self.send(text_data=json.dumps({'retaged': False, 'img': None, 'full_label': None, 'data_path': None, 'err': err}))
 
     def get_labels(self):
         if self.data_path == None:
@@ -39,6 +39,7 @@ class LabelsConsumer(WebsocketConsumer):
         if self.get_labels() == True:
             text_data_json = json.loads(text_data)
             img = text_data_json['img']
+            img_name = None
             if img != 'null':
                 img_name = img.split("/")[-1].split(".")[0]
                 if img_name not in self.data:
@@ -56,7 +57,7 @@ class LabelsConsumer(WebsocketConsumer):
                     full_label = 'null'
                 else:
                     full_label = self.data[img_name]
-                self.send(text_data=json.dumps({'full_label': full_label, 'data_path': self.data_path, 'err': err}))
+                self.send(text_data=json.dumps({'retaged': False, 'img': None, 'full_label': full_label, 'data_path': self.data_path, 'err': err}))
     
     def retag(self, img, img_name, label, err):
         photo = Photo.objects.get(owner=self.user, title=img_name)
@@ -70,7 +71,7 @@ class LabelsConsumer(WebsocketConsumer):
         self.data[img_name] = label
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)
-        self.send(text_data=json.dumps({'full_label': self.data[img_name], 'data_path': self.data_path, 'err': err}))
+        self.send(text_data=json.dumps({'retaged': True, 'img': img, 'full_label': self.data[img_name], 'data_path': self.data_path, 'err': err}))
 
     def delete(self, img, img_name, err):
         photo = Photo.objects.get(owner=self.user, title=img_name)
@@ -79,4 +80,4 @@ class LabelsConsumer(WebsocketConsumer):
         photo.save()
         with open(self.data_path, "w") as f:
             json.dump(self.data, f)
-        self.send(text_data=json.dumps({'full_label': self.data[img_name], 'data_path': self.data_path, 'err': err}))
+        self.send(text_data=json.dumps({'retaged': False, 'img': None, 'full_label': self.data[img_name], 'data_path': self.data_path, 'err': err}))
