@@ -85,7 +85,7 @@ class RaceOn:
 
     @tf.function
     def _graph_predict(self, image):
-        return self.model(image)
+        return self.model(np.array([image]))
 
     def _get_predictions(self, motor_speed):
         # Grab the self.frame from the threaded video stream
