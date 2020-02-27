@@ -1,9 +1,9 @@
 import argparse
+from pathlib import Path
+from contextlib import redirect_stdout
+
 import sys
-import os
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.dirname(CURRENT_DIR)
-sys.path.append(PARENT_DIR)
+sys.path.append(str(Path(__file__).absolute().parents[1]))
 
 from get_data.src import upload_to_db as upload
 from get_data.src import update_db
