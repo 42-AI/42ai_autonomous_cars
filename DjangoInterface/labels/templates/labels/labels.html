@@ -160,10 +160,13 @@
 	
 	var cur_label = None;
 	var data_path = None;
+	var mutex = false;
 	labelsSocket.onmessage = function(e) {
 		var data = JSON.parse(e.data);
 		var err = data['err'];
 		var full_label = data['full_label'];
+		var retaged = data['retaged'];
+		var img = data['img'];
 		data_path = data['data_path'];
 		if (err)
 		{
@@ -172,7 +175,7 @@
 		else if (full_label != 'null') 
 		{
 			cur_label = full_label;
-			var label = JSON.stringify(full_label, null, 4);
+			var label = JSON.stringify(cur_label, null, 4);
 			document.getElementById("label_prev").innerHTML = label;
 			document.getElementById("label_prev").rows = label.split(/\r\n|\r|\n/).length;
 
@@ -186,7 +189,42 @@
 				document.getElementById("pic_div").appendChild(pic_p);
 				pic_p.innerHTML = "Speed : " + cur_label.label.label_speed.toString() +
 							" ; Direction : " + cur_label.label.label_direction.toString();
-		
+				
+				if (retaged == true) {
+
+					var  i = 0;
+					var img_list = document.getElementById('gallery').querySelectorAll('a');
+					while (img_list[i] && img_list[i].firstChild.alt != img)
+					{
+						i++;
+					}
+					img_list[i].style.outline="";
+					img_list[i].selected=false;
+
+					var toedit = document.getElementsByClassName('edited');
+					for (j = 0; j < toedit.length; ++j)
+					{
+						if (toedit[j].parentElement == img_list[i])
+						{
+							toedit[j].parentNode.removeChild(toedit[j]);
+							break;
+						}
+					}
+					var edited_tag = document.createElement("img");
+					edited_tag.src = "{% static 'img/check.png' %}";
+					edited_tag.alt = "edited";
+					edited_tag.className = "edited watermark";
+					img_list[i].appendChild(edited_tag);
+
+					i++;
+					if (i < img_list.length)
+					{
+						img_list[i].style.outline="4px solid red";
+						img_list[i].selected=true;
+						show_pic(img_list[i].firstChild.src, img_list[i].firstChild.alt);
+					}
+					mutex = false;
+				}
 			}
 		}
 	}
@@ -316,8 +354,8 @@
 			})
 		}());
 	}
-	
-	window.addEventListener('keydown',this.keyHandler,false);
+
+	window.addEventListener('keydown', this.keyHandler, false);
 	function keyHandler(e) {
 		var j = 0;
 		var img_list = document.getElementById('gallery').querySelectorAll('a');
@@ -382,8 +420,9 @@
 		}
 		else if (img_list[j] && document.getElementById("pic_div").childElementCount!=0)
 		{
-			if (isAlpha(e.key) || isNum(e.key))
+			if ((isAlpha(e.key) || isNum(e.key)) && mutex == false)
 			{
+				mutex = true;
 				var label_kind = "dir";
 				if (document.getElementById("label_switch").checked)
 				{
@@ -391,8 +430,9 @@
 				}
 				retag(e.key, label_kind, img_list[j].firstChild.alt);
 			}
-			else if (e.key == "Enter")
+			else if (e.key == "Enter" && mutex == false)
 			{
+				mutex = true;
 				retag("null", "null", img_list[j].firstChild.alt);
 			}
 			else if (e.key == "Delete")
@@ -435,42 +475,15 @@
 					full_label["label"]["label_speed"] = label;
 				}
 			}
-			labelsSocket.send(JSON.stringify({
-					'img': img,
-					'label': full_label,
-					'to_delete': 'false'
-			}));
-		
-			var  i = 0;
-			var img_list = document.getElementById('gallery').querySelectorAll('a');
-			while (img_list[i] && img_list[i].firstChild.alt != img)
-			{
-				i++;
+			if (img.includes(full_label.img_id)) {
+				labelsSocket.send(JSON.stringify({
+						'img': img,
+						'label': full_label,
+						'to_delete': 'false'
+				}));
 			}
-			img_list[i].style.outline="";
-			img_list[i].selected=false;
-
-			var todel = document.getElementsByClassName('edited');
-			for (j = 0; j < todel.length; ++j)
-			{
-				if (todel[j].parentElement == img_list[i])
-				{
-					todel[j].parentNode.removeChild(todel[j]);
-					break;
-				}
-			}
-			var edited_tag = document.createElement("img");
-			edited_tag.src = "{% static 'img/check.png' %}";
-			edited_tag.alt = "edited";
-			edited_tag.className = "edited watermark";
-			img_list[i].appendChild(edited_tag);
-
-			i++;
-			if (i < img_list.length)
-			{
-				img_list[i].style.outline="4px solid red";
-				img_list[i].selected=true;
-				show_pic(img_list[i].firstChild.src, img_list[i].firstChild.alt);
+			else {
+				mutex = false;
 			}
 		}
 	}
