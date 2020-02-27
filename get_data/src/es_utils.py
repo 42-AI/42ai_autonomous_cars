@@ -85,6 +85,22 @@ def _gen_bulk_doc_update_append_field(d_label, index, update_field, new_dataset)
         }
 
 
+def _gen_bulk_doc_update_delete_item_from_field_array(d_label, index, update_field, item):
+    """Yield well formatted document for bulk update to ES"""
+    for img_id, label in tqdm(d_label.items()):
+        yield {
+            "_index": index,
+            "_type": "_doc",
+            "_op_type": "update",
+            "_id": label["label_fingerprint"],
+            "script": {
+                "source": f"ctx._source.{update_field}.remove(ctx._source.{update_field}.indexOf(params.param1))",
+                "lang": "painless",
+                "params": {"param1": item}
+            }
+        }
+
+
 def _gen_bulk_doc_delete(l_doc_id, index):
     """Yield well formatted document for bulk update to ES"""
     for doc_id in tqdm(l_doc_id):
@@ -96,7 +112,19 @@ def _gen_bulk_doc_delete(l_doc_id, index):
         }
 
 
-def update_doc_in_index(d_label, field_to_update, value, es_index, es_host_ip, es_host_port, verbose=1):
+def _print_bulk_update_synthesis(success, errors):
+    print(f'{success} label(s) successfully update.')
+    if len(errors) > 0:
+        print(f'{len(errors)} label(s) update failed:')
+        for err in errors:
+            print(f'  --> Label "{err["update"]["_id"]}" got "{err["update"]["error"]["type"]}" '
+                  f'because: {err["update"]["error"]["reason"]}')
+            if err["update"]["error"]["reason"] == "failed to execute script":
+                print(f'\t\t(error history: This error happened before because the "dataset" field of the label '
+                      f'in the database was not a list. Thus, could not append value...)')
+
+
+def append_value_to_field(d_label, field_to_update, value, es_index, es_host_ip, es_host_port, verbose=1):
     es = get_es_session(host_ip=es_host_ip, port=es_host_port)
     if es is None:
         return 0, len(d_label)
@@ -104,15 +132,19 @@ def update_doc_in_index(d_label, field_to_update, value, es_index, es_host_ip, e
     success, errors = helpers.bulk(es, _gen_bulk_doc_update_append_field(d_label, es_index, field_to_update, value),
                                    request_timeout=60, raise_on_error=False)
     if verbose > 0:
-        print(f'{success} label(s) successfully update.')
-        if len(errors) > 0:
-            print(f'{len(errors)} label(s) update failed:')
-            for err in errors:
-                print(f'  --> Label "{err["update"]["_id"]}" got "{err["update"]["error"]["type"]}" '
-                      f'because: {err["update"]["error"]["reason"]}')
-                if err["update"]["error"]["reason"] == "failed to execute script":
-                    print(f'\t\t(error history: This error happened before because the "dataset" field of the label '
-                          f'in the database was not a list. Thus, could not append value...)')
+        _print_bulk_update_synthesis(success, errors)
+    return success, errors
+
+
+def delete_value_from_field(d_label, field_to_update, value, es_index, es_host_ip, es_host_port, verbose=1):
+    es = get_es_session(host_ip=es_host_ip, port=es_host_port)
+    if es is None:
+        return 0, len(d_label)
+    print(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
+    success, errors = helpers.bulk(es, _gen_bulk_doc_update_delete_item_from_field_array(
+        d_label, es_index, field_to_update, value), request_timeout=60, raise_on_error=False)
+    if verbose > 0:
+        _print_bulk_update_synthesis(success, errors)
     return success, errors
 
 
@@ -180,6 +212,7 @@ def delete_document(index, l_doc_id, es=None, host_ip=None, port=9200):
 
 def _add_query(search_obj, field, query, bool="match"):
     """Add a query to the existing seach obj"""
+    query = query.copy()
     if "field" in query:
         field = f'{field}.{query["field"]}' if query["field"] != "" else field
         query.pop("field")

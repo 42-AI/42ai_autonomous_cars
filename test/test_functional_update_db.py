@@ -1,13 +1,13 @@
 import pytest
 import shutil
 from pathlib import Path
-import subprocess
+import time
 
 
 from get_data.src import update_db
 from get_data.src import upload_to_db
 from get_data.src import es_utils
-from get_data.src import s3_utils
+from get_data.src import get_from_db
 from get_data.src import utils_fct
 from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP, BUCKET_NAME
 
@@ -37,6 +37,75 @@ def create_delete_tmp_folder():
     shutil.copytree("test/resources", "test/.tmp")
     yield True
     shutil.rmtree("test/.tmp", ignore_errors=True)
+
+
+def test_create_and_delete_dataset():
+    dataset = {"name": "test_dataset", "comment": "com", "created_on_date": "20200204T15-23-08-574348", "query": None}
+    search_query = {
+        "dataset.name": {
+            "type": "match",
+            "field": "keyword",
+            "query": dataset["name"]
+        }
+    }
+    upload_to_db.upload_to_db(LABELS, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
+                              bucket_name=None, key_prefix=None)
+    d_label = utils_fct.get_label_dict_from_file(LABELS)
+    es_utils.append_value_to_field(d_label, "dataset", dataset, ES_TEST_INDEX, ES_HOST_IP, ES_HOST_PORT)
+    time.sleep(1)
+    d_pic_in_dataset = get_from_db.run_search_query(search_query, es_index=ES_TEST_INDEX, verbose=2)
+    assert len(d_pic_in_dataset) == 4
+    update_db.delete_dataset(dataset["name"], es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_host_port=ES_HOST_PORT,
+                             force=True)
+    time.sleep(1)
+    d_pic_in_dataset = get_from_db.run_search_query(search_query, es_index=ES_TEST_INDEX, verbose=2)
+    assert len(d_pic_in_dataset) == 0
+
+
+def test_create_and_delete_dataset_with_just_name_filled():
+    dataset = {"name": "test_dataset", "comment": "", "created_on_date": None, "query": None}
+    search_query = {
+        "dataset.name": {
+            "type": "match",
+            "field": "keyword",
+            "query": dataset["name"]
+        }
+    }
+    upload_to_db.upload_to_db(LABELS, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
+                              bucket_name=None, key_prefix=None)
+    d_label = utils_fct.get_label_dict_from_file(LABELS)
+    es_utils.append_value_to_field(d_label, "dataset", dataset, ES_TEST_INDEX, ES_HOST_IP, ES_HOST_PORT)
+    time.sleep(1)
+    d_pic_in_dataset = get_from_db.run_search_query(search_query, es_index=ES_TEST_INDEX, verbose=2)
+    assert len(d_pic_in_dataset) == 4
+    update_db.delete_dataset(dataset["name"], es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_host_port=ES_HOST_PORT,
+                             force=True)
+    time.sleep(1)
+    d_pic_in_dataset = get_from_db.run_search_query(search_query, es_index=ES_TEST_INDEX, verbose=2)
+    assert len(d_pic_in_dataset) == 0
+
+
+def test_create_and_delete_dataset_not_found():
+    dataset = {"name": "test_dataset", "comment": "com", "created_on_date": "20200204T15-23-08-574348", "query": None}
+    search_query = {
+        "dataset.name": {
+            "type": "match",
+            "field": "keyword",
+            "query": dataset["name"]
+        }
+    }
+    upload_to_db.upload_to_db(LABELS, es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_port=ES_HOST_PORT,
+                              bucket_name=None, key_prefix=None)
+    d_label = utils_fct.get_label_dict_from_file(LABELS)
+    es_utils.append_value_to_field(d_label, "dataset", dataset, ES_TEST_INDEX, ES_HOST_IP, ES_HOST_PORT)
+    time.sleep(1)
+    d_pic_in_dataset = get_from_db.run_search_query(search_query, es_index=ES_TEST_INDEX, verbose=2)
+    assert len(d_pic_in_dataset) == 4
+    update_db.delete_dataset("Test_dataset", es_index=ES_TEST_INDEX, es_host_ip=ES_HOST_IP, es_host_port=ES_HOST_PORT,
+                             force=True)
+    time.sleep(1)
+    d_pic_in_dataset = get_from_db.run_search_query(search_query, es_index=ES_TEST_INDEX, verbose=2)
+    assert len(d_pic_in_dataset) == 4
 
 
 def test_delete_pic_and_label_local_delete_false(create_delete_tmp_folder):

@@ -7,6 +7,7 @@ import time
 from get_data.src import s3_utils
 from get_data.src import es_utils
 from get_data.src import utils_fct
+from get_data.src import get_from_db
 from conf.cluster_conf import ES_INDEX, ES_HOST_PORT, ES_HOST_IP, BUCKET_NAME
 
 
@@ -225,7 +226,7 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
     else:
         dataset = {"query": None}
     dataset = _ask_user_dataset_details(dataset)
-    es_utils.update_doc_in_index(d_label, "dataset", dataset, es_index, es_host_ip, es_host_port)
+    es_utils.append_value_to_field(d_label, "dataset", dataset, es_index, es_host_ip, es_host_port)
     if overwrite_input_file:
         for img_id, label in d_label.items():
             if label["dataset"] is None:
@@ -239,3 +240,42 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
         except IOError as err:
             print(f'Couldn\'t update "{label_json_file} because : {err}')
     return True
+
+
+def delete_dataset(dataset_name, es_index=ES_INDEX, es_host_ip=ES_HOST_IP, es_host_port=ES_HOST_PORT, verbose=1,
+                   force=False):
+    """
+    Delete a dataset from the database. All labels with this dataset name in their "dataset.name" field will be updated.
+    No labels nor pictures are removed, only the dataset field of the labels is updated.
+    :param dataset_name:                [str]   Name of the dataset to delete from the database
+    :param es_index:                    [str]   Name of the index to update
+    :param es_host_ip:                  [str]   ip of the host. If None, value is retrieved from the config file
+    :param es_host_port                 [str]   port opened for ES. If None, value is retrieved from the config file
+    :param verbose:                     [int]   verbosity level
+    :param force:                       [bool]  If True, user won't be prompt for validation before deleting the dataset
+    :return                             [bool]
+    """
+    search_query = {
+        "dataset.name": {
+            "type": "match",
+            "field": "keyword",
+            "query": dataset_name
+        }
+    }
+    d_label = get_from_db.run_search_query(search_query, es_index=es_index, verbose=0)
+    if len(d_label) == 0:
+        print(f'No labels found for dataset "{dataset_name}".')
+        return True
+    _, first_doc = next(iter(d_label.items()))
+    l_dataset = first_doc["dataset"]
+    for dataset in l_dataset:
+        if dataset["name"] == dataset_name:
+            break
+    else:
+        print("Dataset not found in result...")
+        exit(1)
+    print(f'Dataset is : {dataset}')
+    validation = "" if not force else "y"
+    while validation not in ["y", "n"]:
+        validation = input(f'{len(d_label)} labels found in this dataset. Do you want to delete this dataset (y/n)? ')
+    es_utils.delete_value_from_field(d_label, "dataset", dataset, es_index, es_host_ip, es_host_port)

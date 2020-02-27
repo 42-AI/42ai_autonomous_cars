@@ -1,14 +1,19 @@
 # HOW TO GET DATA
 
 This file describes how to get new data:
+0. Forewords
 1. How the database works
 2. Record pictures and create labels
 3. Upload pictures and labels to the database
 4. Manually relabelize pictures
 5. Search and download pictures from the database
 6. How to modify labels in the ES database
-7. BONUS TRACK - A small description of the database architecture
+7. How to create/ delete dataset
+8. BONUS TRACK - A small description of the database architecture
 
+## Forewords
+
+- All the function in this project shall be ran from the root folder, not from sub-folder like `get_data`.
 
 ## 1. How the database works
 
@@ -184,11 +189,37 @@ There is a easier solution if your modifications don't change the label fingerpr
   You need to edit the function code with the modifications you want to do.
   3. Use the `upload_data.py` with options `--force --es_only` to upload the modified labels and overwrite the old ones 
   (with same fingerprint)
+  
+
+## 7. How to create and delete dataset
+
+A dataset is a collection of labels tagged with a same dataset name. Each label have a field dataset containing the 
+following information:  
+```
+"dataset": [
+    {  
+        "name": "name of the dataset",  
+        "comment": "Why this dataset? How did you built it?",  
+        "created_on_date": <date_of_creation>,  
+        "query": "the_raw_query_used_to_gather_all_label_for_this_dataset"  
+    },
+    ...
+]
+```
+**/!\ WARNING /!\ : Make sure the name of the dataset is unique when you create it. There is no verification, so if you 
+name a dataset with an existing name, the labels will be appended to the existing one instead of creating a new dataset.**  
+Note: you can only search a dataset by name. "comment", "created_on_date" and "query" are not searchable. 
+
+### 7.1 Create a dataset
+Use the function `create_dataset.py` in `get_data/` and follow the instruction (use `-h` to see usage). 
+
+### 7.2 Delete a dataset
+Use the function `delete_dataset.py` in `get_data/` and follow the instruction (use `-h` to see usage). 
 
 
-## 7. BONUS TRACK - Database architecture
+## 8. BONUS TRACK - Database architecture
 The database is made of two parts: pictures are stored in an AWS S3 file storage service, associated labels are stored
-in an Elasticsearch cluster.
+in an Elasticsearch cluster.  
 Labels contain the path to the pictures (ie: pictures urls).
 
 The Elasticsearch server is an AWS EC2 instance within a VPC and public subnet. 

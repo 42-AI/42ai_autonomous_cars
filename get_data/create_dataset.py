@@ -1,10 +1,8 @@
 import argparse
 
+from pathlib import Path
 import sys
-import os
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.dirname(CURRENT_DIR)
-sys.path.append(PARENT_DIR)
+sys.path.append(str(Path(__file__).absolute().parents[1]))
 
 from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP, ES_INDEX
 from get_data.src import update_db
@@ -21,7 +19,7 @@ if __name__ == "__main__":
                         help="Query file, json format, containing the raw query sent to Elasticsearch used to create "
                              "the label file.")
     parser.add_argument("-o", "--overwrite", action="store_true",
-                        help="Overwrite the input label file to add the dataset in the file.")
+                        help="Overwrite the input label file (local file) to add the dataset in the file.")
     parser.add_argument("-i", "--index", type=str, default=ES_INDEX,
                         help="Name of the index. The default value is defined in the cluster conf file.")
     parser.add_argument("-ip", "--host_ip", type=str, default=ES_HOST_IP,
