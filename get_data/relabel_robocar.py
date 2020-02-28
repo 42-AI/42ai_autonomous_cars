@@ -105,7 +105,7 @@ def create_json_label(speed, direction, name, speed_idx, dir_idx):
                 "camera": "Picam"
             },
             "event": "robocar",
-            "track": "single lane",
+            "track": "",
             "track_picture": "",
             "track_type": "single lane",
             "dataset": [
