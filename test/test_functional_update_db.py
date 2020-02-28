@@ -18,6 +18,7 @@ LABELS_DELETE = "test/resources/labels_delete.json"
 LABELS_BLOCK_DELETE = "test/resources/labels_block_delete.json"
 TMP_LABELS = "test/.tmp/labels.json"
 TMP_LABELS_DELETE = "test/.tmp/labels_delete.json"
+TMP_LABELS_DELETE_NO_BUCKET = "test/.tmp/labels_delete_no_bucket.json"
 KEY_PREFIX = "unittest"
 WRONG_KEY_PREFIX = "wrong_key_prefix"
 
@@ -132,6 +133,28 @@ def test_delete_pic_and_label_local_delete_true(create_delete_tmp_folder):
     assert total_file_in_tmp - 2 == len(list(Path("test/.tmp").iterdir()))
     assert not (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-574348.jpg").is_file()
     assert not (Path(TMP_LABELS_DELETE).parent / "20200204T15-23-08-695024.jpg").is_file()
+
+
+def test_delete_pic_and_label_not_yet_uploaded_local_delete_false(create_delete_tmp_folder):
+    total_file_in_tmp = len(list(Path("test/.tmp").iterdir()))
+    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(TMP_LABELS_DELETE_NO_BUCKET,
+                                                                                  es_index=ES_TEST_INDEX,
+                                                                                  bucket=BUCKET_NAME,
+                                                                                  force=True,
+                                                                                  delete_local=False)
+    assert success_s3 == fail_s3 == 0
+    assert total_file_in_tmp == len(list(Path("test/.tmp").iterdir()))
+
+
+def test_delete_pic_and_label_not_yet_uploaded_local_delete_true(create_delete_tmp_folder):
+    total_file_in_tmp = len(list(Path("test/.tmp").iterdir()))
+    success_es, fail_es, success_s3, fail_s3 = update_db.delete_picture_and_label(TMP_LABELS_DELETE_NO_BUCKET,
+                                                                                  es_index=ES_TEST_INDEX,
+                                                                                  bucket=BUCKET_NAME,
+                                                                                  force=True,
+                                                                                  delete_local=True)
+    assert success_s3 == fail_s3 == 0
+    assert total_file_in_tmp - 4 == len(list(Path("test/.tmp").iterdir()))
 
 
 def test_delete_pic_and_label_local_delete_true_pic_not_in_db(create_delete_tmp_folder):

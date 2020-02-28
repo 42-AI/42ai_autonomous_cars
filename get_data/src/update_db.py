@@ -117,7 +117,7 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, 
     if not force and not _user_ok_for_deletion(label_file, len(l_img_to_delete), delete_local, label_only=not bool(bucket)):
         return 0, 0, 0, 0
     es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
-    print(f'Deleting {len(l_img_to_delete)} label(s) in index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})...')
+    print(f'Deleting {len(l_label_fingerprint_to_delete)} labels in index "{es_index}" {ES_HOST_IP}:{ES_HOST_PORT}...')
     i_es_success, l_failed_es = es_utils.delete_document(es=es, index=es_index, l_doc_id=l_label_fingerprint_to_delete)
     print(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
     time.sleep(1)
@@ -129,6 +129,8 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, 
         s3 = s3_utils.get_s3_resource()
         print(f'Deleting {len(l_img_to_delete)} picture(s) in s3...')
         for img_id, s3_key in l_img_to_delete:
+            if s3_key is None or s3_key == "":
+                continue
             s = s.query("match", img_id=img_id)
             response = s.execute()
             if response.hits.total.value > 0:
