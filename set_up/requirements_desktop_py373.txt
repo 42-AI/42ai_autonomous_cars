@@ -13,5 +13,6 @@ pandas
 Pillow
 pytest
 service_identity
+sklearn
 tensorflow
 tqdm

@@ -10,6 +10,7 @@ import numpy as np
 import tensorflow as tf
 
 import model_setter
+import validation
 
 
 def get_args():
@@ -19,9 +20,9 @@ def get_args():
     parser.add_argument("-n", "--name", type=str, default='training_race_1',
                         help="Name of the training.")
     parser.add_argument("-s", "--validation_split", type=float, default=0.15,
-                        help="Validation split. Must be between 0 and 1.")
+                        help="Proportion of the original image set to be used for validation. Must be between 0 and 1.")
     parser.add_argument("-t", "--test_split", type=float, default=0.15,
-                        help="Test split. Must be between 0 and 1.")
+                        help="Proportion of the original image set to be used for test. Must be between 0 and 1.")
     parser.add_argument("-e", "--nb_epochs", type=int, default=20,
                         help="Number of epochs of the training.")
     parser.add_argument("-r", "--random_seed", type=int, default=42,
@@ -37,8 +38,8 @@ class TrainModel:
         tf.random.set_seed(seed)
         random.seed(seed)
         self.images_json = None
-        self.features, self.directions_labels, self.speeds_labels = None, None, None
-        self.test_features, self.test_directions_labels, self.test_speeds_labels = None, None, None
+        self.images, self.directions_labels, self.speeds_labels = None, None, None
+        self.test_images, self.test_directions_labels, self.test_speeds_labels = None, None, None
         self.images_dir = None
         self.validation_split = validation_split
         self.test_split = test_split
@@ -91,9 +92,9 @@ class TrainModel:
         self.images = np.asarray(features)
         self.directions_labels = np.asarray(directions, dtype='int16')
         self.speeds_labels = np.asarray(speeds, dtype='int16')
-        self.test_images = np.asarray(features)
-        self.test_directions_labels = np.asarray(directions, dtype='int16')
-        self.test_speeds_labels = np.asarray(speeds, dtype='int16')
+        self.test_images = np.asarray(test_features)
+        self.test_directions_labels = np.asarray(test_directions, dtype='int16')
+        self.test_speeds_labels = np.asarray(test_speeds, dtype='int16')
 
     @staticmethod
     def _get_image(image_path):
@@ -129,27 +130,17 @@ class TrainModel:
                                       validation_split=self.validation_split, shuffle=True, verbose=1,
                                       callbacks=[best_checkpoint, tensorboard_callback])
         if self.test_split > 0:
-            self._evaluate()
-
-    def _evaluate(self):
-        evaluation_path = f"{self.output_path}/evaluation.txt"
-        evaluation = self.model.evaluate(x=self.test_images,
-                                         y=[self.test_directions_labels, self.test_speeds_labels], verbose=0)
-        evaluation_dic = {"loss": float(evaluation[0]),
-                          "direction_loss": float(evaluation[1]), "speed_loss": float(evaluation[2]),
-                          "direction_accuracy": float(evaluation[3]), "speed_accuracy": float(evaluation[4])}
-        with open(evaluation_path, 'w', encoding='utf-8') as fd:
-            json.dump(evaluation_dic, fd, indent=4)
+            validation.evaluate(self)
 
     def predict(self, image_path):
         image = self._get_image(image_path)
         predictions = self.model(image)
         # put as @tf.function if many
         speed_preds = []
-        for elem in predictions[0]:
+        for elem in predictions[1]:
             speed_preds.append(np.argmax(elem))
         dir_preds = []
-        for elem in predictions[1]:
+        for elem in predictions[0]:
             dir_preds.append(np.argmax(elem))
         return predictions, np.array(speed_preds), np.array(dir_preds)
 
