@@ -57,7 +57,7 @@ def relabel(directory):
             dir_idx = get_direction_index(float(direction))
             #print(speed, direction, name, new_filename, clean_new_filename, speed_idx, dir_idx)
             json_data.update(create_json_label(speed, direction, new_filename, speed_idx, dir_idx))
-            os.rename(f"{directory}/{filename}", f"{directory}/{new_filename}")
+            os.rename(f"{directory}/{filename}", f"{directory}/{new_filename}.jpg")
         else:
             continue
     with open(f'{directory}/robocar3011.json', 'w') as outfile:
@@ -104,8 +104,8 @@ def create_json_label(speed, direction, name, speed_idx, dir_idx):
                 "computer": "Raspberry_Pi2",
                 "camera": "Picam"
             },
-            "event": "Robocar_30_11_2019",
-            "track": "",
+            "event": "robocar",
+            "track": "single lane",
             "track_picture": "",
             "track_type": "single lane",
             "dataset": [
