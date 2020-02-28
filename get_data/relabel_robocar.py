@@ -116,7 +116,7 @@ def create_json_label(speed, direction, name, speed_idx, dir_idx):
                 }
             ],
             "comment": "",
-            "upload_date": "",
+            "upload_date": "20200228T12-00-000000",
             "img_id": name,
             "file_name": name + ".jpg",
             "file_type": "jpg",
