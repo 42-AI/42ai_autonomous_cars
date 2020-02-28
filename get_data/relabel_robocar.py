@@ -130,7 +130,7 @@ def create_json_label(speed, direction, name, speed_idx, dir_idx):
                 "label_direction": dir_idx,
                 "label_speed": speed_idx,
                 "created_by": "auto",
-                "created_on_date": "",
+                "created_on_date": name,
                 "raw_dir_to_label_mapping": [
                     250,
                     290,
