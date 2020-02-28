@@ -111,8 +111,8 @@ class RaceOn:
                                       timestamp=t_stamp,
                                       raw_direction=motor_direction,
                                       raw_speed=motor_speed,
-                                      label_direction=predicted_labels[1],
-                                      label_speed=predicted_labels[0])
+                                      label_direction=predicted_labels[0],
+                                      label_speed=predicted_labels[1])
             self.meta_label["car_setting"]["camera"]["camera_position"] = motor_head
             self.l_label[t_stamp] = self.meta_label.get_copy()
             sample = {
