@@ -216,10 +216,11 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
     :return                             [bool]
     """
     d_label = utils_fct.get_label_dict_from_file(label_json_file)
-    print(f'{len(d_label)} picture(s) loaded')
     if d_label is None or len(d_label) == 0:
-        print(f'Input file "{label_json_file}" is empty.')
+        if d_label is not None:
+            print(f'Input file "{label_json_file}" is empty.')
         return False
+    print(f'{len(d_label)} picture(s) loaded')
     if raw_query_file is not None:
         with Path(raw_query_file).open(mode='r', encoding='utf-8') as fp:
             dataset = {"query": json.load(fp)}
