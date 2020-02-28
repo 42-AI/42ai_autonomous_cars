@@ -70,22 +70,22 @@ class RaceOn:
         print("RaceOn initialized")
 
     def _get_motor_direction(self, predicted_labels):
-        return self.car_mapping.get_raw_dir_from_label(predicted_labels[1])
+        return self.car_mapping.get_raw_dir_from_label(predicted_labels[0])
 
     def _get_motor_speed(self, predicted_labels):
-        if predicted_labels[1] == self.dir_center_label and predicted_labels[0] > 0:
-            return self.car_mapping.get_raw_speed_from_label(predicted_labels[0])
+        if predicted_labels[0] == self.dir_center_label and predicted_labels[1] > 0:
+            return self.car_mapping.get_raw_speed_from_label(predicted_labels[1])
         return self.car_mapping.get_raw_speed_from_label(0)
 
     @staticmethod
     def _get_motor_head(predicted_labels):
-        if predicted_labels[0] > 0:
+        if predicted_labels[1] > 0:
             return HEAD_UP
         return HEAD_DOWN
 
     @tf.function
     def _graph_predict(self, image):
-        return self.model(np.array([image]))
+        return self.model(image)
 
     def _get_predictions(self, motor_speed):
         # Grab the self.frame from the threaded video stream
@@ -111,8 +111,8 @@ class RaceOn:
                                       timestamp=t_stamp,
                                       raw_direction=motor_direction,
                                       raw_speed=motor_speed,
-                                      label_direction=predicted_labels[1],
-                                      label_speed=predicted_labels[0])
+                                      label_direction=predicted_labels[0],
+                                      label_speed=predicted_labels[1])
             self.meta_label["car_setting"]["camera"]["camera_position"] = motor_head
             self.l_label[t_stamp] = self.meta_label.get_copy()
             sample = {
