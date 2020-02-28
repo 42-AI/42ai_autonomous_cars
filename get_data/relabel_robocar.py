@@ -45,33 +45,35 @@ def get_direction_index(direction):
         return 4
 
 def relabel(directory):
-    json_data = {'data' : []}
-    for filename in os.listdir(directory):
-        if filename.endswith(".jpg"): 
-            new_filename = filename.rsplit('/', 1)
-            speed, direction, name = new_filename[0].split('_', 2)
-            clean_new_filename = new_filename[0].rsplit('.', 1)[0]
+    json_data = dict()
+    for i, filename in enumerate(os.listdir(directory)):
+        if filename.endswith(".jpg"):
+            new_filename = "20191130T12-00-00-{:06d}".format(i)
+            filename_list = filename.rsplit('/', 1)
+            speed, direction, name = filename_list[0].split('_', 2)
+            # clean_new_filename = new_filename[0].rsplit('.', 1)[0]
             #print(os.path.join(directory, a[0]))
             speed_idx = get_speed_index(float(speed))
             dir_idx = get_direction_index(float(direction))
             #print(speed, direction, name, new_filename, clean_new_filename, speed_idx, dir_idx)
-            json_data['data'].append(create_json_label(speed, direction, clean_new_filename, speed_idx, dir_idx))
+            json_data.update(create_json_label(speed, direction, new_filename, speed_idx, dir_idx))
+            os.rename(f"{directory}/{filename}", f"{directory}/{new_filename}")
         else:
             continue
-    with open('robocar3011.json', 'w') as outfile:
+    with open(f'{directory}/robocar3011.json', 'w') as outfile:
         json.dump(json_data, outfile, indent=4)
 
 def create_json_label(speed, direction, name, speed_idx, dir_idx):
 
     label_template = {
         name: {
-            "location": "",
+            "s3_bucket": "",
             "car_setting": {
                 "camera": {
                     "resolution-horizontal": 160,
                     "resolution-vertical": 96,
                     "frame_rate": 32,
-                    "exposure_mode": "off",
+                    "exposure_mode": "auto",
                     "camera_position": 120
                 },
             "constant": {
@@ -108,13 +110,13 @@ def create_json_label(speed, direction, name, speed_idx, dir_idx):
             "track_type": "single lane",
             "dataset": [
                 {
-                    "name": "",
-                    "comment": "",
+                    "name": "old_pics_2019",
+                    "comment": "pictures take in 2019",
                     "query": None
                 }
             ],
             "comment": "",
-            "upload_date": "TBD",
+            "upload_date": "",
             "img_id": name,
             "file_name": name + ".jpg",
             "file_type": "jpg",
@@ -128,7 +130,7 @@ def create_json_label(speed, direction, name, speed_idx, dir_idx):
                 "label_direction": dir_idx,
                 "label_speed": speed_idx,
                 "created_by": "auto",
-                "created_on_date": "TBD",
+                "created_on_date": "",
                 "raw_dir_to_label_mapping": [
                     250,
                     290,
@@ -143,7 +145,7 @@ def create_json_label(speed, direction, name, speed_idx, dir_idx):
                 "nb_of_direction": 5,
                 "nb_of_speed": 2
             },
-            "timestamp": "TBD",
+            "timestamp": name,
             "label_fingerprint": '',
             "raw_picture": True
         }
@@ -153,5 +155,5 @@ def create_json_label(speed, direction, name, speed_idx, dir_idx):
 
 
 if __name__ == "__main__":
-    directory = "/Users/nvergnac/Documents/robocar"
+    directory = "/Users/Pablo/Downloads/robocar"
     relabel(directory)
