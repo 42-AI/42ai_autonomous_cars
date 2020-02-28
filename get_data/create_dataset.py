@@ -10,9 +10,9 @@ from get_data.src import update_db
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Interactively creates a dataset and add every label contained in the "
-                                                 "input file to this dataset. The input shall be a labels.json file like"
-                                                 ". Push the modification to ES for all label in the file based on their"
-                                                 "fingerprint.")
+                                                 "input file to this dataset. The input shall be a labels json file. "
+                                                 "Once you have created the dataset, you will be ask for validation "
+                                                 "before the upload to ES.")
     parser.add_argument("label_file", type=str,
                         help="Label file, json format, containing all the label to add to the dataset.")
     parser.add_argument("-q", "--query_file", type=str, default=None,
