@@ -142,7 +142,8 @@ def test_delete_pic_and_label_not_yet_uploaded_local_delete_false(create_delete_
                                                                                   bucket=BUCKET_NAME,
                                                                                   force=True,
                                                                                   delete_local=False)
-    assert success_s3 == fail_s3 == 0
+    assert success_s3 == 0
+    assert fail_s3 == 0
     assert total_file_in_tmp == len(list(Path("test/.tmp").iterdir()))
 
 
@@ -153,8 +154,9 @@ def test_delete_pic_and_label_not_yet_uploaded_local_delete_true(create_delete_t
                                                                                   bucket=BUCKET_NAME,
                                                                                   force=True,
                                                                                   delete_local=True)
-    assert success_s3 == fail_s3 == 0
-    assert total_file_in_tmp - 4 == len(list(Path("test/.tmp").iterdir()))
+    assert success_s3 == 0
+    assert fail_s3 == 0
+    assert total_file_in_tmp - 3 == len(list(Path("test/.tmp").iterdir()))
 
 
 def test_delete_pic_and_label_local_delete_true_pic_not_in_db(create_delete_tmp_folder):

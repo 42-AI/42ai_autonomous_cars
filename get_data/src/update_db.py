@@ -155,7 +155,7 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, 
     print(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
     print(f'S3: {len(l_ok_delete)} deletion(s) ; {len(l_failed_s3)} failed')
     print(f'{nb_local_pic_deleted} picture(s) deleted from local drive.')
-    return i_es_success, len(l_failed_es), len(l_img_to_delete) - len(l_failed_s3), len(l_failed_s3)
+    return i_es_success, len(l_failed_es), len(l_ok_delete), len(l_failed_s3)
 
 
 def delete_pic_and_index(label_file, bucket_name, key_prefix, index, es_ip, es_port, s3_only=False):
