@@ -197,7 +197,9 @@ def _ask_user_dataset_details(dataset):
         dataset["comment"] = comment
         print(f'Dataset is :\n{dataset}')
         while ok != "y" and ok != "n":
-            ok = input("Are you ok with this dataset (y/n)? ")
+            ok = input("Are you ok with this dataset? If yes, it will be pushed to ES. Type 'y', 'n' or 'exit' -> ")
+            if ok == "exit":
+                exit(0)
     return dataset
 
 
