@@ -1,9 +1,11 @@
 # Specific to project
 images/
-get_data/training_images
+get_data/**/training_images
+get_data/output
 download_images/
 get_data/queries
 logs/
+output/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
