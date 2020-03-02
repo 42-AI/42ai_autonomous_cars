@@ -226,6 +226,8 @@ def _add_query(search_obj, field, query, bool="match"):
         return search_obj.query(query_type, **repackage_query)
     elif bool == "filter":
         return search_obj.filter(query_type, **repackage_query)
+    elif bool == "must_not":
+        return search_obj.exclude(query_type, **repackage_query)
     else:
         print(f'Unknown value for "bool" argument. Got {bool}')
         return None
