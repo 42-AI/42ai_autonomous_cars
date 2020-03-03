@@ -149,7 +149,7 @@ class RaceOn:
                 print("Already on the go.")
             self.pause = False
 
-    def race(self, debug=0, buff_size=100, queue_input=None, picture_dir=None):
+    def race(self, debug=0, buff_size=10000, queue_input=None, picture_dir=None):
         self.buffer = deque(maxlen=buff_size)
         self.start_time = time.time()
         self.racing = True

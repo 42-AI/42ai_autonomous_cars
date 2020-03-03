@@ -1,7 +1,7 @@
 {
-    "event": "event_name",
-    "track": "",
+    "event": "training",
+    "track": "42tracks_3mats",
     "track_picture": "",
     "track_type": "single lane",
-    "comment": "this is for test"
+    "comment": "20200303_42tracks_3mats"
 }
