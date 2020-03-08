@@ -69,13 +69,12 @@ def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, up_success,
         else:
             s3.meta.client.upload_file(str(picture), s3_bucket_name, key)
             success.append(pic_id)
-            # print(f"pic '{pic_id}' uploaded by thread {threading.get_ident()}.")
     with lock:
         up_failed += fail
         up_success += success
 
 
-def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=10):
+def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=4):
     """
     Upload picture to s3 bucket.
     Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)

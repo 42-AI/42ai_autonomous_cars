@@ -1,0 +1,1 @@
+python3 get_data/upload_data.py -k test_jj -i test_jj  --force  13.79s user 2.02s system 14% cpu 1:50.57 total
