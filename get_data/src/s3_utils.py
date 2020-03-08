@@ -49,10 +49,13 @@ def object_exist_in_bucket(s3, bucket, key):
     return True
 
 
-def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir):
+def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, up_success, up_failed):
     s3 = get_s3_resource()
     if s3 is None:
+        print(f"Thread {threading.get_ident()} failed to connect.")
         return -1
+    success = []
+    fail = []
     while True:
         try:
             pic_id, label = q.get(block=True, timeout=0.05)
@@ -61,11 +64,15 @@ def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir):
         picture = Path(picture_dir) / label["file_name"]
         key = prefix + pic_id
         if not overwrite and object_exist_in_bucket(s3, s3_bucket_name, key):
-            # log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'
-            # already_exist_pic.append(pic_id)
             print(f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n')
+            fail.append(pic_id)
         else:
             s3.meta.client.upload_file(str(picture), s3_bucket_name, key)
+            success.append(pic_id)
+            # print(f"pic '{pic_id}' uploaded by thread {threading.get_ident()}.")
+    with lock:
+        up_failed += fail
+        up_success += success
 
 
 def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=10):
@@ -85,13 +92,14 @@ def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix=
     already_exist_pic = []
     upload_success = []
     q = queue.Queue()
-    for pic_id, label in tqdm(d_label.items()):
+    for pic_id, label in d_label.items():
         item = (pic_id, label)
         q.put(item)
     print(f'Item in queue: {q.qsize()}')
     l_thread = []
+    lock = threading.RLock()
     for i in range(nb_of_thread):
-        thread = threading.Thread(target=_worker, args=(q, s3_bucket_name, prefix, overwrite, picture_dir))
+        thread = threading.Thread(target=_worker, args=(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, upload_success, already_exist_pic))
         thread.start()
         l_thread.append(thread)
     for thread in l_thread:
