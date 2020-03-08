@@ -4,6 +4,8 @@ import os
 import boto3
 from botocore import exceptions as boto3_exceptions
 from tqdm import tqdm
+import threading
+import queue
 
 from conf.cluster_conf import ENV_VAR_FOR_AWS_USER_ID, ENV_VAR_FOR_AWS_USER_KEY
 
@@ -45,6 +47,57 @@ def object_exist_in_bucket(s3, bucket, key):
     except boto3_exceptions.ClientError as e:
         return int(e.response['Error']['Code']) != 404
     return True
+
+
+def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir):
+    s3 = get_s3_resource()
+    if s3 is None:
+        return -1
+    while True:
+        try:
+            pic_id, label = q.get(block=True, timeout=0.05)
+        except queue.Empty:
+            break
+        picture = Path(picture_dir) / label["file_name"]
+        key = prefix + pic_id
+        if not overwrite and object_exist_in_bucket(s3, s3_bucket_name, key):
+            # log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'
+            # already_exist_pic.append(pic_id)
+            print(f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n')
+        else:
+            s3.meta.client.upload_file(str(picture), s3_bucket_name, key)
+
+
+def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=10):
+    """
+    Upload picture to s3 bucket.
+    Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
+    :param d_label:             [dict]      Dictionary of labels. Each label shall contains the following keys:
+                                            "file_name": the name of the picture file
+                                            "img_id": id that will be used to index the picture (shall be unique)
+    :param picture_dir:         [string]    Path to the folder containing the pictures
+    :param s3_bucket_name:      [string]    Name of the bucket
+    :param prefix:              [string]    Prefix for every picture
+    :param overwrite:           [bool]      If True, existing pic will be overwritten by new one sharing the same img_id
+    :param nb_of_thread:        [int]       Number of thread
+    :return:                    [tuple]     list of picture id successfully upladed, list of picture id failed to upload
+    """
+    already_exist_pic = []
+    upload_success = []
+    q = queue.Queue()
+    for pic_id, label in tqdm(d_label.items()):
+        item = (pic_id, label)
+        q.put(item)
+    print(f'Item in queue: {q.qsize()}')
+    l_thread = []
+    for i in range(nb_of_thread):
+        thread = threading.Thread(target=_worker, args=(q, s3_bucket_name, prefix, overwrite, picture_dir))
+        thread.start()
+        l_thread.append(thread)
+    for thread in l_thread:
+        thread.join()
+    print("Completed")
+    return upload_success, already_exist_pic
 
 
 def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False):

@@ -14,20 +14,29 @@ def get_args(description):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-i", "--index", type=str, default=f'{ES_INDEX}-{datetime.now().strftime("%y%m%d")}',
                         help=f'Name of the new index. By default : "{ES_INDEX}-today_date"')
+    parser.add_argument("-p", "--prod", action="store_true",
+                        help=f'The created index is used for prod and take over the main index alias')
     return parser.parse_args()
 
 
 def create_index():
-    """Create a new index and set alias to the index defined in cluster_conf file. All other index will be removed from
-    this alias."""
+    """
+    Create a new index using the index mapping defined in the conf.
+    If --prod, set alias to the index defined in cluster_conf file. All other index will be removed from this alias
+    making the new index the one used for production.
+    """
     args = get_args(create_index.__doc__)
+    alias = ES_INDEX if args.prod else None
     es = es_utils.create_es_index(host_ip=ES_HOST_IP,
                                   host_port=ES_HOST_PORT,
                                   index_name=args.index,
-                                  alias=ES_INDEX,
+                                  alias=alias,
                                   index_pattern="_all")
     if es is not None:
-        print(f'Index "{args.index}" created and defined as the new read/write index for alias "{ES_INDEX}"')
+        if alias is not None:
+            print(f'Index "{args.index}" created and defined as the new read/write index for alias "{ES_INDEX}"')
+        else:
+            print(f'Index "{args.index}" created.')
 
 
 if __name__ == "__main__":
