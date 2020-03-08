@@ -74,7 +74,7 @@ def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, up_success,
         up_success += success
 
 
-def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=4):
+def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=10):
     """
     Upload picture to s3 bucket.
     Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
