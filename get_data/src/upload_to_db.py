@@ -142,7 +142,7 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
                 return 0, 0, total_label
         upload_bucket_dir, bucket_name, key_prefix = s3_utils.get_s3_formatted_bucket_path(bucket_name, key_prefix)
         print(f'Uploading to s3...')
-        s3_upload_success, already_exist_pic = s3_utils.thread_upload_to_s3_from_label(
+        s3_upload_success, already_exist_pic = s3_utils.upload_to_s3_from_label(
             d_label, picture_dir=picture_folder, s3_bucket_name=bucket_name, prefix=key_prefix, overwrite=overwrite)
         utils_fct.edit_label(d_label, "s3_bucket", upload_bucket_dir)
         utils_fct.edit_label(d_label, "upload_date", datetime.now().strftime("%Y%m%dT%H-%M-%S-%f"))

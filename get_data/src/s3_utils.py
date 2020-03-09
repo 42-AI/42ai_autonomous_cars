@@ -91,7 +91,7 @@ def _print_progress(q, total):
     print(f'{progress_bar}')
 
 
-def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=10):
+def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=10):
     """
     Upload picture to s3 bucket.
     Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
@@ -205,16 +205,47 @@ def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
     return True
 
 
-def download_from_s3(picture_id, bucket_key, output_file):
+def _download_worker(q, lock, output_dir):
     """
     Download file from an s3 bucket and write it to output_file
-    :param picture_id:      [string]    Id of the picture (as stored in s3)
-    :param bucket_key:      [string]    bucket and key concatenated (eg: "my-bucket/key_prefix/img_id")
-    :param output_file:     [string]    Path to the output_file
-    :return:                [object]    Return None if download went OK
+    :param q:               [queue obj] queue containing item to download as tuple (img_id, picture_label)
+    :param lock:            [lock obj]  lock object
+    :param output_dir:      [str]       Path to the directory where to download the pictures
     """
-    s3 = get_s3_resource()
-    if s3 is None:
-        exit(1)
-    bucket, key_prefix, file_name = split_s3_path(f'{bucket_key}/{picture_id}')
-    return s3.meta.client.download_file(bucket, key_prefix + file_name, output_file)
+    with lock:
+        s3 = get_s3_resource()
+        if s3 is None:
+            print(f"Thread {threading.get_ident()} failed to connect.")
+            return -1
+    while True:
+        try:
+            img_id, picture = q.get(block=True, timeout=0.05)
+        except queue.Empty:
+            break
+        output_file = output_dir / picture["file_name"]
+        bucket, key_prefix, file_name = split_s3_path(f'{picture["s3_bucket"]}/{img_id}')
+        s3.meta.client.download_file(bucket, key_prefix + file_name, output_file.as_posix())
+
+
+def download_from_s3(d_picture, output_dir, nb_of_thread=10):
+    """
+    :param d_picture:       [dict]      Dictionary of downloaded pictures as follow:
+                                        {
+                                            img_id: {
+                                                "img_id": id,
+                                                "file_name": "pic_file_name.jpg",
+                                                "s3_bucket": "s3_bucket_path"
+                                            },
+                                            ...
+                                        }
+    :param output_dir:      [str]       Path to the directory where to save the pictures
+    """
+    lock = threading.RLock()
+    q = queue.Queue()
+    for img_id, picture in d_picture.items():
+        q.put((img_id, picture))
+    for i in range(nb_of_thread):
+        thread = threading.Thread(target=_download_worker, args=(q, lock, output_dir))
+        thread.start()
+    _print_progress(q, len(d_picture))
+    print(f'Pictures have successfully been downloaded to "{output_dir}"')
