@@ -6,6 +6,7 @@ from botocore import exceptions as boto3_exceptions
 from tqdm import tqdm
 import threading
 import queue
+import time
 
 from conf.cluster_conf import ENV_VAR_FOR_AWS_USER_ID, ENV_VAR_FOR_AWS_USER_KEY
 
@@ -50,10 +51,11 @@ def object_exist_in_bucket(s3, bucket, key):
 
 
 def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, up_success, up_failed):
-    s3 = get_s3_resource()
-    if s3 is None:
-        print(f"Thread {threading.get_ident()} failed to connect.")
-        return -1
+    with lock:
+        s3 = get_s3_resource()
+        if s3 is None:
+            print(f"Thread {threading.get_ident()} failed to connect.")
+            return -1
     success = []
     fail = []
     while True:
@@ -72,6 +74,21 @@ def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, up_success,
     with lock:
         up_failed += fail
         up_success += success
+
+
+def _print_progress(q, total):
+    start_time = time.time()
+    while not q.empty():
+        finished = total - q.qsize()
+        elapsed_time = time.time() - start_time
+        progress_bar = tqdm.format_meter(finished, total, elapsed_time, ncols=100)
+        print(f'{progress_bar}', end='')
+        time.sleep(0.5)
+        print('', end='\r', flush=True)
+    finished = total - q.qsize()
+    elapsed_time = time.time() - start_time
+    progress_bar = tqdm.format_meter(finished, total, elapsed_time, ncols=100)
+    print(f'{progress_bar}')
 
 
 def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=10):
@@ -94,48 +111,16 @@ def thread_upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix=
     for pic_id, label in d_label.items():
         item = (pic_id, label)
         q.put(item)
-    print(f'Item in queue: {q.qsize()}')
     l_thread = []
     lock = threading.RLock()
     for i in range(nb_of_thread):
-        thread = threading.Thread(target=_worker, args=(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, upload_success, already_exist_pic))
+        thread = threading.Thread(target=_worker, args=(q, s3_bucket_name, prefix, overwrite, picture_dir, lock,
+                                                        upload_success, already_exist_pic))
         thread.start()
         l_thread.append(thread)
+    _print_progress(q, len(d_label))
     for thread in l_thread:
         thread.join()
-    print("Completed")
-    return upload_success, already_exist_pic
-
-
-def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False):
-    """
-    Upload picture to s3 bucket.
-    Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
-    :param d_label:             [dict]      Dictionary of labels. Each label shall contains the following keys:
-                                            "file_name": the name of the picture file
-                                            "img_id": id that will be used to index the picture (shall be unique)
-    :param picture_dir:         [string]    Path to the folder containing the pictures
-    :param s3_bucket_name:      [string]    Name of the bucket
-    :param prefix:              [string]    Prefix for every picture
-    :param overwrite:           [bool]      If True, existing pic will be overwritten by new one sharing the same img_id
-    :return:                    [tuple]     list of picture id successfully upladed, list of picture id failed to upload
-    """
-    s3 = get_s3_resource()
-    if s3 is None:
-        exit(1)
-    already_exist_pic = []
-    upload_success = []
-    log = ""
-    for pic_id, label in tqdm(d_label.items()):
-        picture = Path(picture_dir) / label["file_name"]
-        key = prefix + pic_id
-        if not overwrite and object_exist_in_bucket(s3, s3_bucket_name, key):
-            log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'
-            already_exist_pic.append(pic_id)
-        else:
-            s3.meta.client.upload_file(str(picture), s3_bucket_name, key)
-            upload_success.append(pic_id)
-    print(log)
     return upload_success, already_exist_pic
 
 
