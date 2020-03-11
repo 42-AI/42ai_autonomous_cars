@@ -139,6 +139,9 @@ export PATATE_S3_KEY="your_secret_key_code"
 export PATATE_ES_USER_ID="your_es_user_id"
 export PATATE_ES_USER_PWD="your_es_password"
 ```
+You can access Kibana at the following address: https://patate-db.com/
+and log in by entering your PATATE_ES_USER_ID and PATATE_ES_USER_PWD.
+
 **MAKE SURE TO NEVER UPLOAD YOUR CREDENTIALS TO GITHUB OR OTHER PUBLIC REPO**
 
 
