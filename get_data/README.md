@@ -1,6 +1,7 @@
 # HOW TO GET DATA
 
 This file describes how to get new data:
+
 0. Forewords
 1. How the database works
 2. Record pictures and create labels
@@ -13,7 +14,7 @@ This file describes how to get new data:
 
 ## Forewords
 
-- All the function in this project shall be ran from the root folder, not from sub-folder like `get_data`.
+- Every functions in this project should be run from the root folder, and not from a sub-folder like `get_data`.
 
 ## 1. How the database works
 
@@ -142,9 +143,9 @@ export PATATE_ES_USER_PWD="your_es_password"
 **MAKE SURE TO NEVER UPLOAD YOUR CREDENTIALS TO GITHUB OR OTHER PUBLIC REPO**
 
 
-## 4. How to re lablize pictures manually
+## 4. How to re labelize pictures manually
 
-To learn how to run the GUI labelizer, see the README.md in the Django interface folder.
+To learn how to run the GUI labelizer, check the README.md in the Django interface folder.
   
 Once you have re-labelized pictures and/or selected pictures to be deleted, you can download the new 
 labels json file from the GUI. This file contains the new labels and the label that shall be deleted 
@@ -158,8 +159,7 @@ to it.
 
 Use the function `search_and_download.py`. 
 First, you must define your search query by modifying the search.json file located in the Queries folder.
-It will look for pictures in the database matching your query and if they are already in the local picture directory, 
-if not, you will be asked to download the missing pictures or not. If you decline, a new .json file listing the pictures found during the search will still be created.
+It will look for pictures in the database matching your query, and check if they already are in the local pictures directory. If they aren't, you will be asked if you wish to download the missing pictures. If you decline, a new .json file listing the pictures found during the search will still be created.
 A picture is missing if the "file_name", as stored in the db, can't be found in the pictures directory.
 See usage with `-h` option for details.
 
