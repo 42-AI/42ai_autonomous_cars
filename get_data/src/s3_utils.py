@@ -205,18 +205,20 @@ def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
     return True
 
 
-def _download_worker(q, lock, output_dir):
+def _download_worker(q, lock, output_dir, error_log):
     """
     Download file from an s3 bucket and write it to output_file
     :param q:               [queue obj] queue containing item to download as tuple (img_id, picture_label)
     :param lock:            [lock obj]  lock object
     :param output_dir:      [str]       Path to the directory where to download the pictures
+    :param error_log:       [list]      List where errors will be appended
     """
     with lock:
         s3 = get_s3_resource()
         if s3 is None:
             print(f"Thread {threading.get_ident()} failed to connect.")
             return -1
+    error = []
     while True:
         try:
             img_id, picture = q.get(block=True, timeout=0.05)
@@ -224,7 +226,17 @@ def _download_worker(q, lock, output_dir):
             break
         output_file = output_dir / picture["file_name"]
         bucket, key_prefix, file_name = split_s3_path(f'{picture["s3_bucket"]}/{img_id}')
-        s3.meta.client.download_file(bucket, key_prefix + file_name, output_file.as_posix())
+        try:
+            s3.meta.client.download_file(bucket, key_prefix + file_name, output_file.as_posix())
+        except boto3_exceptions.ClientError as e:
+            if e.response['Error']['Code'] != 404:
+                print(f'Error: picture "{key_prefix + file_name}" not found in bucket {bucket}.')
+                error.append((img_id, e.response['Error']['Code'], f'{e}'))
+            else:
+                print(f'Unexpected error: {e}')
+                error.append((img_id, e.response['Error']['Code'], f'{e}'))
+    with lock:
+        error_log += error
 
 
 def download_from_s3(d_picture, output_dir, nb_of_thread=10):
@@ -242,10 +254,14 @@ def download_from_s3(d_picture, output_dir, nb_of_thread=10):
     """
     lock = threading.RLock()
     q = queue.Queue()
+    error_log = []
     for img_id, picture in d_picture.items():
         q.put((img_id, picture))
     for i in range(nb_of_thread):
-        thread = threading.Thread(target=_download_worker, args=(q, lock, output_dir))
+        thread = threading.Thread(target=_download_worker, args=(q, lock, output_dir, error_log))
         thread.start()
     _print_progress(q, len(d_picture))
-    print(f'Pictures have successfully been downloaded to "{output_dir}"')
+    success = len(d_picture) - len(error_log)
+    if len(error_log) > 0:
+        print(f'Error: {len(error_log)} pictures couldn\'t be download')
+    print(f'{success} pictures have successfully been downloaded to "{output_dir}"')
