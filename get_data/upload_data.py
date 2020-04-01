@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+import logging
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(CURRENT_DIR)
 sys.path.append(PARENT_DIR)
@@ -52,6 +53,7 @@ def upload_data():
     update_db.delete_picture_and_label(label_file, es_index=es_index_name, bucket=bucket_name)
     upload.upload_to_db(label_file, es_ip_host, es_port_host, es_index_name,
                         bucket_name=bucket_name, overwrite=args.force, key_prefix=key_prefix)
+
 
 
 if __name__ == "__main__":
