@@ -152,8 +152,5 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
         if proceed == "n":
             return []
     print("Downloading the missing picture(s)...")
-    for img_id, picture in tqdm(d_missing_pic.items()):
-        output_file = picture_dir / picture["file_name"]
-        s3_utils.download_from_s3(img_id, picture["s3_bucket"], output_file.as_posix())
-    print(f'Pictures have successfully been downloaded to "{picture_dir}"')
+    s3_utils.download_from_s3(d_missing_pic, output_dir=picture_dir)
     return d_missing_pic

@@ -4,6 +4,9 @@ import os
 import boto3
 from botocore import exceptions as boto3_exceptions
 from tqdm import tqdm
+import threading
+import queue
+import time
 
 from conf.cluster_conf import ENV_VAR_FOR_AWS_USER_ID, ENV_VAR_FOR_AWS_USER_KEY
 
@@ -47,7 +50,48 @@ def object_exist_in_bucket(s3, bucket, key):
     return True
 
 
-def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False):
+def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, up_success, up_failed):
+    with lock:
+        s3 = get_s3_resource()
+        if s3 is None:
+            print(f"Thread {threading.get_ident()} failed to connect.")
+            return -1
+    success = []
+    fail = []
+    while True:
+        try:
+            pic_id, label = q.get(block=True, timeout=0.05)
+        except queue.Empty:
+            break
+        picture = Path(picture_dir) / label["file_name"]
+        key = prefix + pic_id
+        if not overwrite and object_exist_in_bucket(s3, s3_bucket_name, key):
+            print(f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n')
+            fail.append(pic_id)
+        else:
+            s3.meta.client.upload_file(str(picture), s3_bucket_name, key)
+            success.append(pic_id)
+    with lock:
+        up_failed += fail
+        up_success += success
+
+
+def _print_progress(q, total):
+    start_time = time.time()
+    while not q.empty():
+        finished = total - q.qsize()
+        elapsed_time = time.time() - start_time
+        progress_bar = tqdm.format_meter(finished, total, elapsed_time, ncols=100)
+        print(f'{progress_bar}', end='')
+        time.sleep(0.5)
+        print('', end='\r', flush=True)
+    finished = total - q.qsize()
+    elapsed_time = time.time() - start_time
+    progress_bar = tqdm.format_meter(finished, total, elapsed_time, ncols=100)
+    print(f'{progress_bar}')
+
+
+def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", overwrite=False, nb_of_thread=10):
     """
     Upload picture to s3 bucket.
     Note that credential to access the s3 bucket is retrieved from env variable (see variable name in the code)
@@ -58,24 +102,25 @@ def upload_to_s3_from_label(d_label, picture_dir, s3_bucket_name, prefix="", ove
     :param s3_bucket_name:      [string]    Name of the bucket
     :param prefix:              [string]    Prefix for every picture
     :param overwrite:           [bool]      If True, existing pic will be overwritten by new one sharing the same img_id
+    :param nb_of_thread:        [int]       Number of thread
     :return:                    [tuple]     list of picture id successfully upladed, list of picture id failed to upload
     """
-    s3 = get_s3_resource()
-    if s3 is None:
-        exit(1)
     already_exist_pic = []
     upload_success = []
-    log = ""
-    for pic_id, label in tqdm(d_label.items()):
-        picture = Path(picture_dir) / label["file_name"]
-        key = prefix + pic_id
-        if not overwrite and object_exist_in_bucket(s3, s3_bucket_name, key):
-            log += f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n'
-            already_exist_pic.append(pic_id)
-        else:
-            s3.meta.client.upload_file(str(picture), s3_bucket_name, key)
-            upload_success.append(pic_id)
-    print(log)
+    q = queue.Queue()
+    for pic_id, label in d_label.items():
+        item = (pic_id, label)
+        q.put(item)
+    l_thread = []
+    lock = threading.RLock()
+    for i in range(nb_of_thread):
+        thread = threading.Thread(target=_worker, args=(q, s3_bucket_name, prefix, overwrite, picture_dir, lock,
+                                                        upload_success, already_exist_pic))
+        thread.start()
+        l_thread.append(thread)
+    _print_progress(q, len(d_label))
+    for thread in l_thread:
+        thread.join()
     return upload_success, already_exist_pic
 
 
@@ -160,16 +205,63 @@ def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
     return True
 
 
-def download_from_s3(picture_id, bucket_key, output_file):
+def _download_worker(q, lock, output_dir, error_log):
     """
     Download file from an s3 bucket and write it to output_file
-    :param picture_id:      [string]    Id of the picture (as stored in s3)
-    :param bucket_key:      [string]    bucket and key concatenated (eg: "my-bucket/key_prefix/img_id")
-    :param output_file:     [string]    Path to the output_file
-    :return:                [object]    Return None if download went OK
+    :param q:               [queue obj] queue containing item to download as tuple (img_id, picture_label)
+    :param lock:            [lock obj]  lock object
+    :param output_dir:      [str]       Path to the directory where to download the pictures
+    :param error_log:       [list]      List where errors will be appended
     """
-    s3 = get_s3_resource()
-    if s3 is None:
-        exit(1)
-    bucket, key_prefix, file_name = split_s3_path(f'{bucket_key}/{picture_id}')
-    return s3.meta.client.download_file(bucket, key_prefix + file_name, output_file)
+    with lock:
+        s3 = get_s3_resource()
+        if s3 is None:
+            print(f"Thread {threading.get_ident()} failed to connect.")
+            return -1
+    error = []
+    while True:
+        try:
+            img_id, picture = q.get(block=True, timeout=0.05)
+        except queue.Empty:
+            break
+        output_file = output_dir / picture["file_name"]
+        bucket, key_prefix, file_name = split_s3_path(f'{picture["s3_bucket"]}/{img_id}')
+        try:
+            s3.meta.client.download_file(bucket, key_prefix + file_name, output_file.as_posix())
+        except boto3_exceptions.ClientError as e:
+            if e.response['Error']['Code'] != 404:
+                print(f'Error: picture "{key_prefix + file_name}" not found in bucket {bucket}.')
+                error.append((img_id, e.response['Error']['Code'], f'{e}'))
+            else:
+                print(f'Unexpected error: {e}')
+                error.append((img_id, e.response['Error']['Code'], f'{e}'))
+    with lock:
+        error_log += error
+
+
+def download_from_s3(d_picture, output_dir, nb_of_thread=10):
+    """
+    :param d_picture:       [dict]      Dictionary of downloaded pictures as follow:
+                                        {
+                                            img_id: {
+                                                "img_id": id,
+                                                "file_name": "pic_file_name.jpg",
+                                                "s3_bucket": "s3_bucket_path"
+                                            },
+                                            ...
+                                        }
+    :param output_dir:      [str]       Path to the directory where to save the pictures
+    """
+    lock = threading.RLock()
+    q = queue.Queue()
+    error_log = []
+    for img_id, picture in d_picture.items():
+        q.put((img_id, picture))
+    for i in range(nb_of_thread):
+        thread = threading.Thread(target=_download_worker, args=(q, lock, output_dir, error_log))
+        thread.start()
+    _print_progress(q, len(d_picture))
+    success = len(d_picture) - len(error_log)
+    if len(error_log) > 0:
+        print(f'Error: {len(error_log)} pictures couldn\'t be download')
+    print(f'{success} pictures have successfully been downloaded to "{output_dir}"')
