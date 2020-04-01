@@ -1,4 +1,9 @@
 import logging
+from pathlib import Path
+import sys
+sys.path.append(str(Path(__file__).absolute().parents[1]))
+
+from conf.path import LOG_DIRECTORY
 
 # ------------------------------------------------------------------------------------------
 # Level       |       When it’s used
@@ -12,32 +17,42 @@ import logging
 # ------------------------------------------------------------------------------------------
 
 
-def create(name="", steamhandler="stdout", log_file="file.log"):
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+class Logger:
 
-    # create console handler and set level to debug
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    fh = logging.FileHandler(log_file, mode='w', encoding="utf-8")
-    fh.setLevel(logging.DEBUG)
+    log_file = "file.log"
 
-    # create formatter
-    formatter = logging.Formatter('%(asctime)s [%(levelname)s]: (%(name)s) %(message)s')
+    @staticmethod
+    def create(name="", steamhandler="stdout", log_file=None):
+        if log_file is not None:
+            if not Path(log_file).parent.is_dir():
+                Path(log_file).parent.mkdir()
+            Logger.log_file = log_file
+        # create logger
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG)
 
-    # add formatter to ch
-    ch.setFormatter(formatter)
-    fh.setFormatter(formatter)
+        # create console and file handler
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        fh = logging.FileHandler(Logger.log_file, mode='a', encoding="utf-8")
+        fh.setLevel(logging.DEBUG)
 
-    # add ch to logger
-    logger.addHandler(ch)
-    logger.addHandler(fh)
-    return logger
+        # create formatter
+        formatter = logging.Formatter('%(asctime)s [%(levelname)s]: (%(name)s) %(message)s')
+
+        # add formatter to handlers
+        ch.setFormatter(formatter)
+        fh.setFormatter(formatter)
+
+        # add handlers to logger
+        logger.addHandler(ch)
+        logger.addHandler(fh)
+        return logger
 
 
 if __name__ == "__main__":
     # logging.basicConfig(filename="file.log", format='%(asctime)s %(message)s', datefmt='%m/%d/%Y -> %I:%M:%S %p')
-    logger = create(name=__name__)
+    logger = Logger().create(name=__name__)
 
     # 'application' code
     logger.debug('test debug message')

@@ -5,6 +5,8 @@ from datetime import datetime
 from get_data.src import s3_utils
 from get_data.src import es_utils
 from get_data.src import utils_fct
+from utils import logger
+from conf.path import LOG_DIRECTORY
 
 
 def _remove_missing_pic_from_dic(label_dict, picture_dir):
@@ -124,6 +126,8 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
                                         "https://s3.amazonaws.com/{my-bucket}/{event_name}/{picture_date}/"
     :return:                [tuple]     (int) s3 success upload, (int) ES success upload, (int) total nb of failed upload
     """
+    log = logger.Logger.create(name=__name__)
+    log.debug("in fct")
     picture_folder = Path(label_file).parent
     d_label = utils_fct.get_label_dict_from_file(label_file)
     utils_fct.remove_label_to_delete_from_dict(d_label)
@@ -155,4 +159,5 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
     es_success = len(d_label) - len(failed_es_upload)
     _print_upload_synthesis(upload_bucket_dir, es_index,
                             es_success, failed_es_upload, len(s3_upload_success), missing_pic, already_exist_pic)
+    log.debug("out fct")
     return len(s3_upload_success), es_success, len(failed_es_upload) + len(already_exist_pic) + len(missing_pic)

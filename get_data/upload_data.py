@@ -1,14 +1,16 @@
 import argparse
+from pathlib import Path
 import sys
-import os
-import logging
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.dirname(CURRENT_DIR)
-sys.path.append(PARENT_DIR)
+sys.path.append(str(Path(__file__).absolute().parents[1]))
+# CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+# PARENT_DIR = os.path.dirname(CURRENT_DIR)
+# sys.path.append(PARENT_DIR)
 
 from get_data.src import upload_to_db as upload
 from get_data.src import update_db
 from conf import cluster_conf
+from conf.path import LOG_DIRECTORY
+from utils import logger
 
 
 def _get_args(description):
@@ -43,6 +45,8 @@ def upload_data():
     export PATATE_ES_USER_ID="your_es_user_id"
     export PATATE_ES_USER_PWD="your_es_password"
     """
+    log = logger.Logger.create(name=__name__, log_file=Path(LOG_DIRECTORY, f'{__name__}.log'))
+    log.info("starting...")
     args = _get_args(upload_data.__doc__)
     label_file = args.label_file
     bucket_name = None if args.es_only else args.bucket
@@ -53,6 +57,7 @@ def upload_data():
     update_db.delete_picture_and_label(label_file, es_index=es_index_name, bucket=bucket_name)
     upload.upload_to_db(label_file, es_ip_host, es_port_host, es_index_name,
                         bucket_name=bucket_name, overwrite=args.force, key_prefix=key_prefix)
+    log.info("End!")
 
 
 
