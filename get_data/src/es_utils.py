@@ -7,7 +7,11 @@ import json
 from pathlib import Path
 
 from conf.path import INDEX_TEMPLATE
-from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY, ES_INDEX
+from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY
+from utils import logger
+
+
+log = logger.Logger().create(logger_name=__name__)
 
 
 def get_es_session(host_ip, port):
@@ -15,17 +19,17 @@ def get_es_session(host_ip, port):
         user = os.environ[ENV_VAR_FOR_ES_USER_ID]
         pwd = os.environ[ENV_VAR_FOR_ES_USER_KEY]
     except KeyError:
-        print("  --> Warning: Elasticsearch user and/or password not found. Trying connection without authentication")
+        log.warning("  --> Elasticsearch user and/or password not found. Trying connection without authentication")
         user = ""
         pwd = ""
     try:
         es = elasticsearch.Elasticsearch([host_ip], http_auth=(user, pwd), scheme="https", port=443)
         connection_ok = es.ping()
         if not connection_ok:
-            print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}"')
+            log.error(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}"')
             return None
     except elasticsearch.ElasticsearchException as err:
-        print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}" because:\n{err}')
+        log.error(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}" because:\n{err}')
         return None
     return es
 
@@ -113,22 +117,23 @@ def _gen_bulk_doc_delete(l_doc_id, index):
 
 
 def _print_bulk_update_synthesis(success, errors):
-    print(f'{success} label(s) successfully update.')
+    synthesis = f'{success} label(s) successfully update.'
     if len(errors) > 0:
-        print(f'{len(errors)} label(s) update failed:')
+        synthesis += f'{len(errors)} label(s) update failed:'
         for err in errors:
-            print(f'  --> Label "{err["update"]["_id"]}" got "{err["update"]["error"]["type"]}" '
-                  f'because: {err["update"]["error"]["reason"]}')
+            synthesis += f'  --> Label "{err["update"]["_id"]}" got "{err["update"]["error"]["type"]}" ' \
+                         f'because: {err["update"]["error"]["reason"]}'
             if err["update"]["error"]["reason"] == "failed to execute script":
-                print(f'\t\t(error history: This error happened before because the "dataset" field of the label '
-                      f'in the database was not a list. Thus, could not append value...)')
+                synthesis += f'\t\t(error history: This error happened before because the "dataset" field of the ' \
+                             f'label in the database was not a list. Thus, could not append value...)'
+    log.info(synthesis)
 
 
 def append_value_to_field(d_label, field_to_update, value, es_index, es_host_ip, es_host_port, verbose=1):
     es = get_es_session(host_ip=es_host_ip, port=es_host_port)
     if es is None:
         return 0, len(d_label)
-    print(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
+    log.debug(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
     success, errors = helpers.bulk(es, _gen_bulk_doc_update_append_field(d_label, es_index, field_to_update, value),
                                    request_timeout=60, raise_on_error=False)
     if verbose > 0:
@@ -140,7 +145,7 @@ def delete_value_from_field(d_label, field_to_update, value, es_index, es_host_i
     es = get_es_session(host_ip=es_host_ip, port=es_host_port)
     if es is None:
         return 0, len(d_label)
-    print(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
+    log.debug(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
     success, errors = helpers.bulk(es, _gen_bulk_doc_update_delete_item_from_field_array(
         d_label, es_index, field_to_update, value), request_timeout=60, raise_on_error=False)
     if verbose > 0:
@@ -178,7 +183,8 @@ def upload_to_es(d_label, index, host_ip, port, overwrite=False):
     for error in errors:
         for error_type in error:
             failed_doc_id.append(error[error_type]["_id"])
-            print(f'  --> Couldn\'t upload document {failed_doc_id[-1]} because:{error[error_type]["error"]["reason"]}')
+            log.warning(
+                f'  --> Couldn\'t upload document {failed_doc_id[-1]} because:{error[error_type]["error"]["reason"]}')
     return failed_doc_id
 
 
@@ -193,7 +199,7 @@ def delete_index(index, host_ip, port):
 def delete_document(index, l_doc_id, es=None, host_ip=None, port=9200):
     """Delete all document listed in the list l_doc_id"""
     if bool(es) == bool(host_ip):
-        print("host_ip and port will be ignored since es session object is provided")
+        log.debug("host_ip and port will be ignored since es session object is provided")
     if es is None:
         es = get_es_session(host_ip, port)
     nb_of_success, errors = helpers.bulk(es, _gen_bulk_doc_delete(l_doc_id, index),
@@ -203,10 +209,10 @@ def delete_document(index, l_doc_id, es=None, host_ip=None, port=9200):
         for error_type in error:
             failed_doc_id.append(error[error_type]["_id"])
             try:
-                print(f'  --> Error: couldn\'t delete document {failed_doc_id[-1]} '
-                      f'because:{error[error_type]["error"]["reason"]}')
+                log.warning(f'  --> Error: couldn\'t delete document {failed_doc_id[-1]} '
+                            f'because:{error[error_type]["error"]["reason"]}')
             except KeyError:
-                print(f'  --> Error: {error}')
+                log.warning(f'  --> Error: {error}')
     return nb_of_success, failed_doc_id
 
 
@@ -229,7 +235,7 @@ def _add_query(search_obj, field, query, bool="match"):
     elif bool == "must_not":
         return search_obj.exclude(query_type, **repackage_query)
     else:
-        print(f'Unknown value for "bool" argument. Got {bool}')
+        log.error(f'Unknown value for "bool" argument. Got {bool}')
         return None
 
 

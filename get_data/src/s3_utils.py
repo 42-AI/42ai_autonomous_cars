@@ -9,6 +9,10 @@ import queue
 import time
 
 from conf.cluster_conf import ENV_VAR_FOR_AWS_USER_ID, ENV_VAR_FOR_AWS_USER_KEY
+from utils import logger
+
+
+log = logger.Logger().create(logger_name=__name__)
 
 
 def is_valid_s3_key(name):
@@ -32,11 +36,11 @@ def get_s3_resource():
         access_key = os.environ[ENV_VAR_FOR_AWS_USER_KEY]
         s3 = boto3.resource("s3", aws_access_key_id=access_key_id, aws_secret_access_key=access_key)
     except KeyError:
-        print(f'Environment variable {ENV_VAR_FOR_AWS_USER_ID} or {ENV_VAR_FOR_AWS_USER_KEY} not found. '
-              f'Can\'t connect to S3 without credential.')
+        log.error(f'Environment variable {ENV_VAR_FOR_AWS_USER_ID} or {ENV_VAR_FOR_AWS_USER_KEY} not found. '
+                  f'Can\'t connect to S3 without credential.')
         return None
     except boto3_exceptions as err:
-        print(f'Failed to connect to s3 because:\n{err}')
+        log.error(f'Failed to connect to s3 because:\n{err}')
         return None
     return s3
 
@@ -54,7 +58,7 @@ def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, up_success,
     with lock:
         s3 = get_s3_resource()
         if s3 is None:
-            print(f"Thread {threading.get_ident()} failed to connect.")
+            log.error(f"Thread {threading.get_ident()} failed to connect.")
             return -1
     success = []
     fail = []
@@ -66,7 +70,7 @@ def _worker(q, s3_bucket_name, prefix, overwrite, picture_dir, lock, up_success,
         picture = Path(picture_dir) / label["file_name"]
         key = prefix + pic_id
         if not overwrite and object_exist_in_bucket(s3, s3_bucket_name, key):
-            print(f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"\n')
+            log.warning(f'  --> Can\'t upload file "{picture}" because key "{key}" already exists in bucket "{s3_bucket_name}"')
             fail.append(pic_id)
         else:
             s3.meta.client.upload_file(str(picture), s3_bucket_name, key)
@@ -193,7 +197,7 @@ def delete_object_s3(bucket, l_object_key, s3_resource=None):
 
 def delete_all_in_s3_folder(bucket, key_prefix, s3_resource=None):
     if key_prefix == "" or key_prefix is None:
-        print(f'Can\'t delete all the bucket, too dangerous... Please specify a key_prefix')
+        log.info(f'Can\'t delete all the bucket, too dangerous... Please specify a key_prefix')
         return False
     if s3_resource is None:
         s3 = get_s3_resource()
@@ -216,7 +220,7 @@ def _download_worker(q, lock, output_dir, error_log):
     with lock:
         s3 = get_s3_resource()
         if s3 is None:
-            print(f"Thread {threading.get_ident()} failed to connect.")
+            log.error(f"Thread {threading.get_ident()} failed to connect.")
             return -1
     error = []
     while True:
@@ -230,10 +234,10 @@ def _download_worker(q, lock, output_dir, error_log):
             s3.meta.client.download_file(bucket, key_prefix + file_name, output_file.as_posix())
         except boto3_exceptions.ClientError as e:
             if e.response['Error']['Code'] != 404:
-                print(f'Error: picture "{key_prefix + file_name}" not found in bucket {bucket}.')
+                log.error(f'Error: picture "{key_prefix + file_name}" not found in bucket {bucket}.')
                 error.append((img_id, e.response['Error']['Code'], f'{e}'))
             else:
-                print(f'Unexpected error: {e}')
+                log.error(f'Unexpected error: {e}')
                 error.append((img_id, e.response['Error']['Code'], f'{e}'))
     with lock:
         error_log += error
@@ -263,5 +267,5 @@ def download_from_s3(d_picture, output_dir, nb_of_thread=10):
     _print_progress(q, len(d_picture))
     success = len(d_picture) - len(error_log)
     if len(error_log) > 0:
-        print(f'Error: {len(error_log)} pictures couldn\'t be download')
-    print(f'{success} pictures have successfully been downloaded to "{output_dir}"')
+        log.info(f'{len(error_log)} pictures couldn\'t be download')
+    log.info(f'{success} pictures have successfully been downloaded to "{output_dir}"')
