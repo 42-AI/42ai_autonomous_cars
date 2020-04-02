@@ -16,8 +16,6 @@ def get_args(description):
     parser = argparse.ArgumentParser(description=description,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-s", "--session_template", action="store_true",
-                       help="Print the expected session template json to be placed in the 'picture_dir'")
     group.add_argument("-o", "--picture_dir", type=str,
                        help="Path to the output directory where the picture shall be saved")
     parser.add_argument("-d", "--delay", type=float, default=0.1,
@@ -31,9 +29,6 @@ def run_manual():
     non-existing directory for automatic creation of the picture directory along with its session template.
     """
     args = get_args(str(run_manual.__doc__))
-    if args.session_template:
-        print(f'Session template:\n{json.dumps(lh.Label().get_default_session_template(), indent=4)}')
-        exit()
     init.init_picture_folder(picture_dir=args.picture_dir)
     session = ts.TrainingSession(args.delay, output_dir=args.picture_dir)
 

@@ -9,7 +9,7 @@ VALIDATION_IMAGES_DIRECTORY = "images/validation_set_images/"
 
 # COMMON PATH
 LOG_DIRECTORY = "logs/"
-CACHE_DIR = "cache/"
+CACHE_DIR = ".cache/"
 
 # Label
 SESSION_TEMPLATE_NAME = "session_template.json"
