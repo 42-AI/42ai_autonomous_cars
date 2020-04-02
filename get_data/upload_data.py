@@ -45,7 +45,7 @@ def upload_data():
     export PATATE_ES_USER_ID="your_es_user_id"
     export PATATE_ES_USER_PWD="your_es_password"
     """
-    log = logger.Logger.create(name=__name__, log_file=Path(LOG_DIRECTORY, f'{__name__}.log'))
+    log = logger.Logger.create(logger_name=__name__, log_file=Path(LOG_DIRECTORY, f'{__name__}.log'))
     log.info("starting...")
     args = _get_args(upload_data.__doc__)
     label_file = args.label_file

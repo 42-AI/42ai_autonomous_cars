@@ -126,7 +126,7 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
                                         "https://s3.amazonaws.com/{my-bucket}/{event_name}/{picture_date}/"
     :return:                [tuple]     (int) s3 success upload, (int) ES success upload, (int) total nb of failed upload
     """
-    log = logger.Logger.create(name=__name__)
+    log = logger.Logger.create(logger_name=__name__)
     log.debug("in fct")
     picture_folder = Path(label_file).parent
     d_label = utils_fct.get_label_dict_from_file(label_file)
