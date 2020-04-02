@@ -9,6 +9,9 @@ from get_data.src import es_utils
 from get_data.src import utils_fct
 from get_data.src import get_from_db
 from conf.cluster_conf import ES_INDEX, ES_HOST_PORT, ES_HOST_IP, BUCKET_NAME
+from utils import logger
+
+log = logger.Logger().create(logger_name=__name__)
 
 
 def _get_img_and_label_to_delete_from_file(label_file):
@@ -222,9 +225,9 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
     d_label = utils_fct.get_label_dict_from_file(label_json_file)
     if d_label is None or len(d_label) == 0:
         if d_label is not None:
-            print(f'Input file "{label_json_file}" is empty.')
+            log.error(f'Input file "{label_json_file}" is empty.')
         return False
-    print(f'{len(d_label)} picture(s) loaded')
+    log.debug(f'{len(d_label)} picture(s) loaded')
     if raw_query_file is not None:
         with Path(raw_query_file).open(mode='r', encoding='utf-8') as fp:
             dataset = {"query": json.load(fp)}
@@ -241,9 +244,9 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
         try:
             with Path(label_json_file).open(mode='w', encoding='utf-8') as fp:
                 json.dump(d_label, fp, indent=4)
-            print(f'Label file "{label_json_file}" has been updated.')
+            log.info(f'Label file "{label_json_file}" has been updated.')
         except IOError as err:
-            print(f'Couldn\'t update "{label_json_file} because : {err}')
+            log.warning(f'Couldn\'t update "{label_json_file} because : {err}')
     return True
 
 

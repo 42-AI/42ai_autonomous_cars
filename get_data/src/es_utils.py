@@ -117,15 +117,15 @@ def _gen_bulk_doc_delete(l_doc_id, index):
 
 
 def _print_bulk_update_synthesis(success, errors):
-    synthesis = f'{success} label(s) successfully update.'
+    synthesis = f'\n{success} label(s) successfully update.\n'
     if len(errors) > 0:
-        synthesis += f'{len(errors)} label(s) update failed:'
+        synthesis += f'{len(errors)} label(s) update failed:\n'
         for err in errors:
             synthesis += f'  --> Label "{err["update"]["_id"]}" got "{err["update"]["error"]["type"]}" ' \
-                         f'because: {err["update"]["error"]["reason"]}'
+                         f'because: {err["update"]["error"]["reason"]}\n'
             if err["update"]["error"]["reason"] == "failed to execute script":
                 synthesis += f'\t\t(error history: This error happened before because the "dataset" field of the ' \
-                             f'label in the database was not a list. Thus, could not append value...)'
+                             f'label in the database was not a list. Thus, could not append value...)\n'
     log.info(synthesis)
 
 

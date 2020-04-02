@@ -6,7 +6,9 @@ sys.path.append(str(Path(__file__).absolute().parents[1]))
 
 from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP, ES_INDEX
 from get_data.src import update_db
+from utils import logger
 
+log = logger.Logger().create(logger_name=Path(__file__).name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Interactively creates a dataset and add every label contained in the "
@@ -27,9 +29,11 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--host_port", type=str, default=ES_HOST_PORT,
                         help="ES port on the host")
     args = parser.parse_args()
+    log.debug("Starting create_dataset.py ...")
     update_db.create_dataset(label_json_file=args.label_file,
                              raw_query_file=args.query_file,
                              overwrite_input_file=args.overwrite,
                              es_index=args.index,
                              es_host_ip=args.host_ip,
                              es_host_port=args.host_port)
+    log.debug("Execution completed.")

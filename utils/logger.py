@@ -43,7 +43,7 @@ class Logger:
             self.s3_user = None
             self.s3_pwd = None
 
-    def create(self, logger_name="", streamhandler=sys.stdout, log_file=None, main_fct=None):
+    def create(self, logger_name="", streamhandler=sys.stdout):
         # create logger
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
