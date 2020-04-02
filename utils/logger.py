@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from datetime import datetime
 import sys
 import os
 sys.path.append(str(Path(__file__).absolute().parents[1]))
@@ -22,11 +23,12 @@ from conf.path import LOG_DIRECTORY
 
 class Logger:
 
+    log_file = Path(LOG_DIRECTORY, f'log_{datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")}.log')
+    if log_file is not None:
+        if not Path(log_file).parent.is_dir():
+            Path(log_file).parent.mkdir()
+
     def __init__(self):
-        self.log_file = Path(LOG_DIRECTORY, f'file.log')
-        if self.log_file is not None:
-            if not Path(self.log_file).parent.is_dir():
-                Path(self.log_file).parent.mkdir()
         self.main_fct = ""
         try:
             self.es_user = os.environ[ENV_VAR_FOR_ES_USER_ID]
@@ -49,7 +51,7 @@ class Logger:
         # create console and file handler
         ch = logging.StreamHandler(stream=streamhandler)
         ch.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(self.log_file, mode='a', encoding="utf-8")
+        fh = logging.FileHandler(Logger.log_file, mode='a', encoding="utf-8")
         fh.setLevel(logging.DEBUG)
 
         # create formatter
