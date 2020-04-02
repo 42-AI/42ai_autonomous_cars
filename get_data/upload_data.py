@@ -9,8 +9,6 @@ from conf import cluster_conf
 from utils import logger
 
 
-log = logger.Logger().create(logger_name=Path(__file__).name)
-
 
 def _get_args(description):
     parser = argparse.ArgumentParser(description=description,
@@ -44,8 +42,9 @@ def upload_data():
     export PATATE_ES_USER_ID="your_es_user_id"
     export PATATE_ES_USER_PWD="your_es_password"
     """
-    log.debug("Starting upload...")
     args = _get_args(upload_data.__doc__)
+    log = logger.Logger().create(logger_name=Path(__file__).name)
+    log.debug("Starting upload...")
     label_file = args.label_file
     bucket_name = None if args.es_only else args.bucket
     key_prefix = args.key

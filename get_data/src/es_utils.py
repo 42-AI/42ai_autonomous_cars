@@ -41,14 +41,20 @@ def create_es_index(host_ip, host_port, index_name, alias=None, index_pattern="_
         return es
     with Path(INDEX_TEMPLATE).open(mode='r', encoding='utf-8') as fp:
         index_template = json.load(fp)
-    es.indices.create(index_name, body=index_template)
-    if alias is not None:
-        es.indices.update_aliases({
-            "actions": [
-                {"remove": {"index": index_pattern, "alias": alias}},
-                {"add": {"index": index_name, "alias": alias}}
-            ]
-        })
+    try:
+        es.indices.create(index_name, body=index_template)
+        log.info(f'Index "{index_name}" created in {host_ip}:{host_port}')
+        if alias is not None:
+            es.indices.update_aliases({
+                "actions": [
+                    {"remove": {"index": index_pattern, "alias": alias}},
+                    {"add": {"index": index_name, "alias": alias}}
+                ]
+            })
+            log.info(f'Alias "{alias}" points now to index "{index_name}".')
+    except elasticsearch.ElasticsearchException as err:
+        log.error(f'Failed to create index or alias because: {err}')
+        return None
     return es
 
 
@@ -117,7 +123,7 @@ def _gen_bulk_doc_delete(l_doc_id, index):
 
 
 def _print_bulk_update_synthesis(success, errors):
-    synthesis = f'\n{success} label(s) successfully update.\n'
+    synthesis = f'Update completed:\n{success} label(s) successfully updated.\n'
     if len(errors) > 0:
         synthesis += f'{len(errors)} label(s) update failed:\n'
         for err in errors:
@@ -146,6 +152,7 @@ def delete_value_from_field(d_label, field_to_update, value, es_index, es_host_i
     if es is None:
         return 0, len(d_label)
     log.debug(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
+    log.debug(f'Deleting dataset "{value}"...')
     success, errors = helpers.bulk(es, _gen_bulk_doc_update_delete_item_from_field_array(
         d_label, es_index, field_to_update, value), request_timeout=60, raise_on_error=False)
     if verbose > 0:

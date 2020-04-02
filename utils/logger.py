@@ -73,7 +73,7 @@ class Logger:
 
 if __name__ == "__main__":
     # logging.basicConfig(filename="file.log", format='%(asctime)s %(message)s', )
-    logger = Logger().create(logger_name=__name__, main_fct=Path(__file__).name)
+    logger = Logger().create(logger_name=__name__)
 
     # 'application' code
     logger.debug('test debug message')

@@ -234,6 +234,7 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
     else:
         dataset = {"query": None}
     dataset = _ask_user_dataset_details(dataset)
+    log.info(f'Uploading dataset "{dataset["name"]}" to {es_host_ip}:{es_host_port}')
     es_utils.append_value_to_field(d_label, "dataset", dataset, es_index, es_host_ip, es_host_port)
     if overwrite_input_file:
         for img_id, label in d_label.items():
@@ -272,7 +273,7 @@ def delete_dataset(dataset_name, es_index=ES_INDEX, es_host_ip=ES_HOST_IP, es_ho
     }
     d_label = get_from_db.run_search_query(search_query, es_index=es_index, verbose=0)
     if len(d_label) == 0:
-        print(f'No labels found for dataset "{dataset_name}".')
+        log.info(f'No labels found for dataset "{dataset_name}".')
         return True
     _, first_doc = next(iter(d_label.items()))
     l_dataset = first_doc["dataset"]
@@ -280,10 +281,11 @@ def delete_dataset(dataset_name, es_index=ES_INDEX, es_host_ip=ES_HOST_IP, es_ho
         if dataset["name"] == dataset_name:
             break
     else:
-        print("Dataset not found in result...")
+        log.error("Dataset not found in result...")
         exit(1)
-    print(f'Dataset is : {dataset}')
+    log.debug(f'Dataset is : {dataset}')
     validation = "" if not force else "y"
     while validation not in ["y", "n"]:
         validation = input(f'{len(d_label)} labels found in this dataset. Do you want to delete this dataset (y/n)? ')
     es_utils.delete_value_from_field(d_label, "dataset", dataset, es_index, es_host_ip, es_host_port)
+    return True
