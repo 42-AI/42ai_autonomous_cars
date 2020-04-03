@@ -5,6 +5,9 @@ sys.path.append(str(Path(__file__).absolute().parents[1]))
 
 from get_data.src import update_db
 from conf import cluster_conf
+from utils import logger
+
+log = logger.Logger().create(logger_name=Path(__file__).name)
 
 
 def _get_args(description):
@@ -27,7 +30,9 @@ def delete_label_from_es():
     args = _get_args(delete_label_from_es.__doc__)
     label_file = args.label_file
     es_index_name = cluster_conf.ES_INDEX if args.index is None else args.index
+    log.debug("Starting...")
     update_db.delete_label_only(label_file=label_file, es_index=es_index_name)
+    log.debug("Execution completed.")
 
 
 if __name__ == "__main__":

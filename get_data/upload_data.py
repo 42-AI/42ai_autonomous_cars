@@ -8,6 +8,7 @@ from get_data.src import update_db
 from conf import cluster_conf
 from utils import logger
 
+log = logger.Logger().create(logger_name=Path(__file__).name)
 
 
 def _get_args(description):
@@ -43,8 +44,7 @@ def upload_data():
     export PATATE_ES_USER_PWD="your_es_password"
     """
     args = _get_args(upload_data.__doc__)
-    log = logger.Logger().create(logger_name=Path(__file__).name)
-    log.debug("Starting upload...")
+    log.debug("Starting...")
     label_file = args.label_file
     bucket_name = None if args.es_only else args.bucket
     key_prefix = args.key
@@ -54,7 +54,7 @@ def upload_data():
     update_db.delete_picture_and_label(label_file, es_index=es_index_name, bucket=bucket_name)
     upload.upload_to_db(label_file, es_ip_host, es_port_host, es_index_name,
                         bucket_name=bucket_name, overwrite=args.force, key_prefix=key_prefix)
-    log.debug("Upload completed.")
+    log.debug("Execution completed.")
 
 
 if __name__ == "__main__":

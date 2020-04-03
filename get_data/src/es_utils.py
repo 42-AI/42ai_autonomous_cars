@@ -205,10 +205,15 @@ def delete_index(index, host_ip, port):
 
 def delete_document(index, l_doc_id, es=None, host_ip=None, port=9200):
     """Delete all document listed in the list l_doc_id"""
-    if bool(es) == bool(host_ip):
+    if bool(es) == bool(host_ip) and es is not None:
         log.debug("host_ip and port will be ignored since es session object is provided")
     if es is None:
-        es = get_es_session(host_ip, port)
+        if host_ip is not None:
+            es = get_es_session(host_ip, port)
+            if es is None:
+                return 0, l_doc_id
+        else:
+            raise AttributeError("At least one of 'es' or 'host_ip' argument shall be provided.")
     nb_of_success, errors = helpers.bulk(es, _gen_bulk_doc_delete(l_doc_id, index),
                                          request_timeout=60, raise_on_error=False)
     failed_doc_id = []

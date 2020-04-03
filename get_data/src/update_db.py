@@ -24,8 +24,7 @@ def _get_img_and_label_to_delete_from_file(label_file):
     return l_img_delete, l_label_to_delete
 
 
-def _user_ok_for_deletion(file_name, nb_of_img_to_delete, delete_local=False, label_only=False):
-    print(f'File "{file_name}" loaded.')
+def _user_ok_for_deletion(nb_of_img_to_delete, delete_local=False, label_only=False):
     ok = None
     while ok not in ["y", "n"]:
         print(f'{nb_of_img_to_delete} ', end="")
@@ -60,7 +59,7 @@ def _delete_local_picture(l_pic_id, folder, extension_pattern=".*", verbose=1):
         for pic_file in folder.glob(f'{pic_id}{extension_pattern}'):
             pic_file.unlink()
             if verbose > 0:
-                print(f'File "{pic_file}" has been deleted.')
+                log.debug(f'File "{pic_file}" has been deleted.')
             cpt_delete += 1
     return cpt_delete
 
@@ -75,13 +74,14 @@ def delete_label_only(label_file, es_index=ES_INDEX, force=False):
     """
     d_label = utils_fct.get_label_dict_from_file(label_file)
     l_label_fingerprint = [label["label_fingerprint"] for _, label in d_label.items()]
-    if not force and not _user_ok_for_deletion(label_file, len(l_label_fingerprint), label_only=True):
+    log.debug(f'Labels loaded from file "{label_file}"')
+    if not force and not _user_ok_for_deletion(len(l_label_fingerprint), label_only=True):
         return 0, 0
-    es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
-    print(f'Deleting {len(l_label_fingerprint)} label(s) in index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})...')
-    i_es_success, l_failed_es = es_utils.delete_document(es=es, index=es_index, l_doc_id=l_label_fingerprint)
-    print(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
-    print(f'{len(l_failed_es)} deletion(s) failed.')
+    log.debug(f'Deleting {len(l_label_fingerprint)} label(s) in index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})...')
+    i_es_success, l_failed_es = es_utils.delete_document(host_ip=ES_HOST_IP, port=ES_HOST_PORT,
+                                                         index=es_index, l_doc_id=l_label_fingerprint)
+    log.info(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
+    log.info(f'{len(l_failed_es)} deletion(s) failed.')
     return i_es_success, l_failed_es
 
 
@@ -115,14 +115,15 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, 
                                         number of successful delete from S3, number of failed delete from S3
     """
     l_img_to_delete, l_label_fingerprint_to_delete = _get_img_and_label_to_delete_from_file(label_file)
+    log.debug(f'File "{label_file}" loaded.')
     if len(l_img_to_delete) == 0:
         return 0, 0, 0, 0
-    if not force and not _user_ok_for_deletion(label_file, len(l_img_to_delete), delete_local, label_only=not bool(bucket)):
+    if not force and not _user_ok_for_deletion(len(l_img_to_delete), delete_local, label_only=not bool(bucket)):
         return 0, 0, 0, 0
     es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
-    print(f'Deleting {len(l_label_fingerprint_to_delete)} labels in index "{es_index}" {ES_HOST_IP}:{ES_HOST_PORT}...')
+    log.debug(f'Deleting {len(l_label_fingerprint_to_delete)} labels in index "{es_index}" {ES_HOST_IP}:{ES_HOST_PORT}...')
     i_es_success, l_failed_es = es_utils.delete_document(es=es, index=es_index, l_doc_id=l_label_fingerprint_to_delete)
-    print(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
+    log.info(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
     time.sleep(1)
     l_ok_delete = []
     l_failed_s3 = []
@@ -130,22 +131,22 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, 
     if bucket is not None:
         s = esdsl.Search(index=es_index).using(es)
         s3 = s3_utils.get_s3_resource()
-        print(f'Deleting {len(l_img_to_delete)} picture(s) in s3...')
+        log.debug(f'Deleting {len(l_img_to_delete)} picture(s) in s3...')
         for img_id, s3_key in l_img_to_delete:
             if s3_key is None or s3_key == "":
                 continue
             s = s.query("match", img_id=img_id)
             response = s.execute()
             if response.hits.total.value > 0:
-                print(f'  --> Image "{img_id}" can\'t be removed: {response.hits.total.value} label(s) points to it.'
-                      f' List of labels:')
+                log.warning(f'  --> Image "{img_id}" can\'t be removed: {response.hits.total.value} label(s) points '
+                            f'to it. List of labels:')
                 blocking_label = [hit.label_fingerprint for hit in response.hits]
-                print(f'      {blocking_label}')
+                log.warning(f'      {blocking_label}')
                 l_failed_s3.append(img_id)
             else:
                 if not s3_utils.object_exist_in_bucket(s3=s3, bucket=bucket, key=s3_key):
-                    print(f'Image with id "{img_id}" couldn\'t be deleted from s3 bucket "{bucket}"'
-                          f' because key "{s3_key}" does not exists.')
+                    log.warning(f'Image with id "{img_id}" couldn\'t be deleted from s3 bucket "{bucket}"'
+                                f' because key "{s3_key}" does not exists.')
                     l_failed_s3.append(img_id)
                 else:
                     l_ok_delete.append(s3_key)
@@ -154,10 +155,10 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, 
         if delete_local:
             nb_local_pic_deleted = _delete_local_picture(l_pic_id=[pic_id for pic_id, _ in l_img_to_delete],
                                                          folder=Path(label_file).parent, extension_pattern=".*")
-    print(f'Deletions completed:')
-    print(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
-    print(f'S3: {len(l_ok_delete)} deletion(s) ; {len(l_failed_s3)} failed')
-    print(f'{nb_local_pic_deleted} picture(s) deleted from local drive.')
+    log.info(f'Deletions completed:')
+    log.info(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
+    log.info(f'S3: {len(l_ok_delete)} deletion(s) ; {len(l_failed_s3)} failed')
+    log.info(f'{nb_local_pic_deleted} picture(s) deleted from local drive.')
     return i_es_success, len(l_failed_es), len(l_ok_delete), len(l_failed_s3)
 
 

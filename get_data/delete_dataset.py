@@ -8,6 +8,7 @@ from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP, ES_INDEX
 from get_data.src import update_db
 from utils import logger
 
+log = logger.Logger().create(logger_name=Path(__file__).name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Delete a dataset from the database. All labels with this dataset name"
@@ -22,7 +23,6 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--host_port", type=str, default=ES_HOST_PORT,
                         help="ES port on the host")
     args = parser.parse_args()
-    log = logger.Logger().create(logger_name=Path(__file__).name)
     log.debug("Starting...")
     update_db.delete_dataset(dataset_name=args.dataset_name,
                              es_index=args.index,

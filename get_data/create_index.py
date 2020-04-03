@@ -9,6 +9,7 @@ from get_data.src import es_utils
 from conf.cluster_conf import ES_HOST_IP, ES_HOST_PORT, ES_INDEX
 from utils import logger
 
+log = logger.Logger().create(logger_name=Path(__file__).name)
 
 def get_args(description):
     parser = argparse.ArgumentParser(description=description,
@@ -27,7 +28,6 @@ def create_index():
     making the new index the one used for production.
     """
     args = get_args(create_index.__doc__)
-    log = logger.Logger().create(logger_name=Path(__file__).name)
     log.debug("Starting...")
     alias = ES_INDEX if args.prod else None
     es_utils.create_es_index(host_ip=ES_HOST_IP,
