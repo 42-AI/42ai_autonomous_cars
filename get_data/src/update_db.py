@@ -36,7 +36,7 @@ def _user_ok_for_deletion(nb_of_img_to_delete, delete_local=False, label_only=Fa
         print(f'. Do you want to proceed (y/n)? ', end="")
         ok = input()
     if ok == "n":
-        exit(0)
+        return False
     return True
 
 
@@ -176,8 +176,10 @@ def delete_pic_and_index(label_file, bucket_name, key_prefix, index, es_ip, es_p
     d_label = utils_fct.get_label_dict_from_file(label_file)
     l_pic_id = list(d_label.keys())
     l_pic_s3_key = [s3_utils.get_s3_formatted_bucket_path(bucket_name, key_prefix, pic_id)[2] for pic_id in l_pic_id]
+    log.info(f'Deleting {len(l_pic_s3_key)} picture(s) in "{bucket_name}"')
     s3_utils.delete_object_s3(bucket_name, l_pic_s3_key)
     if not s3_only:
+        log.info(f'Deleting index "{index}" from {es_ip}:{es_port}')
         es_utils.delete_index(index, es_ip, es_port)
 
 

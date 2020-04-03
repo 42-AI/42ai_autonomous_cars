@@ -23,25 +23,34 @@ from conf.path import LOG_DIRECTORY
 
 class Logger:
 
-    log_file = Path(LOG_DIRECTORY, f'log_{datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")}.log')
+    timestamp = datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")
+    log_file = Path(LOG_DIRECTORY, f'log_{timestamp}.log')
     if log_file is not None:
         if not Path(log_file).parent.is_dir():
             Path(log_file).parent.mkdir()
+    try:
+        es_user = os.environ[ENV_VAR_FOR_ES_USER_ID]
+    except KeyError:
+        es_user = None
+
+    @staticmethod
+    def get_path():
+        return Logger.log_file
+
+    @staticmethod
+    def get_json():
+        with Logger.log_file.open(mode='r', encoding='utf-8') as fp:
+            log_data = fp.read()
+        log = {
+            "user": Logger.es_user,
+            "timestamp": Logger.timestamp,
+            "log_file": str(Logger.log_file.absolute()),
+            "message": log_data
+        }
+        return log
 
     def __init__(self):
         self.main_fct = ""
-        try:
-            self.es_user = os.environ[ENV_VAR_FOR_ES_USER_ID]
-            self.es_pwd = os.environ[ENV_VAR_FOR_ES_USER_KEY]
-        except KeyError:
-            self.es_user = None
-            self.es_pwd = None
-        try:
-            self.s3_user = os.environ[ENV_VAR_FOR_AWS_USER_ID]
-            self.s3_pwd = os.environ[ENV_VAR_FOR_AWS_USER_KEY]
-        except KeyError:
-            self.s3_user = None
-            self.s3_pwd = None
 
     def create(self, logger_name="", streamhandler=sys.stdout):
         # create logger
@@ -58,7 +67,7 @@ class Logger:
         console_formatter = logging.Formatter(f'%(asctime)s [%(levelname)8s]: (%(name)s) %(message)s',
                                               datefmt='%Y-%m-%d %H:%M:%S')
         file_formatter = logging.Formatter(f'%(asctime)s [%(levelname)8s]: '
-                                           f'({self.es_user}) (%(name)s) %(message)s',
+                                           f'({Logger.es_user}) (%(name)s) %(message)s',
                                            datefmt='%Y-%m-%d %H:%M:%S')
 
         # add formatter to handlers
@@ -80,3 +89,5 @@ if __name__ == "__main__":
     logger.warning('test warn message')
     logger.error('error message')
     logger.critical('critical message')
+    log_json = Logger.get_json()
+    print(log_json)
