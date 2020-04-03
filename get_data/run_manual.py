@@ -1,14 +1,9 @@
 import argparse
-import json
-
+from pathlib import Path
 import sys
-import os
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.dirname(CURRENT_DIR)
-sys.path.append(PARENT_DIR)
 
+sys.path.append(str(Path(__file__).absolute().parents[1]))
 from get_data.src import training_session as ts
-from get_data.src import label_handler as lh
 from get_data.src import init_picture_folder as init
 
 
