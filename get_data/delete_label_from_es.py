@@ -33,6 +33,10 @@ def delete_label_from_es():
     log.debug("Starting...")
     update_db.delete_label_only(label_file=label_file, es_index=es_index_name)
     log.debug("Execution completed.")
+    log.debug("Uploading log...")
+    logger.Logger().upload_log(index=cluster_conf.LOG_INDEX,
+                               es_host_ip=cluster_conf.ES_HOST_IP,
+                               es_host_port=cluster_conf.ES_HOST_PORT)
 
 
 if __name__ == "__main__":

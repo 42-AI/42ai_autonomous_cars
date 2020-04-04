@@ -5,7 +5,7 @@ import sys
 import os
 sys.path.append(str(Path(__file__).absolute().parents[1]))
 
-from conf.cluster_conf import ENV_VAR_FOR_AWS_USER_ID, ENV_VAR_FOR_AWS_USER_KEY, ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY
+from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID
 from conf.path import LOG_DIRECTORY
 
 # ------------------------------------------------------------------------------------------
@@ -49,10 +49,14 @@ class Logger:
         }
         return log
 
-    def __init__(self):
-        self.main_fct = ""
+    @staticmethod
+    def upload_log(index, es_host_ip, es_host_port):
+        from get_data.src import es_utils
+        json_log = Logger().get_json()
+        es_utils.upload_single_doc(json_log, index=index, host_ip=es_host_ip, port=es_host_port)
 
-    def create(self, logger_name="", streamhandler=sys.stdout):
+    @staticmethod
+    def create(logger_name="", streamhandler=sys.stdout):
         # create logger
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)

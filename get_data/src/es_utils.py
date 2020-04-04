@@ -195,6 +195,18 @@ def upload_to_es(d_label, index, host_ip, port, overwrite=False):
     return failed_doc_id
 
 
+def upload_single_doc(document, index, es=None, host_ip=None, port=9200):
+    if es is None:
+        if host_ip is not None:
+            es = get_es_session(host_ip, port)
+        else:
+            raise AttributeError("At least one of 'es' or 'host_ip' argument shall be provided.")
+    log.debug(f'Indexing document to index "{index}""')
+    ret = es.index(index=index, body=document)
+    log.info(ret)
+    return ret
+
+
 def delete_index(index, host_ip, port):
     """Delete index from ES cluster"""
     es = get_es_session(host_ip, port)
