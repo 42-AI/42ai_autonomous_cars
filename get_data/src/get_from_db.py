@@ -60,17 +60,17 @@ def run_search_query(d_query, es_index=ES_INDEX, verbose=1):
         log.debug(f'Query sent to {ES_HOST_IP}:{ES_HOST_PORT}')
         if verbose > 1:
             log.debug(f'{search_obj.to_dict()}')
-        log.debug(f'Query return successfully: {response.success()}')
+        log.debug(f'Query returned successfully: {response.success()}')
     if response.hits.total.relation != "eq":
-        log.warning(f'WARNING --> you hit the maximum number of result limits: the picture list might not be complete.')
+        log.warning(f'WARNING --> you hit the maximum number of results limit: the picture list might not be complete.')
     d_match_pic = {}
     for hit in response.to_dict()["hits"]["hits"]:
         img_id = hit["_source"]["img_id"]
         if img_id in d_match_pic:
             fingerprint_1 = hit["_source"]["label_fingerprint"]
             fingerprint_2 = d_match_pic[img_id]["label_fingerprint"]
-            log.warning(f'WARNING --> Your search return multiple label for a single picture: Labels "{fingerprint_1}" '
-                        f'and "{fingerprint_2}" point to the same picture: "{img_id}". Only one label will be saved.')
+            log.warning(f'WARNING --> Your search returns multiple labels for a single picture: Labels "{fingerprint_1}"'
+                        f' and "{fingerprint_2}" points to the same picture: "{img_id}". Only one label will be saved.')
         d_match_pic[img_id] = hit["_source"]
     return d_match_pic
 
