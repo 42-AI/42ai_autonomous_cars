@@ -185,7 +185,7 @@ Normal procedure:
   5. Check the upload went OK
   6. Delete the old labels with the `delete_label_from_es.py` and the original file downloaded at step 1.
   
-There is a easier solution if your modifications don't change the label fingerprint:
+There is an easier solution if your modifications don't change the label fingerprint:
   1. Download the labels json file with all the labels you want to modify
   2. Use the `/utils/modify_label_json_file.py` function to apply your modifications on the labels.
   You need to edit the function code with the modifications you want to do.
