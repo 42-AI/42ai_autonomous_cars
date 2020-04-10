@@ -35,6 +35,7 @@ The database (DB) is made of two parts:
 - An Elasticsearch (ES) cluster to store labels.  
 
 You can access as a guest user with limited access rights the Elasticsearch cluster through Kibana with the following link: https://patate-db.com/
+
 As of 2020, Jeremy Jauzion is the current administrator of the database and should be contacted to get the access credentials in order to be able to use/connect to AWS and ES.
 
 How the DB works:  
