@@ -10,12 +10,13 @@ This file describes how to get new data:
 5. Search and download pictures from the database
 6. How to modify labels in the ES database
 7. How to create/ delete dataset
-8. BONUS TRACK - A small description of the database architecture
+8. Create a new index in Elasticsearch
+9. BONUS TRACK - A small description of the database architecture
 
 ## Forewords
 
 - Any function in this project should be run from the root folder, and not from a sub-folder like `get_data`.
-- A log file is created in the logs folder located in the get_data folder when the following functions are called:
+- A log file is created in the logs folder (located in the `get_data` folder) when the following functions are called:
 create_dataset.py	
 create_index.py	
 delete_dataset.py	
@@ -24,7 +25,7 @@ search_and_download.py
 upload_data.py	
 
 Each log file lists all consecutive messages given during one run of a script.
-A description of the different log messages levels can be found in the ../utils/config.py file.
+A description of the different log messages levels can be found in the `../utils/config.py` file.
 
 
 ## 1. How the database works
