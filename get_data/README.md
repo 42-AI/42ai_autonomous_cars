@@ -80,7 +80,8 @@ they will have the same hash, and hence, they will be considered duplicate and i
 - This "labels.json" file is 'disposable'. Every time someone wants to train a model, a request should be made to the ES database to get a .json file listing all the required pictures that will be used with a definite training set.
 
 
-Note: The next chapters will present the different functions that can be used in the get_data folder. To get additional information about a function input parameters, simply add -h to access the help menu of the function:
+Note: The next chapters will present the different functions that can be used in the get_data folder. To get additional information about a function input parameters, simply add `-h` to access the help menu of the function:
+
 ex: ```python function_name -h```
 
 ## 2. How to record pictures and create labels: `run_manual.py` and `write_label_template.py`
@@ -123,8 +124,9 @@ To check the current fields used in the label format, you can print a template o
 
 Every fields are automatically filled by the `run_manual.py` script.
 
-4. Finally you might want to re labelized pictures using the Django tool launched from the ../DjangoInterface folder. 
+4. Finally you might want to re labelized pictures using the Django tool launched from the `../DjangoInterface folder`. 
 Images can then be uploaded to the database following the instruction in the next chapter.
+
 Note: pictures can be uploaded to the database without relabelization.
 
 
@@ -134,7 +136,7 @@ Note: pictures can be uploaded to the database without relabelization.
 Use the function `upload_data.py` to read labels from a .json file, and upload pictures to s3 and labels to ES cluster.  
 
 Note that you will need access credentials for Elasticsearch and s3. Ask admin for details.
-The database visualization can be viewed through the https://patate-db.com/ link.
+The database visualization can be viewed through the `https://patate-db.com/` link.
 
 Your credentials shall be stored in the following environment variables (added into your .bashrc file for instance)
 ```
@@ -165,7 +167,6 @@ Use the function `search_and_download.py`.
 First, you must define your search query by modifying the search.json file located in the Queries folder.
 It will look for pictures in the database matching your query, and check if they already are in the local pictures directory. If they aren't, you will be asked if you wish to download the missing pictures. If you decline, a new .json file listing the pictures found during the search will still be created.
 A picture is missing if the "file_name", as stored in the db, can't be found in the pictures directory.
-See usage with `-h` option for details.
 
 A json file sample can be found in `get_data/queries/search_json`.
 
