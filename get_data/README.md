@@ -96,7 +96,7 @@ Steps:
 2. Check that the content in the hardware_conf.json file correctly describes the car:
 
 The content of this file will be added to the label of each picture.  
-The location of this file is defined in the `path.py` file (and as 04/2020, is found in the ../utils folder).
+The location of this file is defined in the `path.py` file (and as of 04/2020, is found into the ../utils folder).
    Example of hardware conf file:
    ```
    {
@@ -156,7 +156,7 @@ Note: Any picture that is wanted to be in the relabelized set must have its labe
 contains the new labels as well as the labels that will be deleted (this is done thanks to a field "to_delete" that is added in the picture label format). 
 
 
-All you need to do now is to use the `upload_to_db.py` scripts to upload the labels json file created with the Django UI.   
+All you need to do now is using the `upload_to_db.py` scripts to upload the labels json file created with the Django UI.   
 The script will upload the new labels and, for each label with the field "to_delete" set to True, delete the associated 
 picture from S3 and the label from ES (the picture will only be deleted if no other label in the database is associated with it).  
 Note that this will not delete from the database the original labels (the ones you download to be edited in Django). If 
