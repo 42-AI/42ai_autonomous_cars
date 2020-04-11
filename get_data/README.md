@@ -16,13 +16,14 @@ This file describes how to get new data:
 ## Forewords
 
 - Any function in this project should be run from the root folder, and not from a sub-folder like `get_data`.
-- A log file is created in the logs folder (located in the `get_data` folder) when the following functions are called:
+- A log file is created in the logs folder when the following functions are called:
 create_dataset.py	
 create_index.py	
 delete_dataset.py	
 delete_label_from_es.py	
 search_and_download.py	
 upload_data.py	
+- Path to the log folder is defined in `/conf/path.py`
 
 Each log file lists all consecutive messages given during one run of a script.
 A description of the different log messages levels can be found in the `../utils/config.py` file.
@@ -111,8 +112,8 @@ The location of this file is defined in the `path.py` file (and as 04/2020, is f
 The `run_manual.py` script must be directly run from the root 42ai_autonomous_cars folder:
 > sudo python get_data/run_manual.py -o Path_to_output_directory
   
-If the output folder provided to the script does not exist or has no session_template.json file, it will be automatically created. 
-The session template contains information about the current session (event name, track type, ...etc) that is common to all pictures.
+If the output folder provided to the script does not exist or has no session_template.json file, it will be automatically created.  
+The session template contains information about the current session (event name, track type, ...etc) that is common to all pictures of this session.
      
 The script will record each picture and create a corresponding label. All labels will be recorded into a single 
 file that will be saved when the run is stopped using the 'A' key of the Xbox controller. 
@@ -155,10 +156,13 @@ Note: Any picture that is wanted to be in the relabelized set must have its labe
 contains the new labels as well as the labels that will be deleted (this is done thanks to a field "to_delete" that is added in the picture label format). 
 
 
-All you need to do now is delete the modified labels + pictures and upload the new labels json file by respectively running the `delete_labels_from_es.py` and `upload_to_db.py` scripts.  
+All you need to do now is to use the `upload_to_db.py` scripts to upload the labels json file created with the Django UI.   
+The script will upload the new labels and, for each label with the field "to_delete" set to True, delete the associated 
+picture from S3 and the label from ES (the picture will only be deleted if no other label in the database is associated with it).  
+Note that this will not delete from the database the original labels (the ones you download to be edited in Django). If 
+you don't want to keep those original labels, you must use the `delete_labels_from_es.py` scripts with the original 
+labels json file.
 
-The script will upload the new label and, for each label with the field "to_delete" set to True, delete the associated 
-picture from S3 and the label from ES. Note: the picture will only be deleted if no other label in the database is associated with it.
 
 
 ## 5. How to search and download pictures from the database: `search_and_download.py`
@@ -223,9 +227,6 @@ Once you have created the dataset, you will be ask for validation before any upl
 
 ### 7.2 Delete a dataset
 Use the function `delete_dataset.py` in `get_data/`.
-description="Interactively creates a dataset and add every label contained in the input file to this dataset. 
-The input shall be a labels json file. 
-Once you have created the dataset, you will be ask for validation before the upload to ES.
 
 
 ## 8. Create a new index in Elasticsearch: `create_index.py`
