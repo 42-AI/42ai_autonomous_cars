@@ -2,20 +2,24 @@ from datetime import datetime
 from pathlib import Path
 import json
 import hashlib
+import sys
 
+sys.path.append(str(Path(__file__).absolute().parents[1]))
 from get_data.src import s3_utils
+from utils import logger
+
+log = logger.Logger().create(logger_name=__name__)
 
 
 def get_label_file_name(directory, base_name="labels", suffix=".json"):
     """Generate a unique label file name based on now timestamp."""
-    # return Path(label_file).parent / f'{label_file.stem}_{datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")}{label_file.suffix}'
     return Path(directory) / f'{base_name}_{datetime.now().strftime("%Y%m%dT%H-%M-%S-%f")}{suffix}'
 
 
 def get_label_dict_from_file(file):
     """Open and read file containing the label(s). Return a dictionary of label or None on errors."""
     if not Path(file).is_file():
-        print(f'File "{file}" can\'t be found.')
+        log.error(f'File "{file}" can\'t be found.')
         return None
     with Path(file).open(mode='r', encoding='utf-8') as fp:
         d_label = json.load(fp)

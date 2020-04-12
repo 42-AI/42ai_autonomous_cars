@@ -7,7 +7,11 @@ import json
 from pathlib import Path
 
 from conf.path import INDEX_TEMPLATE
-from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY, ES_INDEX
+from conf.cluster_conf import ENV_VAR_FOR_ES_USER_ID, ENV_VAR_FOR_ES_USER_KEY
+from utils import logger
+
+
+log = logger.Logger().create(logger_name=__name__)
 
 
 def get_es_session(host_ip, port):
@@ -15,17 +19,17 @@ def get_es_session(host_ip, port):
         user = os.environ[ENV_VAR_FOR_ES_USER_ID]
         pwd = os.environ[ENV_VAR_FOR_ES_USER_KEY]
     except KeyError:
-        print("  --> Warning: Elasticsearch user and/or password not found. Trying connection without authentication")
+        log.warning("  --> Elasticsearch user and/or password not found. Trying connection without authentication")
         user = ""
         pwd = ""
     try:
         es = elasticsearch.Elasticsearch([host_ip], http_auth=(user, pwd), scheme="https", port=443)
         connection_ok = es.ping()
         if not connection_ok:
-            print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}"')
+            log.error(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}"')
             return None
     except elasticsearch.ElasticsearchException as err:
-        print(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}" because:\n{err}')
+        log.error(f'Failed to connect to Elasticsearch cluster "{host_ip}:{port}" because:\n{err}')
         return None
     return es
 
@@ -37,14 +41,20 @@ def create_es_index(host_ip, host_port, index_name, alias=None, index_pattern="_
         return es
     with Path(INDEX_TEMPLATE).open(mode='r', encoding='utf-8') as fp:
         index_template = json.load(fp)
-    es.indices.create(index_name, body=index_template)
-    if alias is not None:
-        es.indices.update_aliases({
-            "actions": [
-                {"remove": {"index": index_pattern, "alias": alias}},
-                {"add": {"index": index_name, "alias": alias}}
-            ]
-        })
+    try:
+        es.indices.create(index_name, body=index_template)
+        log.info(f'Index "{index_name}" created in {host_ip}:{host_port}')
+        if alias is not None:
+            es.indices.update_aliases({
+                "actions": [
+                    {"remove": {"index": index_pattern, "alias": alias}},
+                    {"add": {"index": index_name, "alias": alias}}
+                ]
+            })
+            log.info(f'Alias "{alias}" points now to index "{index_name}".')
+    except elasticsearch.ElasticsearchException as err:
+        log.error(f'Failed to create index or alias because: {err}')
+        return None
     return es
 
 
@@ -113,22 +123,23 @@ def _gen_bulk_doc_delete(l_doc_id, index):
 
 
 def _print_bulk_update_synthesis(success, errors):
-    print(f'{success} label(s) successfully update.')
+    synthesis = f'Update completed:\n{success} label(s) successfully updated.\n'
     if len(errors) > 0:
-        print(f'{len(errors)} label(s) update failed:')
+        synthesis += f'{len(errors)} label(s) update failed:\n'
         for err in errors:
-            print(f'  --> Label "{err["update"]["_id"]}" got "{err["update"]["error"]["type"]}" '
-                  f'because: {err["update"]["error"]["reason"]}')
+            synthesis += f'  --> Label "{err["update"]["_id"]}" got "{err["update"]["error"]["type"]}" ' \
+                         f'because: {err["update"]["error"]["reason"]}\n'
             if err["update"]["error"]["reason"] == "failed to execute script":
-                print(f'\t\t(error history: This error happened before because the "dataset" field of the label '
-                      f'in the database was not a list. Thus, could not append value...)')
+                synthesis += f'\t\t(error history: This error happened before because the "dataset" field of the ' \
+                             f'label in the database was not a list. Thus, could not append value...)\n'
+    log.info(synthesis)
 
 
 def append_value_to_field(d_label, field_to_update, value, es_index, es_host_ip, es_host_port, verbose=1):
     es = get_es_session(host_ip=es_host_ip, port=es_host_port)
     if es is None:
         return 0, len(d_label)
-    print(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
+    log.debug(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
     success, errors = helpers.bulk(es, _gen_bulk_doc_update_append_field(d_label, es_index, field_to_update, value),
                                    request_timeout=60, raise_on_error=False)
     if verbose > 0:
@@ -140,7 +151,8 @@ def delete_value_from_field(d_label, field_to_update, value, es_index, es_host_i
     es = get_es_session(host_ip=es_host_ip, port=es_host_port)
     if es is None:
         return 0, len(d_label)
-    print(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
+    log.debug(f'Connected to {es_host_ip}:{es_host_port} ; updating index "{es_index}"...')
+    log.debug(f'Deleting dataset "{value}"...')
     success, errors = helpers.bulk(es, _gen_bulk_doc_update_delete_item_from_field_array(
         d_label, es_index, field_to_update, value), request_timeout=60, raise_on_error=False)
     if verbose > 0:
@@ -178,8 +190,21 @@ def upload_to_es(d_label, index, host_ip, port, overwrite=False):
     for error in errors:
         for error_type in error:
             failed_doc_id.append(error[error_type]["_id"])
-            print(f'  --> Couldn\'t upload document {failed_doc_id[-1]} because:{error[error_type]["error"]["reason"]}')
+            log.warning(
+                f'  --> Couldn\'t upload document {failed_doc_id[-1]} because:{error[error_type]["error"]["reason"]}')
     return failed_doc_id
+
+
+def upload_single_doc(document, index, es=None, host_ip=None, port=9200):
+    if es is None:
+        if host_ip is not None:
+            es = get_es_session(host_ip, port)
+        else:
+            raise AttributeError("At least one of 'es' or 'host_ip' argument shall be provided.")
+    log.debug(f'Indexing document to index "{index}""')
+    ret = es.index(index=index, body=document)
+    log.info(ret)
+    return ret
 
 
 def delete_index(index, host_ip, port):
@@ -192,10 +217,15 @@ def delete_index(index, host_ip, port):
 
 def delete_document(index, l_doc_id, es=None, host_ip=None, port=9200):
     """Delete all document listed in the list l_doc_id"""
-    if bool(es) == bool(host_ip):
-        print("host_ip and port will be ignored since es session object is provided")
+    if bool(es) == bool(host_ip) and es is not None:
+        log.debug("host_ip and port will be ignored since es session object is provided")
     if es is None:
-        es = get_es_session(host_ip, port)
+        if host_ip is not None:
+            es = get_es_session(host_ip, port)
+            if es is None:
+                return 0, l_doc_id
+        else:
+            raise AttributeError("At least one of 'es' or 'host_ip' argument shall be provided.")
     nb_of_success, errors = helpers.bulk(es, _gen_bulk_doc_delete(l_doc_id, index),
                                          request_timeout=60, raise_on_error=False)
     failed_doc_id = []
@@ -203,10 +233,10 @@ def delete_document(index, l_doc_id, es=None, host_ip=None, port=9200):
         for error_type in error:
             failed_doc_id.append(error[error_type]["_id"])
             try:
-                print(f'  --> Error: couldn\'t delete document {failed_doc_id[-1]} '
-                      f'because:{error[error_type]["error"]["reason"]}')
+                log.warning(f'  --> Error: couldn\'t delete document {failed_doc_id[-1]} '
+                            f'because:{error[error_type]["error"]["reason"]}')
             except KeyError:
-                print(f'  --> Error: {error}')
+                log.warning(f'  --> Error: {error}')
     return nb_of_success, failed_doc_id
 
 
@@ -229,7 +259,7 @@ def _add_query(search_obj, field, query, bool="match"):
     elif bool == "must_not":
         return search_obj.exclude(query_type, **repackage_query)
     else:
-        print(f'Unknown value for "bool" argument. Got {bool}')
+        log.error(f'Unknown value for "bool" argument. Got {bool}')
         return None
 
 

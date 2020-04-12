@@ -9,6 +9,9 @@ from get_data.src import es_utils
 from get_data.src import utils_fct
 from get_data.src import get_from_db
 from conf.cluster_conf import ES_INDEX, ES_HOST_PORT, ES_HOST_IP, BUCKET_NAME
+from utils import logger
+
+log = logger.Logger().create(logger_name=__name__)
 
 
 def _get_img_and_label_to_delete_from_file(label_file):
@@ -21,8 +24,7 @@ def _get_img_and_label_to_delete_from_file(label_file):
     return l_img_delete, l_label_to_delete
 
 
-def _user_ok_for_deletion(file_name, nb_of_img_to_delete, delete_local=False, label_only=False):
-    print(f'File "{file_name}" loaded.')
+def _user_ok_for_deletion(nb_of_img_to_delete, delete_local=False, label_only=False):
     ok = None
     while ok not in ["y", "n"]:
         print(f'{nb_of_img_to_delete} ', end="")
@@ -34,7 +36,7 @@ def _user_ok_for_deletion(file_name, nb_of_img_to_delete, delete_local=False, la
         print(f'. Do you want to proceed (y/n)? ', end="")
         ok = input()
     if ok == "n":
-        exit(0)
+        return False
     return True
 
 
@@ -57,7 +59,7 @@ def _delete_local_picture(l_pic_id, folder, extension_pattern=".*", verbose=1):
         for pic_file in folder.glob(f'{pic_id}{extension_pattern}'):
             pic_file.unlink()
             if verbose > 0:
-                print(f'File "{pic_file}" has been deleted.')
+                log.debug(f'File "{pic_file}" has been deleted.')
             cpt_delete += 1
     return cpt_delete
 
@@ -72,13 +74,14 @@ def delete_label_only(label_file, es_index=ES_INDEX, force=False):
     """
     d_label = utils_fct.get_label_dict_from_file(label_file)
     l_label_fingerprint = [label["label_fingerprint"] for _, label in d_label.items()]
-    if not force and not _user_ok_for_deletion(label_file, len(l_label_fingerprint), label_only=True):
+    log.debug(f'Labels loaded from file "{label_file}"')
+    if not force and not _user_ok_for_deletion(len(l_label_fingerprint), label_only=True):
         return 0, 0
-    es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
-    print(f'Deleting {len(l_label_fingerprint)} label(s) in index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})...')
-    i_es_success, l_failed_es = es_utils.delete_document(es=es, index=es_index, l_doc_id=l_label_fingerprint)
-    print(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
-    print(f'{len(l_failed_es)} deletion(s) failed.')
+    log.debug(f'Deleting {len(l_label_fingerprint)} label(s) in index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})...')
+    i_es_success, l_failed_es = es_utils.delete_document(host_ip=ES_HOST_IP, port=ES_HOST_PORT,
+                                                         index=es_index, l_doc_id=l_label_fingerprint)
+    log.info(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
+    log.info(f'{len(l_failed_es)} deletion(s) failed.')
     return i_es_success, l_failed_es
 
 
@@ -112,14 +115,15 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, 
                                         number of successful delete from S3, number of failed delete from S3
     """
     l_img_to_delete, l_label_fingerprint_to_delete = _get_img_and_label_to_delete_from_file(label_file)
+    log.debug(f'File "{label_file}" loaded.')
     if len(l_img_to_delete) == 0:
         return 0, 0, 0, 0
-    if not force and not _user_ok_for_deletion(label_file, len(l_img_to_delete), delete_local, label_only=not bool(bucket)):
+    if not force and not _user_ok_for_deletion(len(l_img_to_delete), delete_local, label_only=not bool(bucket)):
         return 0, 0, 0, 0
     es = es_utils.get_es_session(host_ip=ES_HOST_IP, port=ES_HOST_PORT)
-    print(f'Deleting {len(l_label_fingerprint_to_delete)} labels in index "{es_index}" {ES_HOST_IP}:{ES_HOST_PORT}...')
+    log.debug(f'Deleting {len(l_label_fingerprint_to_delete)} labels in index "{es_index}" {ES_HOST_IP}:{ES_HOST_PORT}...')
     i_es_success, l_failed_es = es_utils.delete_document(es=es, index=es_index, l_doc_id=l_label_fingerprint_to_delete)
-    print(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
+    log.info(f'{i_es_success} label(s) successfully deleted from index "{es_index}" ({ES_HOST_IP}:{ES_HOST_PORT})')
     time.sleep(1)
     l_ok_delete = []
     l_failed_s3 = []
@@ -127,22 +131,22 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, 
     if bucket is not None:
         s = esdsl.Search(index=es_index).using(es)
         s3 = s3_utils.get_s3_resource()
-        print(f'Deleting {len(l_img_to_delete)} picture(s) in s3...')
+        log.debug(f'Deleting {len(l_img_to_delete)} picture(s) in s3...')
         for img_id, s3_key in l_img_to_delete:
             if s3_key is None or s3_key == "":
                 continue
             s = s.query("match", img_id=img_id)
             response = s.execute()
             if response.hits.total.value > 0:
-                print(f'  --> Image "{img_id}" can\'t be removed: {response.hits.total.value} label(s) points to it.'
-                      f' List of labels:')
+                log.warning(f'  --> Image "{img_id}" can\'t be removed: {response.hits.total.value} label(s) points '
+                            f'to it. List of labels:')
                 blocking_label = [hit.label_fingerprint for hit in response.hits]
-                print(f'      {blocking_label}')
+                log.warning(f'      {blocking_label}')
                 l_failed_s3.append(img_id)
             else:
                 if not s3_utils.object_exist_in_bucket(s3=s3, bucket=bucket, key=s3_key):
-                    print(f'Image with id "{img_id}" couldn\'t be deleted from s3 bucket "{bucket}"'
-                          f' because key "{s3_key}" does not exists.')
+                    log.warning(f'Image with id "{img_id}" couldn\'t be deleted from s3 bucket "{bucket}"'
+                                f' because key "{s3_key}" does not exists.')
                     l_failed_s3.append(img_id)
                 else:
                     l_ok_delete.append(s3_key)
@@ -151,10 +155,10 @@ def delete_picture_and_label(label_file, es_index=ES_INDEX, bucket=BUCKET_NAME, 
         if delete_local:
             nb_local_pic_deleted = _delete_local_picture(l_pic_id=[pic_id for pic_id, _ in l_img_to_delete],
                                                          folder=Path(label_file).parent, extension_pattern=".*")
-    print(f'Deletions completed:')
-    print(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
-    print(f'S3: {len(l_ok_delete)} deletion(s) ; {len(l_failed_s3)} failed')
-    print(f'{nb_local_pic_deleted} picture(s) deleted from local drive.')
+    log.info(f'Deletions completed:')
+    log.info(f'ES: {i_es_success} deletion(s) ; {len(l_failed_es)} failed.')
+    log.info(f'S3: {len(l_ok_delete)} deletion(s) ; {len(l_failed_s3)} failed')
+    log.info(f'{nb_local_pic_deleted} picture(s) deleted from local drive.')
     return i_es_success, len(l_failed_es), len(l_ok_delete), len(l_failed_s3)
 
 
@@ -172,8 +176,10 @@ def delete_pic_and_index(label_file, bucket_name, key_prefix, index, es_ip, es_p
     d_label = utils_fct.get_label_dict_from_file(label_file)
     l_pic_id = list(d_label.keys())
     l_pic_s3_key = [s3_utils.get_s3_formatted_bucket_path(bucket_name, key_prefix, pic_id)[2] for pic_id in l_pic_id]
+    log.info(f'Deleting {len(l_pic_s3_key)} picture(s) in "{bucket_name}"')
     s3_utils.delete_object_s3(bucket_name, l_pic_s3_key)
     if not s3_only:
+        log.info(f'Deleting index "{index}" from {es_ip}:{es_port}')
         es_utils.delete_index(index, es_ip, es_port)
 
 
@@ -222,15 +228,16 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
     d_label = utils_fct.get_label_dict_from_file(label_json_file)
     if d_label is None or len(d_label) == 0:
         if d_label is not None:
-            print(f'Input file "{label_json_file}" is empty.')
+            log.error(f'Input file "{label_json_file}" is empty.')
         return False
-    print(f'{len(d_label)} picture(s) loaded')
+    log.debug(f'{len(d_label)} picture(s) loaded')
     if raw_query_file is not None:
         with Path(raw_query_file).open(mode='r', encoding='utf-8') as fp:
             dataset = {"query": json.load(fp)}
     else:
         dataset = {"query": None}
     dataset = _ask_user_dataset_details(dataset)
+    log.info(f'Uploading dataset "{dataset["name"]}" to {es_host_ip}:{es_host_port}')
     es_utils.append_value_to_field(d_label, "dataset", dataset, es_index, es_host_ip, es_host_port)
     if overwrite_input_file:
         for img_id, label in d_label.items():
@@ -241,9 +248,9 @@ def create_dataset(label_json_file, raw_query_file=None, overwrite_input_file=Tr
         try:
             with Path(label_json_file).open(mode='w', encoding='utf-8') as fp:
                 json.dump(d_label, fp, indent=4)
-            print(f'Label file "{label_json_file}" has been updated.')
+            log.info(f'Label file "{label_json_file}" has been updated.')
         except IOError as err:
-            print(f'Couldn\'t update "{label_json_file} because : {err}')
+            log.warning(f'Couldn\'t update "{label_json_file} because : {err}')
     return True
 
 
@@ -269,7 +276,7 @@ def delete_dataset(dataset_name, es_index=ES_INDEX, es_host_ip=ES_HOST_IP, es_ho
     }
     d_label = get_from_db.run_search_query(search_query, es_index=es_index, verbose=0)
     if len(d_label) == 0:
-        print(f'No labels found for dataset "{dataset_name}".')
+        log.info(f'No labels found for dataset "{dataset_name}".')
         return True
     _, first_doc = next(iter(d_label.items()))
     l_dataset = first_doc["dataset"]
@@ -277,10 +284,11 @@ def delete_dataset(dataset_name, es_index=ES_INDEX, es_host_ip=ES_HOST_IP, es_ho
         if dataset["name"] == dataset_name:
             break
     else:
-        print("Dataset not found in result...")
+        log.error("Dataset not found in result...")
         exit(1)
-    print(f'Dataset is : {dataset}')
+    log.debug(f'Dataset is : {dataset}')
     validation = "" if not force else "y"
     while validation not in ["y", "n"]:
         validation = input(f'{len(d_label)} labels found in this dataset. Do you want to delete this dataset (y/n)? ')
     es_utils.delete_value_from_field(d_label, "dataset", dataset, es_index, es_host_ip, es_host_port)
+    return True

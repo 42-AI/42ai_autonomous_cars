@@ -1,12 +1,13 @@
 from pathlib import Path
 import json
-from tqdm import tqdm
-from datetime import datetime
 
 from get_data.src import es_utils
 from get_data.src import s3_utils
 from get_data.src import utils_fct
 from conf.cluster_conf import ES_INDEX, ES_HOST_IP, ES_HOST_PORT
+from utils import logger
+
+log = logger.Logger().create(logger_name=__name__)
 
 
 def _get_missing_picture(picture_dir, d_wanted_pic):
@@ -56,20 +57,20 @@ def run_search_query(d_query, es_index=ES_INDEX, verbose=1):
     search_obj = es_utils.get_search_query_from_dict(es_index, d_query)
     response = es_utils.run_query(es, search_obj)
     if verbose > 0:
-        print(f'Query sent to {ES_HOST_IP}:{ES_HOST_PORT}')
+        log.debug(f'Query sent to {ES_HOST_IP}:{ES_HOST_PORT}')
         if verbose > 1:
-            print(f'{search_obj.to_dict()}')
-        print(f'Query return successfully: {response.success()}')
+            log.debug(f'{search_obj.to_dict()}')
+        log.debug(f'Query returned successfully: {response.success()}')
     if response.hits.total.relation != "eq":
-        print(f'WARNING --> you hit the maximum number of result limits: the picture list might not be complete.')
+        log.warning(f'WARNING --> you hit the maximum number of results limit: the picture list might not be complete.')
     d_match_pic = {}
     for hit in response.to_dict()["hits"]["hits"]:
         img_id = hit["_source"]["img_id"]
         if img_id in d_match_pic:
             fingerprint_1 = hit["_source"]["label_fingerprint"]
             fingerprint_2 = d_match_pic[img_id]["label_fingerprint"]
-            print(f'WARNING --> Your search return multiple label for a single picture: Labels "{fingerprint_1}" '
-                  f'and "{fingerprint_2}" point to the same picture: "{img_id}". Only one label will be saved.')
+            log.warning(f'WARNING --> Your search returns multiple labels for a single picture: Labels "{fingerprint_1}"'
+                        f' and "{fingerprint_2}" points to the same picture: "{img_id}". Only one label will be saved.')
         d_match_pic[img_id] = hit["_source"]
     return d_match_pic
 
@@ -101,7 +102,7 @@ def _write_labels_to_file(output, d_label, verbose=1):
     with Path(output).open(mode='w', encoding='utf-8') as fp:
         json.dump(d_label, fp, indent=4)
         if verbose > 0:
-            print(f'Labels written to: "{Path(output)}"')
+            log.info(f'Labels written to: "{Path(output)}"')
 
 
 def search_and_download(query_json, picture_dir, label_file_name="labels.json", es_index=ES_INDEX, force=False, verbose=1):
@@ -130,19 +131,19 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
     picture_dir = Path(picture_dir)
     if not picture_dir.is_dir():
         picture_dir.mkdir(parents=True)
-        print(f'Output folder "{picture_dir}" created.')
+        log.info(f'Output folder "{picture_dir}" created.')
     label_file_name = utils_fct.get_label_file_name(directory=picture_dir, base_name="labels")
-    print(f'Searching for picture in "{es_index}" index')
+    log.debug(f'Searching for picture in "{es_index}" index')
     d_matching_label = run_search_query_from_file(query_file=query_json, es_index=es_index, verbose=verbose)
     if d_matching_label is None:
         return None
     if len(d_matching_label) == 0:
-        print(f'No matching picture found.')
+        log.info(f'No matching picture found.')
         return {}
     _write_labels_to_file(output=label_file_name, d_label=d_matching_label)
     d_missing_pic = _get_missing_picture(picture_dir, d_matching_label)
-    print(f'{len(d_matching_label)} picture(s) found matching the query')
-    print(f'{len(d_missing_pic)} picture(s) missing in "{picture_dir}"')
+    log.info(f'{len(d_matching_label)} picture(s) found matching the query')
+    log.info(f'{len(d_missing_pic)} picture(s) missing in "{picture_dir}"')
     if len(d_missing_pic) == 0:
         return []
     if not force:
@@ -151,6 +152,6 @@ def search_and_download(query_json, picture_dir, label_file_name="labels.json", 
             proceed = input(f'Do you want to proceed and download the {len(d_missing_pic)} missing picture(s) (y/n)? ')
         if proceed == "n":
             return []
-    print("Downloading the missing picture(s)...")
+    log.debug("Downloading the missing picture(s)...")
     s3_utils.download_from_s3(d_missing_pic, output_dir=picture_dir)
     return d_missing_pic

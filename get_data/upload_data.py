@@ -1,25 +1,26 @@
 import argparse
+from pathlib import Path
 import sys
-import os
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.dirname(CURRENT_DIR)
-sys.path.append(PARENT_DIR)
 
+sys.path.append(str(Path(__file__).absolute().parents[1]))
 from get_data.src import upload_to_db as upload
 from get_data.src import update_db
-from conf import cluster_conf
+from conf.cluster_conf import ES_HOST_PORT, ES_HOST_IP, ES_INDEX, LOG_INDEX, BUCKET_NAME
+from utils import logger
+
+log = logger.Logger().create(logger_name=Path(__file__).name)
 
 
 def _get_args(description):
     parser = argparse.ArgumentParser(description=description,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("label_file", type=str, help="Path to the json label file")
-    parser.add_argument("-b", "--bucket", default=cluster_conf.BUCKET_NAME,
+    parser.add_argument("-b", "--bucket", default=BUCKET_NAME,
                         help="OPTIONAL. By default, bucket name is retrieved from the cluster_conf.py file")
     parser.add_argument("-k", "--key", default=None,
                         help="OPTIONAL. By default, key is automatically generated from the label. Final url of the "
                              "picture: https://s3.amazonaws.com/<bucket_name>/<key_prefix><file_name>)")
-    parser.add_argument("-i", "--index", default=cluster_conf.ES_INDEX,
+    parser.add_argument("-i", "--index", default=ES_INDEX,
                         help="OPTIONAL. By default, index name is retrieved from the cluster_conf.py file")
     parser.add_argument("-f", "--force", action="store_true",
                         help="Force option will overwrite existing pictures and labels in S3 and ES with new one"
@@ -43,15 +44,16 @@ def upload_data():
     export PATATE_ES_USER_PWD="your_es_password"
     """
     args = _get_args(upload_data.__doc__)
+    log.debug("Starting...")
     label_file = args.label_file
     bucket_name = None if args.es_only else args.bucket
     key_prefix = args.key
-    es_index_name = args.index
-    es_ip_host = cluster_conf.ES_HOST_IP
-    es_port_host = cluster_conf.ES_HOST_PORT
-    update_db.delete_picture_and_label(label_file, es_index=es_index_name, bucket=bucket_name)
-    upload.upload_to_db(label_file, es_ip_host, es_port_host, es_index_name,
+    update_db.delete_picture_and_label(label_file, es_index=args.index, bucket=bucket_name)
+    upload.upload_to_db(label_file, ES_HOST_IP, ES_HOST_PORT, args.index,
                         bucket_name=bucket_name, overwrite=args.force, key_prefix=key_prefix)
+    log.debug("Execution completed.")
+    log.debug("Uploading log...")
+    logger.Logger().upload_log(index=LOG_INDEX, es_host_ip=ES_HOST_IP, es_host_port=ES_HOST_PORT)
 
 
 if __name__ == "__main__":

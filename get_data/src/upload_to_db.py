@@ -1,10 +1,12 @@
 from pathlib import Path
-import json
 from datetime import datetime
 
 from get_data.src import s3_utils
 from get_data.src import es_utils
 from get_data.src import utils_fct
+from utils import logger
+
+log = logger.Logger().create(logger_name=__name__)
 
 
 def _remove_missing_pic_from_dic(label_dict, picture_dir):
@@ -26,7 +28,7 @@ def _remove_missing_pic_from_dic(label_dict, picture_dir):
     for img_id, label in label_dict.items():
         pics = Path(picture_dir) / label["file_name"]
         if not pics.is_file():
-            print(f'  --> Picture "{pics}" can\'t be found.')
+            log.warning(f'  --> Picture "{pics}" can\'t be found.')
             missing_pic_id.append(label["img_id"])
     for key in missing_pic_id:
         label_dict.pop(key)
@@ -34,23 +36,24 @@ def _remove_missing_pic_from_dic(label_dict, picture_dir):
 
 
 def _print_upload_synthesis(bucket, index_name, es_success, failed_es, s3_success, missing_pic, already_exist_pic):
-    print('----------------------------------------')
-    print(f'Upload Completed ! {s3_success} picture(s) uploaded to s3 and {es_success} uploaded to ES')
+    synthesis = '----------------------------------------\n'
+    synthesis += f'Upload Completed ! {s3_success} picture(s) uploaded to s3 and {es_success} uploaded to ES\n'
     if bucket is not None:
-        print(f'Upload to s3:')
-        print(f' Upload bucket: "{bucket}"')
-        print(f' {s3_success} picture(s) were successful uploaded to s3.')
-        print(f' {len(missing_pic) + len(already_exist_pic)} upload failed to s3.')
+        synthesis += f'Upload to s3:\n'
+        synthesis += f' Upload bucket: "{bucket}"\n'
+        synthesis += f' {s3_success} picture(s) were successful uploaded to s3.\n'
+        synthesis += f' {len(missing_pic) + len(already_exist_pic)} upload failed to s3.\n'
         if len(missing_pic) > 0:
-            print(f'   --> Picture not found:                   {missing_pic}')
+            synthesis += f'   --> Picture not found:                   {missing_pic}\n'
         if len(already_exist_pic) > 0:
-            print(f'   --> Picture id already exists in bucket: {already_exist_pic}')
-    print(f'Upload ES:')
-    print(f' Index name: "{index_name}"')
-    print(f' {es_success} picture(s) were successful uploaded to ES.')
-    print(f' {len(failed_es)} upload failed to ES.')
+            synthesis += f'   --> Picture id already exists in bucket: {already_exist_pic}\n'
+    synthesis += f'Upload ES:\n'
+    synthesis += f' Index name: "{index_name}"\n'
+    synthesis += f' {es_success} picture(s) were successful uploaded to ES.\n'
+    synthesis += f' {len(failed_es)} upload failed to ES.\n'
     if len(failed_es) > 0:
-        print(f'   --> List of failed pic id: {failed_es}')
+        synthesis += f'   --> List of failed pic id: {failed_es}\n'
+    log.info(synthesis)
 
 
 def _get_label_event_and_date(d_label):
@@ -62,7 +65,7 @@ def _get_label_event_and_date(d_label):
     except KeyError:
         return None, None
     except ValueError as err:
-        print(f'Error: could not parse date because : {err}')
+        log.error(f'Could not parse date because : {err}')
         return None, None
     return event, date
 
@@ -85,10 +88,12 @@ def generate_key_prefix(d_label):
     for key, label in d_label.items():
         is_valid, regex = s3_utils.is_valid_s3_key(label["event"])
         if not is_valid:
-            print(f'Event name "{label["event"]}" contains invalid character. Char is invalid if it match with:{regex}')
+            log.error(
+                f'Event name "{label["event"]}" contains invalid character. Char is invalid if it match with:{regex}')
             return None
         if label["event"] != event:
-            print(f'Key bucket can\'t be generated because event name is not unique: "{event}" != "{label["event"]}"')
+            log.error(
+                f'Key bucket can\'t be generated because event name is not unique: "{event}" != "{label["event"]}"')
             return None
     return f'{event}/{date.strftime("%Y%m%d")}/'
 
@@ -127,12 +132,12 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
     picture_folder = Path(label_file).parent
     d_label = utils_fct.get_label_dict_from_file(label_file)
     utils_fct.remove_label_to_delete_from_dict(d_label)
-    print(f'Label file "{label_file}" loaded. {len(d_label)} picture(s) and/or label(s) to upload.')
+    log.debug(f'Label file "{label_file}" loaded. {len(d_label)} picture(s) and/or label(s) to upload.')
     if d_label is None:
         return 0, 0, 0
     total_label = len(d_label)
     if bucket_name is not None:
-        print(f'Looking for pictures...')
+        log.debug(f'Looking for pictures...')
         missing_pic = _remove_missing_pic_from_dic(d_label, picture_dir=picture_folder)
         if len(d_label) == 0:
             return 0, 0, total_label
@@ -141,7 +146,7 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
             if key_prefix is None:
                 return 0, 0, total_label
         upload_bucket_dir, bucket_name, key_prefix = s3_utils.get_s3_formatted_bucket_path(bucket_name, key_prefix)
-        print(f'Uploading to s3...')
+        log.debug(f'Uploading to s3...')
         s3_upload_success, already_exist_pic = s3_utils.upload_to_s3_from_label(
             d_label, picture_dir=picture_folder, s3_bucket_name=bucket_name, prefix=key_prefix, overwrite=overwrite)
         utils_fct.edit_label(d_label, "s3_bucket", upload_bucket_dir)
@@ -149,7 +154,7 @@ def upload_to_db(label_file, es_host_ip, es_port, es_index, bucket_name=None, ke
     else:
         upload_bucket_dir = None
         s3_upload_success = missing_pic = already_exist_pic = []
-    print(f'Uploading to Elasticsearch cluster...')
+    log.debug(f'Uploading to Elasticsearch cluster...')
     failed_es_upload = es_utils.upload_to_es(
         d_label=d_label, index=es_index, host_ip=es_host_ip, port=es_port, overwrite=overwrite)
     es_success = len(d_label) - len(failed_es_upload)

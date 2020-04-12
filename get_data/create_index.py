@@ -6,7 +6,10 @@ import sys
 sys.path.append(str(Path(__file__).absolute().parents[1]))
 
 from get_data.src import es_utils
-from conf.cluster_conf import ES_HOST_IP, ES_HOST_PORT, ES_INDEX
+from conf.cluster_conf import ES_HOST_IP, ES_HOST_PORT, ES_INDEX, LOG_INDEX
+from utils import logger
+
+log = logger.Logger().create(logger_name=Path(__file__).name)
 
 
 def get_args(description):
@@ -26,17 +29,16 @@ def create_index():
     making the new index the one used for production.
     """
     args = get_args(create_index.__doc__)
+    log.debug("Starting...")
     alias = ES_INDEX if args.prod else None
-    es = es_utils.create_es_index(host_ip=ES_HOST_IP,
-                                  host_port=ES_HOST_PORT,
-                                  index_name=args.index,
-                                  alias=alias,
-                                  index_pattern="_all")
-    if es is not None:
-        if alias is not None:
-            print(f'Index "{args.index}" created and defined as the new read/write index for alias "{ES_INDEX}"')
-        else:
-            print(f'Index "{args.index}" created.')
+    es_utils.create_es_index(host_ip=ES_HOST_IP,
+                             host_port=ES_HOST_PORT,
+                             index_name=args.index,
+                             alias=alias,
+                             index_pattern="_all")
+    log.debug("Execution completed")
+    log.debug("Uploading log...")
+    logger.Logger().upload_log(index=LOG_INDEX, es_host_ip=ES_HOST_IP, es_host_port=ES_HOST_PORT)
 
 
 if __name__ == "__main__":
