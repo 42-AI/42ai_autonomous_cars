@@ -1,3 +1,10 @@
+# Specific to project
+images/
+get_data/training_images
+download_images/
+get_data/queries
+logs/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -5,6 +12,9 @@ __pycache__/
 
 # C extensions
 *.so
+
+#OS file
+.DS_STORE
 
 # Distribution / packaging
 .Python
@@ -26,7 +36,7 @@ wheels/
 MANIFEST
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
+#  Usually these files are written by a python script from a _template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
@@ -55,6 +65,7 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+sqlite3.db
 
 # Flask stuff:
 instance/
@@ -89,6 +100,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.idea/
 
 # Spyder project settings
 .spyderproject

@@ -1,0 +1,9 @@
+{
+  {
+    "s3_bucket": "",
+    "event": "session_14012020",
+    "track" : "piste1",
+    "track_type": "single lane",
+    "comment": "night session"
+  }
+}

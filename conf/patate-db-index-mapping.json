@@ -1,0 +1,240 @@
+{
+  "settings" : {
+    "index" : {
+      "number_of_shards" : "1",
+      "number_of_replicas" : "0"
+    }
+  },
+  "mappings" : {
+    "dynamic": "strict",
+    "properties" : {
+      "car_setting" : {
+        "properties" : {
+          "camera" : {
+            "properties" : {
+              "camera_position" : {
+                "type" : "short"
+              },
+              "exposure_mode" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              },
+              "frame_rate" : {
+                "type" : "short"
+              },
+              "resolution-horizontal" : {
+                "type" : "short"
+              },
+              "resolution-vertical" : {
+                "type" : "short"
+              }
+            }
+          },
+          "constant" : {
+            "properties" : {
+              "head_down" : {
+                "type" : "short"
+              },
+              "head_up" : {
+                "type" : "short"
+              },
+              "max_direction_l" : {
+                "type" : "short"
+              },
+              "max_direction_r" : {
+                "type" : "short"
+              },
+              "max_speed" : {
+                "type" : "short"
+              },
+              "speed_fast" : {
+                "type" : "short"
+              },
+              "speed_normal" : {
+                "type" : "short"
+              },
+              "stop_speed" : {
+                "type" : "short"
+              },
+              "joystick_to_raw_dir_mapping": {
+                "type": "short"
+              },
+              "trigger_to_raw_speed_mapping": {
+                "type": "short"
+              },
+              "label_to_raw_dir_mapping": {
+                "type": "short"
+              },
+              "label_to_raw_speed_mapping": {
+                "type": "short"
+              }
+            }
+          }
+        }
+      },
+      "comment" : {
+        "type" : "text"
+      },
+      "dataset" : {
+        "properties": {
+          "name": {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "comment": {
+            "type" : "text",
+            "index": false,
+            "doc_values": false
+          },
+          "query": {
+            "type" : "keyword",
+            "ignore_above" : 8191,
+            "null_value": "",
+            "index": false,
+            "doc_values": false
+          },
+          "created_on_date": {
+            "type" : "date",
+            "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy",
+            "index": false,
+            "doc_values": false
+          }
+        }
+      },
+      "event" : {
+        "type" : "text",
+        "fields" : {
+          "keyword" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          }
+        }
+      },
+      "file_name" : {
+        "type" : "keyword",
+        "ignore_above" : 1024
+      },
+      "file_type" : {
+        "type" : "keyword",
+        "ignore_above" : 256
+      },
+      "hardware_conf" : {
+        "properties" : {
+          "camera" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          },
+          "car" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          },
+          "computer" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          },
+          "version" : {
+            "type" : "short"
+          }
+        }
+      },
+      "img_id" : {
+        "type" : "keyword",
+        "ignore_above" : 1024
+      },
+      "raw_value": {
+        "properties": {
+          "normalized_direction" : {
+            "type" : "float"
+          },
+          "normalized_speed" : {
+            "type" : "float"
+          },
+          "raw_direction" : {
+            "type" : "short"
+          },
+          "raw_speed" : {
+            "type" : "short"
+          }
+        }
+      },
+      "label_fingerprint": {
+        "type": "keyword",
+        "ignore_above": 256
+      },
+      "label" : {
+        "properties" : {
+          "label_direction" : {
+            "type" : "byte"
+          },
+          "label_speed" : {
+            "type" : "byte"
+          },
+          "created_by": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "created_on_date": {
+            "type" : "date",
+            "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy"
+          },
+          "raw_dir_to_label_mapping": {
+            "type": "short"
+          },
+          "raw_speed_to_label_mapping": {
+            "type": "short"
+          },
+          "nb_of_direction": {
+            "type": "short"
+          },
+          "nb_of_speed": {
+            "type": "short"
+          }
+        }
+      },
+      "s3_bucket" : {
+        "type" : "keyword",
+        "ignore_above" : 256
+      },
+      "raw_picture" : {
+        "type" : "boolean"
+      },
+      "timestamp" : {
+        "type" : "date",
+        "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy"
+      },
+      "track" : {
+        "type" : "text",
+        "fields" : {
+          "keyword" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          }
+        }
+      },
+      "track_picture" : {
+        "type" : "keyword",
+        "ignore_above" : 256,
+        "index": false,
+        "doc_values": false
+      },
+      "track_type" : {
+        "type" : "text",
+        "fields" : {
+          "keyword" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          }
+        }
+      },
+      "upload_date" : {
+        "type" : "date",
+        "format" : "yyyyMMdd'T'HH-mm-ss-SSSSSS || yyyyMMdd || dd/MM/yyyy"
+      }
+    }
+  }
+}

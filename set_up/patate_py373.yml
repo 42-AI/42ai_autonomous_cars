@@ -1,0 +1,34 @@
+# Create env with:
+# `conda env create -f patate-env.yml`
+# Then activate conda env:
+# `source activate patate`
+
+name: patate
+channels:
+  - conda-forge
+dependencies:
+  - python=3.7
+  - pip
+  - django=2.2
+  - django-extensions
+  - djangorestframework
+  - djangorestframework-jwt
+  - pillow
+  - service_identity
+  - numpy
+  - pandas
+  - sklearn
+  - tensorflow=2
+  - h5py
+  - elasticsearch
+  - elasticsearch-dsl
+  - boto3
+  - matplotlib
+  - pytest
+  - tqdm
+  - pip:
+    - channels
+    - adafruit-pca9685
+
+# XboxControler:
+# sudo apt-get install xboxdrv
