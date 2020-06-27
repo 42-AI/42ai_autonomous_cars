@@ -4,7 +4,7 @@ ENV_VAR_FOR_AWS_USER_ID = "PATATE_S3_KEY_ID"
 ENV_VAR_FOR_AWS_USER_KEY = "PATATE_S3_KEY"
 
 # ES cluster
-ES_HOST_IP = "patate-db.com/elastic"
+ES_HOST_IP = "9c1838890f4d45658b10cbc0425b949e.eu-west-1.aws.found.io:9243"
 ES_HOST_PORT = 9200
 ES_INDEX = "patate-db"
 LOG_INDEX = "logs"
