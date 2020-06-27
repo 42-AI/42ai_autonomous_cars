@@ -35,7 +35,8 @@ The database (DB) is made of two parts:
 - An AWS S3 bucket to store pictures ; 
 - An Elasticsearch (ES) cluster to store labels.  
 
-You can access as a guest user with limited access rights the Elasticsearch cluster through Kibana with the following link: https://patate-db.com/
+You can access the Elasticsearch cluster through Kibana with the following link: 
+https://124dd0d7eb3444ed82e5c16cf2321156.eu-west-1.aws.found.io:9243/
 
 As of 2020, Jeremy Jauzion is the current administrator of the database and should be contacted to get the access credentials in order to be able to use/connect to AWS and ES.
 
