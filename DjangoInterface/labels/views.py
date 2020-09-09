@@ -23,7 +23,7 @@ class uploadView(View):
         self.labels_data = None
     
     def get(self, request):
-        photos_list = Photo.objects.filter(owner=self.request.user).order_by('file')
+        photos_list = Photo.objects.filter(owner=self.request.user)
         return render(self.request, 'labels/labels.html', {'photos': photos_list})
 
     def post(self, request):
@@ -50,7 +50,7 @@ class uploadView(View):
                 with open(self.labels, "r") as f:
                     self.labels_data = json.load(f)
         if self.labels_data != None:
-            if len(Photo.objects.filter(owner=request.user)) >= len(self.labels_data):
+            if len(Photo.objects.filter(owner=request.user).exclude(file__endswith=".json")) != len(self.labels_data):
                 self.refresh_labels(request)
                 refresh = True
         return refresh
