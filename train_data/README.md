@@ -1,10 +1,24 @@
 # HOW TO TRAIN DATA
 
-This file describes how to train data:
+This file describes how to train data following 2 scripts methods:
 1. Context
 2. How to run the program
 3. Output
 
+
+# Method 1
+
+## 1. Context
+The `train.py` script trains a model from images that are loaded from a local folder and are restructured correctly to match the model inputs requirements.
+The `model_setter.py` script contains the NN model that will be used for training. Any new model has to be included in this file if needed.
+The model used is called from the first line of the main funtion: 
+`model_parameters = model_params_setter.get_model_params()`
+If more models are added to the `model_setter.py` script, the `get_model_params()` function will have to be changed to the wanted model to use for training.
+
+## 2. How to run the program
+
+
+# Method 2 (see Pablo for more details)
 
 ## 1. Context 
 The `multi_output_train.py` script trains a model from images in a local folder that is structured correctly.
