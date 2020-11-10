@@ -40,6 +40,8 @@ The labels path is the only required arguments. So the minimum command is:
 - if you run it from the `train_data` folder  
 ```PYTHONPATH='..' python multi_output_train.py ../get_data/training_images/labels.json```
 
+Note: Both scripts `train.py` and `train_new.py` appear to be obsolete and would require modifications to work with the current paths architecture.
+
 
 ## 3. Output  
   
