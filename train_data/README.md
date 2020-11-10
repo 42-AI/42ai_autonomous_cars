@@ -1,16 +1,23 @@
 # HOW TO TRAIN DATA
 
-This file describes how to train data:
+This file describes how to train data following 2 scripts methods:
 1. Context
 2. How to run the program
 3. Output
 
 
+# Method (see Pablo for more details)
+
 ## 1. Context 
-The `multi_output_train.py` script trains a model from images in a local folder that is structured correctly.
+The `multi_output_train.py` script trains a model from images that are loaded from a local folder and are restructured correctly to match the model inputs requirements.
 In order to get this folder, use the `search_and_download.py` script. (see the README.md in the get_data folder). 
 The `search_download_script` will create a `training_image` folder containing all the images and a json file that 
 describes these images and contains the labels. 
+
+The `model_setter.py` script contains the NN model that will be used for training. Any new model has to be included in this file if needed.
+The model used is called from the first line of the main funtion: 
+`model_parameters = model_params_setter.get_model_params()`
+If more models are added to the `model_setter.py` script, the `get_model_params()` function will have to be changed to the wanted model to use for training.
 
 The `multi_output_train.py` takes as argument the path to the json file in the above mentioned folder and a few optional arguments.
 It trains a model that can be reused, and create a few meta_data that can be used to evaluate the model.
@@ -32,6 +39,8 @@ The labels path is the only required arguments. So the minimum command is:
 ```python train_data/multi_output_train.py path_to_training_images/labels.json```
 - if you run it from the `train_data` folder  
 ```PYTHONPATH='..' python multi_output_train.py ../get_data/training_images/labels.json```
+
+Note: Both scripts `train.py` and `train_new.py` appear to be obsolete and would require modifications to work with the current paths architecture.
 
 
 ## 3. Output  

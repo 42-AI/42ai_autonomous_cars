@@ -138,7 +138,7 @@ Note: pictures can be uploaded to the database without relabelization.
 Use the function `upload_data.py` to read labels from a .json file, and upload pictures to s3 and labels to ES cluster.  
 
 Note that you will need access credentials for Elasticsearch and s3. Ask admin for details.
-The database visualization can be viewed through the `https://patate-db.com/` link.
+The database visualization can be viewed through the `https://124dd0d7eb3444ed82e5c16cf2321156.eu-west-1.aws.found.io:9243/` link.
 
 Your credentials shall be stored in the following environment variables (added into your .bashrc file for instance)
 ```
