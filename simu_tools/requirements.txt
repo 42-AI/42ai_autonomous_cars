@@ -1,0 +1,7 @@
+Pillow
+gym
+git+https://github.com/tawnkramer/gym-donkeycar.git
+inputs
+tensorflow
+numba
+matplotlib
