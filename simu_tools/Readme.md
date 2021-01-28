@@ -27,10 +27,11 @@ python man_client.py
 ```
 jupyter notebook
 ```
-
+```
 Donkey_Sim_Notebook: single images => categorical output
 Donkey_Sim_Multi_Notebook: images sequences with Conv3D or ConvLSTM2D => categorical output
 Donkey_Sim_Notebook_mse: single images => linear output
+```
 
 # Autonomous Drive
 
@@ -41,7 +42,8 @@ Corresponding scripts to run trained model on simulator
 ```
 python choosen_script.py --model my_model
 ```
-
+```
 sup_client.py
 sup_client_multi.py
 sup_client_mse.py
+```
