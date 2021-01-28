@@ -14,6 +14,9 @@ pip install -r requirements.txt
 ### 4 - Start the simulator, stay on the home page, the script will select the track from config
 
 ### 5 - Start the "man_client.py" script, check there is no error, and drive !
+```
+python man_client.py
+```
 
 ### 6 - Grab you images and labels from the "logs" folder (or other place you selected), time to Crunch Data !
 
