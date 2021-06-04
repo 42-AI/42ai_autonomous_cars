@@ -1,6 +1,6 @@
 # adafruit-pca9685
 boto3
-django==2.2.13
+django==2.2.21
 django-extensions
 djangorestframework
 djangorestframework-jwt
